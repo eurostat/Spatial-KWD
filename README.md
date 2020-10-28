@@ -1,7 +1,7 @@
 Spatial-KWD
 ===========
 
-Computing Kantorovich-Wasserstein distances for large spatial maps
+Computing Kantorovich-Wasserstein distances for large spatial maps.
 ---
 
 
