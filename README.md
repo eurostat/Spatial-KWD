@@ -27,3 +27,5 @@ Computing Kantorovich-Wasserstein distances for large spatial maps.
 **<a name="References"></a>References** 
 
 * Bassetti F., Gualandi S., Veneroni M. (2018): [**On the computation of Kantorovich-Wasserstein distances between 2D-histograms by uncapacitated minimum cost flows**](https://arxiv.org/pdf/1804.00445.pdf), arXiv: [1804.00445](https://arxiv.org/abs/1804.00445).
+
+* ...
