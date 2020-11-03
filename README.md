@@ -1,7 +1,7 @@
 Spatial-KWD
 ===========
 
-Computing Kantorovich-Wasserstein distances for large spatial maps.
+Computing Kantorovich-Wasserstein distances for large spatial maps
 ---
 
 **<a name="Description"></a>Description**
@@ -24,8 +24,6 @@ Computing Kantorovich-Wasserstein distances for large spatial maps.
     <tr> <td align="left"><i>license</i></td> <td align="left"><!-- <a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL</a>--> <i></i></td> </tr> 
 </table>
 
-**<a name="References"></a>References** 
+**<a name="References"></a>Main References** 
 
-* Bassetti F., Gualandi S., Veneroni M. (2018): [**On the computation of Kantorovich-Wasserstein distances between 2D-histograms by uncapacitated minimum cost flows**](https://arxiv.org/pdf/1804.00445.pdf), arXiv: [1804.00445](https://arxiv.org/abs/1804.00445).
-
-* ...
+* Bassetti F., Gualandi S., Veneroni M. (2018): [**On the computation of Kantorovich-Wasserstein distances between 2D-histograms by uncapacitated minimum cost flows**](https://epubs.siam.org/doi/abs/10.1137/19M1261195). SIAM J. Optim., 30(3), 2441–2469, 2020. Preprint on arXiv: [1804.00445](https://arxiv.org/abs/1804.00445).
