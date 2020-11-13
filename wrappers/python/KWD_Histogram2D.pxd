@@ -12,4 +12,4 @@ cdef extern from "KWD_Histogram2D.h" namespace "KWD":
 
     cdef cppclass Solver:
         Solver() except +
-        #double distance(Histogram2D A, Histogram2D B, int L)
+        double distance(const Histogram2D& A, const Histogram2D& B, int L)

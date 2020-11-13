@@ -325,7 +325,7 @@ namespace KWD {
 			}
 
 			if (fabs(_sum_supply) > 1e-7) {
-				fprintf(stdout, "Total mass: %f\n", _sum_supply);
+				fprintf(stdout, "Error Code 13: %f\n", _sum_supply);
 				exit(0);
 			}
 
@@ -634,7 +634,7 @@ namespace KWD {
 		ProblemType start() {
 			PivotRuleImpl pivot(*this);
 
-			fprintf(stdout, "%d %d %d\n", _node_num, _arc_num, (int)_source.size());
+			//fprintf(stdout, "%d %d %d\n", _node_num, _arc_num, (int)_source.size());
 			// Execute the Network Simplex algorithm
 			int it = 0;
 			while (pivot.findEnteringArc()) {
@@ -652,12 +652,12 @@ namespace KWD {
 
 				//fprintf(stdout, "updatePotential\n");
 				updatePotential();
-				if (it % 1000000 == 0)
-					fprintf(stdout, "Iter %d: Cost=%f\n", it, totalCost());
+//				if (it % 1000000 == 0)
+//					fprintf(stdout, "Iter %d: Cost=%f\n", it, totalCost());
 				it++;
 			}
-			fprintf(stdout, "Iter %d: Cost=%f, Flow=%f, isFeasible: %d\n",
-				it, totalCost(), totalFlow(), checkFeasibility());
+//			fprintf(stdout, "Iter %d: Cost=%f, Flow=%f, isFeasible: %d\n",
+//				it, totalCost(), totalFlow(), checkFeasibility());
 
 			return OPTIMAL;
 		}

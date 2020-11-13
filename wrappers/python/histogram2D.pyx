@@ -28,5 +28,5 @@ cdef class Solver:
     def __cinit__(self):
         self.m = PySolver()
 
-    #def distance(self, A, B, L):
-    #    return self.m.distance(A, B, L)
+    def distance(self, Histogram2D A, Histogram2D B, L):
+        return self.m.distance(A.mu, B.mu, L)
