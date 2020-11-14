@@ -6,11 +6,26 @@ Computing Kantorovich-Wasserstein distances for large spatial maps
 
 **<a name="Description"></a>Description**
 
+**<a name="Requirements"></a>Requirements**
+You only need the following library:
+
+* Cython (>= 0.23): tested on Windows 10 with v0.29.21
+
 **<a name="Quick-launch"></a>Quick launch**
+You have to download this repository, and the from command line run the command:
+
+```
+python setup.py build_ext --inplace
+```
+
+This will compile the C++ code and build the python wrapper.
 
 **<a name="Usage"></a>Usage**
+An example for using this library is given in the following notebook:
 
-**<a name="Requirements"></a>Requirements**
+| Data | Notebook | Link |
+|:-|:-|:-|
+|**[2020/11/13]**|*Tutorial 1: Testing the Spatial-KWD library*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
 
 **<a name="About"></a>About**
 
