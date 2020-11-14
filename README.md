@@ -21,6 +21,7 @@ python setup.py build_ext --inplace
 This will compile the C++ code and build the python wrapper.
 
 **<a name="Usage"></a>Usage**
+
 An example for using this library is given in the following notebook:
 
 | Data | Notebook | Link |
