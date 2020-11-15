@@ -15,7 +15,7 @@ a.normalize()
 
 # Define second histogram
 b = Histogram2D()
-# Add at position (1,1) a unit of mass
+# Add at position (1,1) two units of mass
 b.add(1, 1, 2)
 # Normalize the histogram
 b.normalize()

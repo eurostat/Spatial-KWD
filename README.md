@@ -7,12 +7,14 @@ Computing Kantorovich-Wasserstein distances for large spatial maps
 **<a name="Description"></a>Description**
 
 **<a name="Requirements"></a>Requirements**
+
 You only need the following library:
 
-* Cython (>= 0.23): tested on Windows 10 with v0.29.21
+* Cython (>= 0.23): tested on Windows 10 with v0.29.21 (python >= 3.6), Mac OS X Bug Sur 11.0.1 (python 3.8.3), Linux 20.04.1 LTS (python 3.8.5)
 
 **<a name="Quick-launch"></a>Quick launch**
-You have to download this repository, and the from command line run the command:
+
+You have to download this repository, move to the subdirectory `.\wrapper\python\`, and then run from command line the following command:
 
 ```
 python setup.py build_ext --inplace
