@@ -8,25 +8,32 @@ Computing Kantorovich-Wasserstein distances for large spatial maps
 
 **<a name="Requirements"></a>Requirements**
 
-You only need the following library:
+To compile the [Python](https://www.python.org/) wrapper you only need the following library:
 
 * Cython (>= 0.23)
 
+While for compiling the [R](https://www.r-project.org/) wrapper, you need:
+
+* Rcpp
+
 The KWD library is tested on:
 
+* Google Colabs
 * Windows 10 (python >= 3.6)
 * Mac OS X Bug Sur 11.0.1 (python 3.8.3)
 * Linux 20.04.1 LTS (python 3.8.5)
 
 **<a name="Quick-launch"></a>Quick launch**
 
-You have to download this repository, move to the subdirectory `.\wrapper\python\`, and then run from command line the following command:
+For the python wrapper, you have to download this repository, move to the subdirectory `.\wrapper\python\`, and then run from command line the following command:
 
 ```
 python setup.py build_ext --inplace
 ```
-
 This will compile the C++ code and build the python wrapper.
+
+For the R wrapper, we recommend to look at Tutoral 2, the second notebook listed below.
+
 
 **<a name="Usage"></a>Usage**
 
@@ -35,6 +42,7 @@ An example for using this library is given in the following notebook:
 | Data | Notebook | Link |
 |:-|:-|:-|
 |**[2020/11/13]**|*Tutorial 1: Testing the Spatial-KWD library*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
+|**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
 
 **<a name="About"></a>About**
 

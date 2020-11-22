@@ -1,0 +1,3 @@
+useDynLib(SpatialKWD, .registration=TRUE)
+import(methods, Rcpp)
+exportPattern("^[[:alpha:]]+")
