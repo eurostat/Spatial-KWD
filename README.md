@@ -42,7 +42,7 @@ An example for using this library is given in the following notebook:
 | Data | Notebook | Link |
 |:-|:-|:-|
 |**[2020/11/13]**|*Tutorial 1: Testing the Spatial-KWD library*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
-|**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
+|**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_with_R_Tutorial_2.ipynb)|
 
 **<a name="About"></a>About**
 
