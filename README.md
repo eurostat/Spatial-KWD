@@ -47,13 +47,13 @@ An example for using this library is given in the following notebook:
 **<a name="About"></a>About**
 
 <table align="center">
-    <tr> <td align="left"><i>contributors</i></td> 
+    <tr> <td align="left"><i>Contributors</i></td> 
     <td align="left" valign="middle">
 <a href="https://github.com/stegua"><img src="https://github.com/stegua.png" width="40"></a>
 </td>  </tr> 
     <!-- <tr> <td align="left"><i>version</i></td> <td align="left"> </td> </tr> -->
-    <tr> <td align="left"><i>status</i></td> <td align="left">since 2020</td> </tr> 
-    <tr> <td align="left"><i>license</i></td> <td align="left"><!-- <a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL</a>--> <i></i></td> </tr> 
+    <tr> <td align="left"><i>Status</i></td> <td align="left">since 2020</td> </tr> 
+    <tr> <td align="left"><i>License</i></td> <td align="left"><a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL</a><i></i></td> </tr> 
 </table>
 
 **<a name="References"></a>Main References** 
