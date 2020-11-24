@@ -324,9 +324,9 @@ namespace KWD {
 				_sum_supply += _supply[i];
 			}
 
-			if (fabs(_sum_supply) > 1e-7) {
+			if (fabs(_sum_supply) > 0.00001) {
 				fprintf(stdout, "Error Code 13: %f\n", _sum_supply);
-				exit(0);
+				//throw std::runtime_error("Error Code 13");
 			}
 
 			// Initialize artifical cost

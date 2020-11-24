@@ -1,11 +1,11 @@
 Package: SpatialKWD
 Type: Package
 Title: Spatial KWD for Large Spatial Maps
-Version: 0.1.0
+Version: 0.1.1
 Date: 2020-11-22
 Author: Stefano Gualandi
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 Description: Spatial Kantorovich-Wasserstein Distances (Spatial-KWD) for Large Spatial Maps.
 License: EUPL (>= 1.2)
-Imports: Rcpp (>= 1.0.5)
+Imports: Rcpp (>= 1.0.0)
 LinkingTo: Rcpp

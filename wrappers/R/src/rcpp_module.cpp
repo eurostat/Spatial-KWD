@@ -26,8 +26,46 @@
 
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
+
+double distanceDF(const Rcpp::DataFrame& DF, int L=3) {
+	Rcpp::IntegerVector X = DF["x"];
+	Rcpp::IntegerVector Y = DF["y"];
+	Rcpp::NumericVector H1 = DF["h1"];
+	Rcpp::NumericVector H2 = DF["h2"];
+
+	KWD::Histogram2D a;
+	KWD::Histogram2D b;
+
+	// Safe check: to be removed
+	a.add(0, 0, 0);
+	b.add(0, 0, 0);
+
+	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
+		a.add(X[i], Y[i], H1[i]);
+		b.add(X[i], Y[i], H2[i]);
+	}
+
+	a.normalize();
+	b.normalize();
+
+	KWD::Solver s;
+
+	try {
+		return s.distance(a, b, L);
+	}
+	catch (...) {
+		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
+		return 0.0;
+	}
+}
+
+
+
 RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
+
+	function("distanceDF", &distanceDF, "documentation for distanceDF ");
+
 
 	class_<KWD::Histogram2D>("Histogram2D")
 		// expose the default constructor
@@ -47,5 +85,3 @@ RCPP_MODULE(SKWD) {
 			"compute the distance between a pair of histograms with given L")
 		;
 }
-
-

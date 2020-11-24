@@ -5,7 +5,6 @@
 
 using namespace Rcpp;
 
-
 RcppExport SEXP _rcpp_module_boot_SKWD();
 
 static const R_CallMethodDef CallEntries[] = {
