@@ -109,11 +109,15 @@ namespace KWD {
 		}
 
 		// Support for loops
-		auto begin() { return Ws.begin(); }
-		auto begin() const { return Ws.begin(); }
+		std::unordered_map<int_pair, double, pair_hash>::iterator
+			begin() { return Ws.begin(); }
+		std::unordered_map<int_pair, double, pair_hash>::const_iterator
+			begin() const { return Ws.begin(); }
 
-		auto end() { return Ws.end(); }
-		auto end() const { return Ws.end(); }
+		std::unordered_map<int_pair, double, pair_hash>::iterator
+			end() { return Ws.end(); }
+		std::unordered_map<int_pair, double, pair_hash>::const_iterator
+			end() const { return Ws.end(); }
 
 	private:
 		int_pair_dict Ws;
