@@ -14,7 +14,7 @@
   package, including the most important functions.
 }
 \author{
-Stefano Gualandi.
+Stefano Gualandi, stefano.gualandi@gmail.com.
 
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 }

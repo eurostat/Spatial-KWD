@@ -31,6 +31,7 @@
 #pragma once
 
 #include <limits>
+#include <exception>
 
 
 namespace KWD {
@@ -192,9 +193,9 @@ namespace KWD {
 				: MAX) {
 			// Check the number types
 			if (!std::numeric_limits<Value>::is_signed)
-				fprintf(stdout, "The flow type of NetworkSimplex must be signed\n");
+				throw std::runtime_error("The flow type of NetworkSimplex must be signed");
 			if (!std::numeric_limits<Cost>::is_signed)
-				fprintf(stdout, "The cost type of NetworkSimplex must be signed");
+				throw std::runtime_error("The cost type of NetworkSimplex must be signed");
 
 			// Reset data structures
 			int all_node_num = _node_num + 1;
@@ -285,8 +286,8 @@ namespace KWD {
 		ProblemType checkFeasibility() {
 			for (int e = 0; e != _dummy_arc; ++e)
 				if (_flow[e] != 0) {
-					fprintf(stdout, "ERROR: flow on dummy arcs: %f\n", _flow[e]);
-					return INFEASIBLE;
+					throw std::runtime_error("ERROR 3: flow on dummy arcs: %f\n", _flow[e]);
+					//return INFEASIBLE;
 				}
 			return OPTIMAL;
 		}
@@ -325,7 +326,8 @@ namespace KWD {
 			}
 
 			if (fabs(_sum_supply) > 0.00001) {
-				fprintf(stdout, "Error Code 13: %f\n", _sum_supply);
+				// TODO: deal with this case
+				//fprintf(stdout, "Error Code 13: %f\n", _sum_supply);
 				//throw std::runtime_error("Error Code 13");
 			}
 

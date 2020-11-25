@@ -1,9 +1,9 @@
 \name{Rcpp Modules Examples}
-\alias{SKWD}
-\alias{Rcpp_Num-class}
-\alias{Rcpp_World-class}
-\alias{Rcpp_vec-class}
-\alias{C++Object-class}
+\alias{Histogram2D}
+\alias{Solver}
+\alias{distanceDF}
+\alias{Rcpp_Solver-class}
+\alias{Rcpp_Histogram2D-class}
 \title{
   Functions and Objects created by Rcpp Modules Example
 }

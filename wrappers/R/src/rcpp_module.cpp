@@ -64,7 +64,7 @@ double distanceDF(const Rcpp::DataFrame& DF, int L=3) {
 RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
 
-	function("distanceDF", &distanceDF, "documentation for distanceDF ");
+	function("distanceDF", &distanceDF, "documentation for distanceDF");
 
 
 	class_<KWD::Histogram2D>("Histogram2D")

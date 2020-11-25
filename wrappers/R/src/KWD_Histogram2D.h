@@ -22,6 +22,7 @@ using std::unordered_map;
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 #include <cmath>
 
@@ -212,7 +213,7 @@ namespace KWD {
 					B[i] = other.getB(j);
 				}
 				else {
-					fprintf(stdout, "point missing: %d %d\n", p.first.first, p.first.second);
+					std::runtime_error("ERROR 302: point missing");
 				}
 			}
 
@@ -241,14 +242,15 @@ namespace KWD {
 
 		size_t size(void) const { return X.size(); }
 
-		void dump(const std::string& msg = "") const {
-			if (!msg.empty())
-				fprintf(stdout, "%s\n", msg.c_str());
-			for (size_t i = 0, i_max = X.size(); i < i_max; ++i)
-				fprintf(stdout, "(%d, %d, %f)\n", X[i], Y[i], B[i]);
-			fprintf(stdout, "\n");
-			fflush(stdout);
-		}
+		// TODO: THIS IS NOT DEFINED RCPP !
+		//void dump(const std::string& msg = "") const {
+		//	if (!msg.empty())
+		//		fprintf(stdout, "%s\n", msg.c_str());
+		//	for (size_t i = 0, i_max = X.size(); i < i_max; ++i)
+		//		fprintf(stdout, "(%d, %d, %f)\n", X[i], Y[i], B[i]);
+		//	fprintf(stdout, "\n");
+		//	fflush(stdout);
+		//}
 
 		const std::unordered_map< std::pair<int, int>, size_t >& getM() const { return M; }
 
@@ -488,7 +490,7 @@ namespace KWD {
 
 			for (int i = 0; i < x_max + 1; ++i)
 				if (Xmin[i] == std::numeric_limits<int>::max() || Xmax[i] == -1)
-					exit(-1);
+					throw std::runtime_error("ERROR 201: convex hull issue");
 
 			PointCloud2D Rs;
 			for (int x = 0; x < x_max + 1; ++x)
@@ -614,8 +616,7 @@ namespace KWD {
 			std::ifstream in_file(filename);
 
 			if (!in_file) {
-				fprintf(stderr, "FATAL ERROR: Cannot open file %s", filename.c_str());
-				exit(EXIT_FAILURE);
+				std::runtime_error("FATAL ERROR: Cannot open file");
 			}
 
 			PointCloud2D Rs;
@@ -653,14 +654,13 @@ namespace KWD {
 			Rs.shrink_to_fit();
 			// normalize data (rescaling)
 			if (Rs.size() != Bs.size())
-				exit(0);
+				throw std::runtime_error("ERROR 301: error in parsing an input file - PointCloud2D");
+			
 			double tot = 0;
 			for (size_t i = 0, i_max = Bs.size(); i < i_max; ++i) {
 				tot += Rs.getB(i) / tot_a - Bs[i] / tot_b;
 				Rs.setB(i, Rs.getB(i) / tot_a - Bs[i] / tot_b);
 			}
-
-			fprintf(stdout, "tot flow: %f\n", tot);
 
 			return Rs;
 		}
