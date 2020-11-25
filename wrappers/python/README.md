@@ -10,7 +10,7 @@ You only need the following library:
 
 You have to download this repository, and the from command line run the command:
 
-```
+```bash
 python setup.py build_ext --inplace
 ```
 
@@ -20,13 +20,13 @@ This will compile the C++ code and build the python wrapper.
 
 For testing the library you can run the following command:
 
-```
+```bash
 python test_kwd.py
 ```
 
 And the output should be:
 
-```
+```bash
 d(a,b) = 1.4142135623730951
 d(a,c) = 4.035533905932738
 d(b,c) = 2.8284271247461903
@@ -34,7 +34,7 @@ d(b,c) = 2.8284271247461903
 
 The test program is the following
 
-```
+```python
 from KWD import *
 
 # Define first histogram
