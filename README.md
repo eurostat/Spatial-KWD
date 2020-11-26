@@ -1,9 +1,6 @@
 # Spatial-KWD
 
-**Computing Kantorovich-Wasserstein distances for large spatial maps**
-----
-
-## <a name="Description"></a>Description
+## <a name="Description"></a>Computing Kantorovich-Wasserstein distances for large spatial maps
 
 This software library contains efficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wassestein distances [1] customized for large spatial maps.
 
