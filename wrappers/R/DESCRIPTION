@@ -7,5 +7,5 @@ Author: Stefano Gualandi
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 Description: Spatial Kantorovich-Wasserstein Distances (Spatial-KWD) for Large Spatial Maps.
 License: EUPL (>= 1.2)
-Imports: methods, Rcpp (>= 1.0.0)
+Imports: methods, Rcpp
 LinkingTo: Rcpp
