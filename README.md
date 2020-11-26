@@ -32,11 +32,11 @@ The simplest way to test this library is to run one of the following notebooks o
 |**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_with_R_Tutorial_2.ipynb)|
 
 
-## <a name="Requirements"></a>Requirements for the R Wrapper
+## <a name="R-wrapper"></a>R Wrapper
 
 The wrapper for R is contained in the [SpatialKWD_0.1.1.tar.gz](https://github.com/eurostat/Spatial-KWD/releases/download/v0.1.1-alpha/SpatialKWD_0.1.1.tar.gz) package, and all the source code are freely available on this site under the directory [wrappers/R](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R).
 
-For compiling the wrapper, you need a recent version of [R](https://www.r-project.org/) and the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package (we test with Rcpp v.1.0.5, but it should work with previous versions).
+For compiling the wrapper, you need a recent version of [R](https://www.r-project.org/) and the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package (we test it with Rcpp v.1.0.5, but it should work also with older versions).
 
 Windows users can download a pre-compiled binary package at the following link:
 
@@ -48,8 +48,10 @@ Once you have installed the Spatial-KWD package, you can test it running one of 
 * [test_SKWD.R](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_SKWD.R): to compute the distances among three dummies histograms
 * [test_SKWD_dataframe.R](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_SKWD_dataframe.R): to compute the distance between two histograms stored in a `data.frame` or in a `data.table`.
 
+If you need an interface for a different R data structure, again, please let us know.
 
-## <a name="Requirements"></a>Requirements for the Python Wrapper
+
+## <a name="Python-wrapper"></a>Python Wrapper
 
 To compile the [Python](https://www.python.org/) wrapper you need the following library:
 
@@ -76,7 +78,7 @@ Once you have done with the installation of the python wrapper, you can test it 
 * [test_kwd.py](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_kwd.py)
 
 
-## <a name="About"></a>About
+### <a name="About"></a>About
 
 <table align="center">
     <tr> <td align="left"><i>Contributors</i></td> 
@@ -88,6 +90,6 @@ Once you have done with the installation of the python wrapper, you can test it 
     <tr> <td align="left"><i>License</i></td> <td align="left"><a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL</a><i></i></td> </tr> 
 </table>
 
-## <a name="References"></a>Main References
+### <a name="References"></a>Main References
 
 * **[1]** Bassetti F., Gualandi S., Veneroni M. (2018): [**On the computation of Kantorovich-Wasserstein distances between 2D-histograms by uncapacitated minimum cost flows**](https://epubs.siam.org/doi/abs/10.1137/19M1261195). SIAM J. Optim., 30(3), 2441–2469, 2020. Preprint on arXiv: [1804.00445](https://arxiv.org/abs/1804.00445).
