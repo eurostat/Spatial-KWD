@@ -30,11 +30,22 @@
 
 #pragma once
 
+//#ifdef MY_RCPP_WRAPPER
+//#include <R_ext/Print.h.>
+//#define MY_PRINTF Rprintf
+//#else
+//#define MY_PRINTF printf
+//#endif // MY_RCPP_WRAPPER
+
 #include <limits>
 #include <exception>
+#include <chrono>
 
 
 namespace KWD {
+	enum class ProblemType { INFEASIBLE = 0, OPTIMAL = 1, UNBOUNDED = 2 };
+
+	enum class PivotRule { BLOCK_SEARCH = 0 };
 
 	template <typename V = int, typename C = V>
 	class NetSimplex {
@@ -43,11 +54,6 @@ namespace KWD {
 		typedef V Value;
 		// The type of the arc costs
 		typedef C Cost;
-
-	public:
-		enum ProblemType { INFEASIBLE, OPTIMAL, UNBOUNDED };
-
-		enum PivotRule { BLOCK_SEARCH };
 
 	private:
 		typedef std::vector<int> IntVector;
@@ -62,7 +68,8 @@ namespace KWD {
 		const bool STATE_LOWER = true;
 
 		// Direction constants for tree arcs
-		enum ArcDirection { DIR_DOWN = -1, DIR_UP = 1 };
+		const int DIR_DOWN = -1;
+		const int DIR_UP = 1;
 
 		// Data related to the underlying digraph
 		int _node_num;
@@ -103,6 +110,10 @@ namespace KWD {
 
 		const Value MAX;
 		const Value INF;
+
+		double _runtime;
+
+		int N_IT_LOG;
 
 	private:
 		// Implementation of the Block Search pivot rule
@@ -184,13 +195,17 @@ namespace KWD {
 		};  // class BlockSearchPivotRule
 
 	public:
-		NetSimplex(int node_num, int arc_num, bool arc_mixing = true)
+		NetSimplex(int node_num, int arc_num, int _n_log = 50000)
 			: _node_num(node_num),
 			_arc_num(0),
+			_root(-1), in_arc(-1), join(-1), u_in(-1), v_in(-1), u_out(-1), v_out(-1),
 			MAX((std::numeric_limits<Value>::max)()),
 			INF(std::numeric_limits<Value>::has_infinity
 				? std::numeric_limits<Value>::infinity()
-				: MAX) {
+				: MAX),
+			_runtime(0.0),
+			N_IT_LOG(_n_log)
+		{
 			// Check the number types
 			if (!std::numeric_limits<Value>::is_signed)
 				throw std::runtime_error("The flow type of NetworkSimplex must be signed");
@@ -233,13 +248,13 @@ namespace KWD {
 			_next_arc = _dummy_arc;
 		}
 
-		ProblemType run(PivotRule pivot_rule = BLOCK_SEARCH) {
+		ProblemType run(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
 			//shuffle();
-			if (!init()) return INFEASIBLE;
+			if (!init()) return ProblemType::INFEASIBLE;
 			return start(pivot_rule);
 		}
 
-		ProblemType reRun(PivotRule pivot_rule = BLOCK_SEARCH) {
+		ProblemType reRun(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
 			return start(pivot_rule);
 		}
 
@@ -280,16 +295,19 @@ namespace KWD {
 			return tot_flow;
 		}
 
+		// Potential of node n
 		Cost potential(int n) const { return _pi[n]; }
+
+		// Runtime in milliseconds
+		double runtime() const { return _runtime; }
 
 		// Check feasibility
 		ProblemType checkFeasibility() {
 			for (int e = 0; e != _dummy_arc; ++e)
-				if (_flow[e] != 0) {
+				if (fabs(_flow[e]) > 1e-09)
 					throw std::runtime_error("ERROR 3: flow on dummy arcs: %f\n", _flow[e]);
-					//return INFEASIBLE;
-				}
-			return OPTIMAL;
+				
+			return ProblemType::OPTIMAL;
 		}
 
 		// Reserve memory for arcs in the simplex network
@@ -626,42 +644,42 @@ namespace KWD {
 		ProblemType start(PivotRule pivot_rule) {
 			// Select the pivot rule implementation
 			switch (pivot_rule) {
-			case BLOCK_SEARCH:
+			case PivotRule::BLOCK_SEARCH:
 				return start<BlockSearchPivotRule>();
 			}
-			return INFEASIBLE;  // avoid warning
+			return ProblemType::INFEASIBLE;  // avoid warning
 		}
 
 		template <typename PivotRuleImpl>
 		ProblemType start() {
+			auto start_t = std::chrono::steady_clock::now();
 			PivotRuleImpl pivot(*this);
 
-			//fprintf(stdout, "%d %d %d\n", _node_num, _arc_num, (int)_source.size());
 			// Execute the Network Simplex algorithm
-			int it = 0;
+			//int it = 0;
 			while (pivot.findEnteringArc()) {
-				//fprintf(stdout, "findjoin\n");
 				findJoinNode();
 
-				//fprintf(stdout, "findLeavingArc\n");
 				findLeavingArc();
 
-				//fprintf(stdout, "changeFlow\n");
 				changeFlow();
 
-				//fprintf(stdout, "updateTreeStructure\n");
 				updateTreeStructure();
 
-				//fprintf(stdout, "updatePotential\n");
 				updatePotential();
-//				if (it % 1000000 == 0)
-//					fprintf(stdout, "Iter %d: Cost=%f\n", it, totalCost());
-				it++;
-			}
-//			fprintf(stdout, "Iter %d: Cost=%f, Flow=%f, isFeasible: %d\n",
-//				it, totalCost(), totalFlow(), checkFeasibility());
 
-			return OPTIMAL;
+				// Add as log file
+//				if (N_IT_LOG > 0) {
+//					it++;
+//					if (it % N_IT_LOG == 0)
+//						MY_PRINTF("NetSimplex:\t iterations=%d\t distance=%.4f\n", it, totalCost());
+//				}
+			}
+
+			auto end_t = std::chrono::steady_clock::now();
+			_runtime = double(std::chrono::duration_cast<std::chrono::milliseconds>(end_t - start_t).count()) / 1000;
+
+			return ProblemType::OPTIMAL;
 		}
 
 	};

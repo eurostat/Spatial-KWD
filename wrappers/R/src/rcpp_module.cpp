@@ -27,7 +27,7 @@
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
 
-double distanceDF(const Rcpp::DataFrame& DF, int L=3) {
+double distanceDF(const Rcpp::DataFrame& DF, int L) {
 	Rcpp::IntegerVector X = DF["x"];
 	Rcpp::IntegerVector Y = DF["y"];
 	Rcpp::NumericVector H1 = DF["h1"];
@@ -48,7 +48,7 @@ double distanceDF(const Rcpp::DataFrame& DF, int L=3) {
 	a.normalize();
 	b.normalize();
 
-	KWD::Solver s;
+	KWD::Solver s(n_log);
 
 	try {
 		return s.distance(a, b, L);

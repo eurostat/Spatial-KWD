@@ -26,18 +26,16 @@ using std::unordered_map;
 
 #include <cmath>
 
-template<typename T>
-T GCD(T __m, T __n)
-{
-	while (__n != 0)
-	{
-		T __t = __m % __n;
-		__m = __n;
-		__n = __t;
+int GCD(int _a, int _b) {
+	int a = (_a >= 0 ? _a : -_a);
+	int b = (_b >= 0 ? _b : -_b);
+	while (b != 0) {
+		int t = b;
+		b = a % b;
+		a = t;
 	}
-	return __m;
+	return a;
 }
-
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
@@ -128,7 +126,7 @@ namespace KWD {
 
 	class PointCloud2D {
 	public:
-		void remove(int i) {
+		void remove(size_t i) {
 			std::swap(X[i], X.back());
 			std::swap(Y[i], Y.back());
 			std::swap(B[i], B.back());
@@ -213,7 +211,7 @@ namespace KWD {
 					B[i] = other.getB(j);
 				}
 				else {
-					std::runtime_error("ERROR 302: point missing");
+					throw std::runtime_error("ERROR 302: point missing");
 				}
 			}
 
@@ -243,14 +241,14 @@ namespace KWD {
 		size_t size(void) const { return X.size(); }
 
 		// TODO: THIS IS NOT DEFINED RCPP !
-		//void dump(const std::string& msg = "") const {
-		//	if (!msg.empty())
-		//		fprintf(stdout, "%s\n", msg.c_str());
-		//	for (size_t i = 0, i_max = X.size(); i < i_max; ++i)
-		//		fprintf(stdout, "(%d, %d, %f)\n", X[i], Y[i], B[i]);
-		//	fprintf(stdout, "\n");
-		//	fflush(stdout);
-		//}
+//		void dump(const std::string& msg = "") const {
+//			if (!msg.empty())
+//				fprintf(stdout, "%s\n", msg.c_str());
+//			for (size_t i = 0, i_max = X.size(); i < i_max; ++i)
+//				fprintf(stdout, "(%d, %d, %f)\n", X[i], Y[i], B[i]);
+//			fprintf(stdout, "\n");
+//			fflush(stdout);
+//		}
 
 		const std::unordered_map< std::pair<int, int>, size_t >& getM() const { return M; }
 
@@ -289,7 +287,7 @@ namespace KWD {
 			}
 			int x_span = ax - cx;
 			int y_span = ay - cy;
-			return pow(y_span, 2) + pow(x_span, 2);
+			return (y_span >> 2) + (x_span >> 2);
 		}
 
 		// Determinant to detect direction
@@ -385,9 +383,10 @@ namespace KWD {
 			// Preprocessing
 			auto Cs = FilterAxis(Ps);
 			// Find anchor point
-			int min_idx = -1;
+			constexpr size_t null_idx = std::numeric_limits<size_t>::max();
+			size_t min_idx = null_idx;
 			for (size_t i = 0, i_max = Cs.size(); i < i_max; ++i) {
-				if (min_idx == -1 || Cs.getY(i) < Cs.getY(min_idx))
+				if (min_idx == null_idx || Cs.getY(i) < Cs.getY(min_idx))
 					min_idx = i;
 				if (Cs.getY(i) == Cs.getY(min_idx) && Cs.getX(i) < Cs.getX(min_idx))
 					min_idx = i;
@@ -403,7 +402,7 @@ namespace KWD {
 			Hull.add(anchor_x, anchor_y);
 			Hull.add(Ss.getX(0), Ss.getY(0));
 			for (size_t i = 1, i_max = Ss.size(); i < i_max; ++i) {
-				int cur = Hull.size();
+				size_t cur = Hull.size();
 				while (Det(Hull.getX(cur - 2), Hull.getY(cur - 2),
 					Hull.getX(cur - 1), Hull.getY(cur - 1),
 					Ss.getX(i), Ss.getY(i)) <= 0) {
@@ -424,6 +423,7 @@ namespace KWD {
 			}
 			auto tmp = WalkGrid(Hull.getX(n - 1), Hull.getY(n - 1), Hull.getX(0), Hull.getY(0));
 			Rs.append(tmp);
+
 			return Rs;
 		}
 
@@ -434,14 +434,14 @@ namespace KWD {
 
 			if (dx == 0) {
 				PointCloud2D ps;
-				for (int i = std::min(ay, by), i_max = std::max(ay, by); i < i_max; ++i)
+				for (int i = std::min(ay, by), i_max = std::max(ay, by); i <= i_max; ++i)
 					ps.add(ax, i);
 				return ps;
 			}
 
 			if (dy == 0) {
 				PointCloud2D ps;
-				for (int i = std::min(ax, bx), i_max = std::max(ax, bx); i < i_max; ++i)
+				for (int i = std::min(ax, bx), i_max = std::max(ax, bx); i <= i_max; ++i)
 					ps.add(i, ay);
 				return ps;
 			}
@@ -475,12 +475,13 @@ namespace KWD {
 
 		// Find all the point in the interior of the convex hull
 		PointCloud2D FillHull(const PointCloud2D& Ps) const {
-			int x_max = -1;
+			
+			int x_max = std::numeric_limits<int>::min();
 			for (size_t i = 0, i_max = Ps.size(); i < i_max; ++i)
 				x_max = std::max(x_max, Ps.getX(i));
 
-			std::vector<int> Xmin(x_max + 1, std::numeric_limits<int>::max());
-			std::vector<int> Xmax(x_max + 1, -1);
+			std::vector<int> Xmin(1 + x_max, std::numeric_limits<int>::max());
+			std::vector<int> Xmax(1 + x_max, std::numeric_limits<int>::min());
 
 			for (size_t i = 0, i_max = Ps.size(); i < i_max; ++i) {
 				int x = Ps.getX(i);
@@ -494,7 +495,7 @@ namespace KWD {
 
 			PointCloud2D Rs;
 			for (int x = 0; x < x_max + 1; ++x)
-				for (size_t y = Xmin[x], y_max = Xmax[x] + 1; y < y_max; ++y)
+				for (int y = Xmin[x], y_max = Xmax[x] + 1; y < y_max; ++y)
 					Rs.add(x, y);
 
 			return Rs;
@@ -508,7 +509,96 @@ namespace KWD {
 	class Solver {
 	public:
 		// Standard c'tor
-		Solver() : L(-1) {}
+		Solver(int n_log=0) : _runtime(0.0), _n_log(n_log), L(-1) {}
+
+		// Return runtime in milliseconds
+		double runtime() const { return _runtime; }
+
+		// Compute KWD distance between A and B with bipartite graph
+		double dense(const Histogram2D& A, const Histogram2D& B) {
+			// Compute xmin, xmax, ymin, ymax for each axis
+			int xmax = std::numeric_limits<int>::min();
+			int ymax = std::numeric_limits<int>::min();
+			int xmin = std::numeric_limits<int>::max();
+			int ymin = std::numeric_limits<int>::max();
+			for (const auto& p : A) {
+				xmax = std::max(xmax, p.first.first);
+				ymax = std::max(ymax, p.first.second);
+				xmin = std::min(xmin, p.first.first);
+				ymin = std::min(ymin, p.first.second);
+			}
+			for (const auto& p : B) {
+				xmax = std::max(xmax, p.first.first);
+				ymax = std::max(ymax, p.first.second);
+				xmin = std::min(xmin, p.first.first);
+				ymin = std::min(ymin, p.first.second);
+			}
+
+			int l = xmax - xmin + 1;
+			int w = ymax - ymin + 1;
+
+			// Binary vector for positions
+			auto ID = [&w](int x, int y) {
+				return x * w + y;
+			};
+
+			std::vector<int> Ha(size_t(l * w), 0);
+			std::vector<int> Hb(size_t(l * w), 0);
+
+			{
+				int a = 0;
+				for (const auto& p : A) {
+					Ha[ID(p.first.first - xmin, p.first.second - ymin)] = a++;
+				}
+
+				for (const auto& p : B) {
+					Hb[ID(p.first.first - xmin, p.first.second - ymin)] = a++;
+				}
+			}
+
+			// Network Simplex
+			typedef double FlowType;
+			typedef double CostType;
+
+			// Build the graph for min cost flow
+			NetSimplex<FlowType, CostType> simplex(
+				static_cast<int>(A.size() + B.size()), 
+				static_cast<int>(A.size() * B.size()),
+				_n_log);
+
+			// add first d source nodes
+			{
+				int i = 0;
+				for (const auto& p : A)
+					simplex.addNode(i++, p.second);
+				for (const auto& p : B)
+					simplex.addNode(i++, -p.second);
+			}
+
+			for (const auto& p : A) {
+				for (const auto& q : B) {
+					int v = p.first.first - q.first.first;
+					int w = p.first.second - q.first.second;
+
+					simplex.addArc(
+						Ha[ID(p.first.first - xmin, p.first.second - ymin)],
+						Hb[ID(q.first.first - xmin, q.first.second - ymin)],
+						sqrt(pow(v, 2) + pow(w, 2)));
+				}
+			}
+
+			// Solve the problem to compute the distance
+			ProblemType status = simplex.run();
+
+			_runtime = simplex.runtime();
+
+			double distance = std::numeric_limits<CostType>::max();
+			if (status != ProblemType::INFEASIBLE &&
+				status != ProblemType::UNBOUNDED)
+				distance = simplex.totalCost();
+
+			return distance;
+		}
 
 		// Compute KWD distance between A and B
 		double distance(const Histogram2D& A, const Histogram2D& B, int _L = 3) {
@@ -521,63 +611,71 @@ namespace KWD {
 			ConvexHull ch;
 			PointCloud2D As = ch.find(ps);
 			PointCloud2D Rs = ch.FillHull(As);
+			
 			Rs.merge(ps);
-			int n = Rs.size();
+			
+			size_t n = Rs.size();
 
 			// Compute xmin, xmax, ymin, ymax for each axis
-			int xmax = 0;
-			int ymax = 0;
-			for (int i = 0; i < n; ++i) {
+			int xmax = std::numeric_limits<int>::min();
+			int ymax = std::numeric_limits<int>::min();
+			for (size_t i = 0; i < n; ++i) {
 				xmax = std::max(xmax, Rs.getX(i));
 				ymax = std::max(ymax, Rs.getY(i));
 			}
-			xmax++;
-			ymax++;
 
 			// Binary vector for positions
 			auto ID = [&ymax](int x, int y) {
-				return x * ymax + y;
+				return x * (ymax+1) + y;
 			};
 
-			std::vector<bool> M(xmax * ymax, false);
-			for (int i = 0; i < n; ++i)
+			std::vector<bool> M((xmax+1) * (ymax+1), false);
+			for (size_t i = 0; i < n; ++i)
 				M[ID(Rs.getX(i), Rs.getY(i))] = true;
 
-			std::vector<int> H(xmax * ymax, 0);
-			for (int i = 0; i < n; ++i)
+			std::vector<size_t> H((xmax + 1) * (ymax + 1), 0);
+			for (size_t i = 0; i < n; ++i)
 				H[ID(Rs.getX(i), Rs.getY(i))] = i;
 
 			typedef double FlowType;
 			typedef double CostType;
 
 			// Build the graph for min cost flow
-			NetSimplex<FlowType, CostType> simplex(n, n * coprimes.size());
+			NetSimplex<FlowType, CostType> simplex(
+				static_cast<int>(n), 
+				static_cast<int>(n * coprimes.size()),
+				_n_log);
 
 			// add first d source nodes
-			for (int i = 0; i < n; ++i)
-				simplex.addNode(i, Rs.getB(i));
+			for (size_t i = 0; i < n; ++i)
+				simplex.addNode(int(i), Rs.getB(i));
 
 			int m = 0;
-			for (int h = 0; h < n; ++h) {
+			for (size_t h = 0; h < n; ++h) {
 				int i = Rs.getX(h);
 				int j = Rs.getY(h);
 				for (const auto& p : coprimes) {
 					int v = p.first;
 					int w = p.second;
-					if (i + v >= 0 && i + v < xmax && j + w >= 0 && j + w < ymax && M[ID(i + v, j + w)]) {
-						int ff = H[ID(i + v, j + w)];
-						simplex.addArc(h, ff, sqrt(pow(v, 2) + pow(w, 2)));
+					if (i + v >= 0 && i + v <= xmax && j + w >= 0 && j + w <= ymax && M[ID(i + v, j + w)]) {
+						size_t ff = H[ID(i + v, j + w)];
+						simplex.addArc(
+							static_cast<int>(h), 
+							static_cast<int>(ff), 
+							sqrt(pow(v, 2) + pow(w, 2)));
 						m++;
 					}
 				}
 			}
 
 			// Solve the problem to compute the distance
-			NetSimplex<FlowType, CostType>::ProblemType status = simplex.run();
+			ProblemType status = simplex.run();
+
+			_runtime = simplex.runtime();
 
 			double distance = std::numeric_limits<CostType>::max();
-			if (status != NetSimplex<FlowType, CostType>::INFEASIBLE&&
-				status != NetSimplex<FlowType, CostType>::UNBOUNDED)
+			if (status != ProblemType::INFEASIBLE &&
+				status != ProblemType::UNBOUNDED)
 				distance = simplex.totalCost();
 
 			return distance;
@@ -593,17 +691,32 @@ namespace KWD {
 		}
 
 	private:
+		// Runtime in milliseconds
+		double _runtime;
+		// Interval for logging iterations in the simplex algorithm (if =0 no logs at all)
+		int _n_log;      
 
 		// Merge two historgram into a PointCloud
 		PointCloud2D mergeHistograms(const Histogram2D& A, const Histogram2D& B) {
+			int xmin = std::numeric_limits<int>::max();
+			int ymin = std::numeric_limits<int>::max();
+			for (const auto& p : A) {
+				xmin = std::min(xmin, p.first.first);
+				ymin = std::min(ymin, p.first.second);
+			}
+			for (const auto& p : B) {
+				xmin = std::min(xmin, p.first.first);
+				ymin = std::min(ymin, p.first.second);
+			}
+
 			PointCloud2D Rs;
 
 			// Read first line
 			for (const auto& k : A)
-				Rs.add(k.first.first, k.first.second, k.second);
+				Rs.add(k.first.first - xmin, k.first.second - ymin, k.second);
 
 			for (const auto& k : B)
-				Rs.update(k.first.first, k.first.second, k.second);
+				Rs.update(k.first.first - xmin, k.first.second - ymin, k.second);
 
 			// Use as few memory as possible
 			Rs.shrink_to_fit();
@@ -615,9 +728,8 @@ namespace KWD {
 		PointCloud2D parse(const std::string& filename, char sep = ' ', int off = 0) {
 			std::ifstream in_file(filename);
 
-			if (!in_file) {
-				std::runtime_error("FATAL ERROR: Cannot open file");
-			}
+			if (!in_file)
+				throw std::runtime_error("FATAL ERROR: Cannot open file");
 
 			PointCloud2D Rs;
 			std::vector<double> Bs;
@@ -655,7 +767,7 @@ namespace KWD {
 			// normalize data (rescaling)
 			if (Rs.size() != Bs.size())
 				throw std::runtime_error("ERROR 301: error in parsing an input file - PointCloud2D");
-			
+
 			double tot = 0;
 			for (size_t i = 0, i_max = Bs.size(); i < i_max; ++i) {
 				tot += Rs.getB(i) / tot_a - Bs[i] / tot_b;

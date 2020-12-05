@@ -2,3 +2,6 @@
 *.o
 *.o
 wrappers/s-kwd.zip
+bin/solver
+/msvc/SKWD/.vs/SKWD/v16
+/msvc/SKWD/SKWD/x64
