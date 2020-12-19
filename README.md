@@ -57,13 +57,13 @@ Once you have done with the installation of the python wrapper, you can test it 
 
 ## <a name="R-wrapper"></a>R Wrapper
 
-The wrapper for R is contained in the [SpatialKWD_0.1.1.tar.gz](https://github.com/eurostat/Spatial-KWD/releases/download/v0.1.1-alpha/SpatialKWD_0.1.1.tar.gz) package, and all the source code are freely available on this site under the directory [wrappers/R](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R).
+The wrapper for R is contained in the [SpatialKWD_0.1.2.tar.gz](https://github.com/eurostat/Spatial-KWD/releases/download/v0.1.2-alpha/SpatialKWD_0.1.2.tar.gz) package, and all the source code are freely available on this site under the directory [wrappers/R](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R).
 
 For compiling the wrapper, you need a recent version of [R](https://www.r-project.org/) and the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package (we test it with Rcpp v.1.0.5, but it should work also with older versions).
 
 Windows users can download a pre-compiled binary package at the following link:
 
-* [SpatialKWD_0.1.1.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.1.1-alpha/SpatialKWD_0.1.1.zip)
+* [SpatialKWD_0.1.2.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.1.2-alpha/SpatialKWD_0.1.2.zip)
 
 
 Once you have installed the Spatial-KWD package, you can test it running one of the following scripts:
