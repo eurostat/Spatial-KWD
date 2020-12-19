@@ -26,6 +26,8 @@ using std::unordered_map;
 
 #include <cmath>
 
+#ifndef __GCD_
+#define __GCD_
 int GCD(int _a, int _b) {
 	int a = (_a >= 0 ? _a : -_a);
 	int b = (_b >= 0 ? _b : -_b);
@@ -36,6 +38,7 @@ int GCD(int _a, int _b) {
 	}
 	return a;
 }
+#endif
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
@@ -71,6 +74,19 @@ namespace KWD {
 	public:
 		// Standard c'tor
 		Histogram2D() {}
+
+		// Second c'tor
+		Histogram2D(
+			size_t n,
+			int* X,
+			int* Y, 
+			double* W) {
+
+			for (size_t i = 0; i < n; i++)
+				update(X[i], Y[i], W[i]);
+
+			normalize();
+		}
 
 		// Add a new point
 		void add(int _x, int _y, double _w) {

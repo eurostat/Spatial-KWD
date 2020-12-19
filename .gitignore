@@ -5,3 +5,7 @@ wrappers/s-kwd.zip
 bin/solver
 /msvc/SKWD/.vs/SKWD/v16
 /msvc/SKWD/SKWD/x64
+/wrappers/python/build/temp.win-amd64-3.8/Release
+/wrappers/python/Estimation_Results.pickle
+/wrappers/python/histogram2D.cpp
+/wrappers/python/KWD.cp38-win_amd64.pyd

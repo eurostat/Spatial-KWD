@@ -11,11 +11,12 @@ from distutils.core import setup, Extension
 from Cython.Build import cythonize
 
 extensions = Extension(
-    "KWD", ["histogram2D.pyx", "KWD_Histogram2D.cpp"],
-    extra_compile_args=['-Wno-unused-function', '-std=c++14'])
+    "KWD", ["histogram2D.pyx"],
+        extra_compile_args=['-Wno-unused-function', '-std=c++11', '-fopenmp'],
+        extra_link_args=['-fopenmp'])
 
 setup(name='Spatial-KWD',
-      version='0.1.0',
+      version='0.1.2',
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
       author_email='stefano.gualandi@gmail.com',
@@ -23,5 +24,4 @@ setup(name='Spatial-KWD',
       long_description='''
            Spatial Kantorovich-Wasserstein Distances (Spatial-KWD) for Large Spatial Maps
        ''',
-      compiler_directives={'language_level': "3"},
-      ext_modules=cythonize(extensions))
+      ext_modules=cythonize(extensions, compiler_directives={'language_level': "3"}))
