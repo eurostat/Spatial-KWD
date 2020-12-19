@@ -17,6 +17,7 @@ with open('Estimation_Results.pickle', 'rb') as file:
 	# read information from that file
 	data = pickle.load(file)
 
+	# Take a subeset of data
 	N = 2000
 
 	# Scale coordinates

@@ -52,7 +52,8 @@ In this case, however, you can only use the library in the local directory where
 
 Once you have done with the installation of the python wrapper, you can test it using one of the following script:
 
-* [test_kwd.py](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_kwd.py)
+* [test_kwd.py](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_kwd.py): A basic example with three histograms.
+* [test_pandas.py](https://github.com/eurostat/Spatial-KWD/blob/main/examples/test_pandas.py): An example based on Pandas Series, which uses also an exact solver.
 
 
 ## <a name="R-wrapper"></a>R Wrapper
