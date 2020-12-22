@@ -83,7 +83,8 @@ namespace KWD {
 			double* W) {
 
 			for (size_t i = 0; i < n; i++)
-				update(X[i], Y[i], W[i]);
+				if (fabs(W[i]) > 1e-10) // ignore too small values
+					update(X[i], Y[i], W[i]);
 
 			normalize();
 		}

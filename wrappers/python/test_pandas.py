@@ -42,8 +42,8 @@ with open('Estimation_Results.pickle', 'rb') as file:
 	# with L_2 as ground distance
 	s = Solver()
 
-	print("approx: d(a,b) =", s.distance(a, b, 2), "- runtime:", s.runtime())
-	print("approx: d(a,b) =", s.distance(a, b, 3), "- runtime:", s.runtime())
-	print("approx: d(a,b) =", s.distance(a, b, 5), "- runtime:", s.runtime())
+	print("approx => d(a,b): {}, L: {}, runtime: {}".format(s.distance(a, b, 2), 2, s.runtime()))
+	print("approx => d(a,b): {}, L: {}, runtime: {}".format(s.distance(a, b, 3), 3, s.runtime()))
+	print("approx => d(a,b): {}, L: {}, runtime: {}".format(s.distance(a, b, 5), 5, s.runtime()))
 
-	print("exact:  d(a,b) =", s.dense(a, b), "- runtime:", s.runtime())
+	print("exact:  d(a,b) = {}, runtime: {}".format(s.dense(a, b), s.runtime()))

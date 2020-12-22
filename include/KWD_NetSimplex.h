@@ -1,5 +1,3 @@
-
-
 /**
  * @fileoverview Copyright (c) 2019-2020, Stefano Gualandi,
  *               via Ferrata, 1, I-27100, Pavia, Italy
@@ -46,6 +44,7 @@ namespace KWD {
 	enum class ProblemType { INFEASIBLE = 0, OPTIMAL = 1, UNBOUNDED = 2 };
 
 	enum class PivotRule { BLOCK_SEARCH = 0 };
+
 
 	template <typename V = int, typename C = V>
 	class NetSimplex {
