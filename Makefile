@@ -6,9 +6,6 @@
 #
 #
 
-COMPILER    = g++ ${OPTFLAG}
-LINKER      = g++ ${LDFLAGS}
-
 # Directory for my files
 MYHOME          = ${PWD}
 BIN             = ${MYHOME}/bin
@@ -19,6 +16,9 @@ SRC             = ${MYHOME}/src
 OPTFLAG = -O3 -ffast-math -march=native -DNDEBUG -Wall -std=c++11 -fopenmp -DLINUX -Wall
 LDFLAGS = -O3 -DNDEBUG -lm -pthread -std=c++11 -fopenmp
 
+COMPILER    = g++-10 ${OPTFLAG}
+LINKER      = g++-10 ${LDFLAGS}
+
 # Directory for output files
 OUT_DIR=bin lib
 
@@ -27,8 +27,8 @@ MKL_INC = -DMKL_ILP64 -m64 -I${MKLROOT}/include #-DUSE_MKL
 MKL_LIB = -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -ldl
 
 laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
-	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} ${MKL_INC} -I./externs
-	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o ${MKL_LIB}
+	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
+	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o
 
 # Create subdirectory for output files (bin,lib)
 MKDIR_P = mkdir -p

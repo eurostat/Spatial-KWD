@@ -9,3 +9,7 @@ bin/solver
 /wrappers/python/Estimation_Results.pickle
 /wrappers/python/histogram2D.cpp
 /wrappers/python/KWD.cp38-win_amd64.pyd
+/wrappers/python/baseline.csv
+/wrappers/python/baseline.zip
+/wrappers/python/KWD.cpython-38-x86_64-linux-gnu.so
+/wrappers/python/test_csv.py

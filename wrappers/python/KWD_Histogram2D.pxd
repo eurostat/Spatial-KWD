@@ -11,5 +11,6 @@ cdef extern from "KWD_Histogram2D.h" namespace "KWD":
     cdef cppclass Solver:
         Solver() except +
         double distance(const Histogram2D& A, const Histogram2D& B, int L)
+        double column_generation(const Histogram2D& A, const Histogram2D& B, int L)
         double dense(const Histogram2D& A, const Histogram2D& B)
         double runtime()

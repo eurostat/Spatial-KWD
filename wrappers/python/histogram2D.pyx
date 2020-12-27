@@ -15,15 +15,15 @@ cdef class Histogram2D:
 
     def __cinit__(self, n, X, Y, W):
         if not X.flags['C_CONTIGUOUS']:
-            X = np.ascontiguousarray(X) # Makes a contiguous copy of the numpy array.
+            X = np.ascontiguousarray(X, dtype=int) # Makes a contiguous copy of the numpy array.
         cdef int[::1] Xmv = X
 
         if not Y.flags['C_CONTIGUOUS']:
-            Y = np.ascontiguousarray(Y) # Makes a contiguous copy of the numpy array.
+            Y = np.ascontiguousarray(Y, dtype=int) # Makes a contiguous copy of the numpy array.
         cdef int[::1] Ymv = Y
 
         if not W.flags['C_CONTIGUOUS']:
-            W = np.ascontiguousarray(W) # Makes a contiguous copy of the numpy array.
+            W = np.ascontiguousarray(W, dtype=float) # Makes a contiguous copy of the numpy array.
         cdef double[::1] Wmv = W
 
         self.mu = PyHistogram2D(n, &Xmv[0], &Ymv[0], &Wmv[0])
@@ -49,6 +49,9 @@ cdef class Solver:
 
     def distance(self, Histogram2D A, Histogram2D B, L):
         return self.m.distance(A.mu, B.mu, L)
+
+    def column_generation(self, Histogram2D A, Histogram2D B, L):
+        return self.m.column_generation(A.mu, B.mu, L)
 
     def dense(self, Histogram2D A, Histogram2D B):
         return self.m.dense(A.mu, B.mu)
