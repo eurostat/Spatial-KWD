@@ -42,38 +42,46 @@ int GCD(int _a, int _b) {
 // My Network Simplex
 #include "KWD_NetSimplex.h"
 
+struct coprimes_t {
+public:
+  coprimes_t(int _v, int _w, double _c) : v(_v), w(_w), c_vw(_c) {}
+  int v;
+  int w;
+  double c_vw;
+};
+
 typedef std::pair<int, int> int_pair;
 
 struct pair_hash {
   template <class T1, class T2>
-  std::size_t operator()(const std::pair<T1, T2>& pair) const {
+  std::size_t operator()(const std::pair<T1, T2> &pair) const {
     return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
   }
 };
 
 namespace std {
-template <>
-struct hash<std::pair<int, int>> {
-  inline size_t operator()(const std::pair<int, int>& v) const {
+template <> struct hash<std::pair<int, int>> {
+  inline size_t operator()(const std::pair<int, int> &v) const {
     std::hash<int> int_hasher;
     return int_hasher(v.first) ^ int_hasher(v.second);
   }
 };
 
-}  // namespace std
+} // namespace std
 
 typedef std::unordered_map<int_pair, double, pair_hash> int_pair_dict;
 
 namespace KWD {
 
 class Histogram2D {
- public:
+public:
   // Standard c'tor
   Histogram2D() {}
 
   // Second c'tor
-  Histogram2D(size_t n, int* X, int* Y, double* W) {
-    for (size_t i = 0; i < n; i++) update(X[i], Y[i], W[i]);
+  Histogram2D(size_t n, int *X, int *Y, double *W) {
+    for (size_t i = 0; i < n; i++)
+      update(X[i], Y[i], W[i]);
 
     normalize();
   }
@@ -98,22 +106,24 @@ class Histogram2D {
   // Total Weigth
   double balance() {
     double t = 0;
-    for (const auto& k : Ws) t += k.second;
+    for (const auto &k : Ws)
+      t += k.second;
     return t;
   }
 
   // Make all the weights sum up to 1
   void normalize() {
     double t = balance();
-    for (auto& k : Ws) k.second = k.second / t;
+    for (auto &k : Ws)
+      k.second = k.second / t;
   }
 
   // Support for loops
   std::unordered_map<int_pair, double, pair_hash>::iterator begin() {
     return Ws.begin();
   }
-  std::unordered_map<int_pair, double, pair_hash>::const_iterator begin()
-      const {
+  std::unordered_map<int_pair, double, pair_hash>::const_iterator
+  begin() const {
     return Ws.begin();
   }
 
@@ -124,12 +134,12 @@ class Histogram2D {
     return Ws.end();
   }
 
- private:
+private:
   int_pair_dict Ws;
 };
 
 class PointCloud2D {
- public:
+public:
   void remove(size_t i) {
     std::swap(X[i], X.back());
     std::swap(Y[i], Y.back());
@@ -196,10 +206,10 @@ class PointCloud2D {
 
   // Merge all the points contained in "other" into this object.
   // The node balance are taken from the "other" object.
-  void merge(const PointCloud2D& other) {
+  void merge(const PointCloud2D &other) {
     std::unordered_map<std::pair<int, int>, size_t> O = other.getM();
 
-    for (const auto& p : O) {
+    for (const auto &p : O) {
       size_t j = p.second;
       if (M.find(p.first) != M.end()) {
         size_t i = M.at(p.first);
@@ -210,14 +220,15 @@ class PointCloud2D {
     }
   }
 
-  void append(const PointCloud2D& other) {
+  void append(const PointCloud2D &other) {
     for (size_t i = 0, i_max = other.size(); i < i_max; ++i)
       add(other.getX(i), other.getY(i), other.getB(i));
   }
 
   double balance() {
     double t = 0;
-    for (size_t i = 0, i_max = B.size(); i < i_max; ++i) t += B[i];
+    for (size_t i = 0, i_max = B.size(); i < i_max; ++i)
+      t += B[i];
     return t;
   }
 
@@ -230,19 +241,19 @@ class PointCloud2D {
   size_t size(void) const { return X.size(); }
 
   // TODO: THIS IS NOT DEFINED RCPP !
-  void dump(const std::string& msg = "") const {
-    if (!msg.empty()) fprintf(stdout, "%s\n", msg.c_str());
+  void dump(const std::string &msg = "") const {
+    if (!msg.empty())
+      PRINT("%s\n", msg.c_str());
     for (size_t i = 0, i_max = X.size(); i < i_max; ++i)
-      fprintf(stdout, "(%d, %d, %f)\n", X[i], Y[i], B[i]);
-    fprintf(stdout, "\n");
-    fflush(stdout);
+      PRINT("(%d, %d, %f)\n", X[i], Y[i], B[i]);
+    PRINT("\n");
   }
 
-  const std::unordered_map<std::pair<int, int>, size_t>& getM() const {
+  const std::unordered_map<std::pair<int, int>, size_t> &getM() const {
     return M;
   }
 
- private:
+private:
   // Point coordinates (integers)
   std::vector<int> X;
   std::vector<int> Y;
@@ -254,7 +265,7 @@ class PointCloud2D {
 
 // Class for computing the convex hull
 class ConvexHull {
- public:
+public:
   // Compute polar among between two points
   double PolarAngle(int ax, int ay, int bx = -1, int by = -1) const {
     int cx = bx, cy = by;
@@ -284,8 +295,9 @@ class ConvexHull {
     return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
   }
 
-  PointCloud2D PolarQuickSort(PointCloud2D& Ls) {
-    if (Ls.size() <= 1) return Ls;
+  PointCloud2D PolarQuickSort(PointCloud2D &Ls) {
+    if (Ls.size() <= 1)
+      return Ls;
 
     PointCloud2D smaller, equal, larger;
 
@@ -307,7 +319,8 @@ class ConvexHull {
     while (!equal.empty()) {
       size_t min_idx = 0;
       for (size_t i = 0, i_max = equal.size(); i < i_max; ++i)
-        if (Distance(equal.getX(i), equal.getY(i))) min_idx = i;
+        if (Distance(equal.getX(i), equal.getY(i)))
+          min_idx = i;
       l1.add(equal.getX(min_idx), equal.getY(min_idx));
       equal.remove(min_idx);
     }
@@ -318,7 +331,7 @@ class ConvexHull {
   }
 
   // Filter the main point along a given direction
-  PointCloud2D FilterAxis(const PointCloud2D& Ps) {
+  PointCloud2D FilterAxis(const PointCloud2D &Ps) {
     // First filter along an axis
     std::unordered_map<int, std::vector<int>> Xs;
     for (size_t i = 0, i_max = Ps.size(); i < i_max; ++i) {
@@ -331,11 +344,12 @@ class ConvexHull {
     }
 
     PointCloud2D Bs;
-    for (auto& k : Xs) {
+    for (auto &k : Xs) {
       auto vet = k.second;
       std::sort(vet.begin(), vet.end());
       Bs.add(vet.front(), k.first);
-      if (vet.size() > 1) Bs.add(vet.back(), k.first);
+      if (vet.size() > 1)
+        Bs.add(vet.back(), k.first);
     }
 
     // Then, filter according to the second axis
@@ -350,25 +364,27 @@ class ConvexHull {
     }
 
     PointCloud2D Rs;
-    for (auto& k : Ys) {
+    for (auto &k : Ys) {
       auto vet = k.second;
       std::sort(vet.begin(), vet.end());
       Rs.add(k.first, vet.front());
-      if (vet.size() > 1) Rs.add(k.first, vet.back());
+      if (vet.size() > 1)
+        Rs.add(k.first, vet.back());
     }
 
     return Rs;
   }
 
   // Find convex hull of given set of points
-  PointCloud2D find(const PointCloud2D& Ps) {
+  PointCloud2D find(const PointCloud2D &Ps) {
     // Preprocessing
     auto Cs = FilterAxis(Ps);
     // Find anchor point
     constexpr size_t null_idx = std::numeric_limits<size_t>::max();
     size_t min_idx = null_idx;
     for (size_t i = 0, i_max = Cs.size(); i < i_max; ++i) {
-      if (min_idx == null_idx || Cs.getY(i) < Cs.getY(min_idx)) min_idx = i;
+      if (min_idx == null_idx || Cs.getY(i) < Cs.getY(min_idx))
+        min_idx = i;
       if (Cs.getY(i) == Cs.getY(min_idx) && Cs.getX(i) < Cs.getX(min_idx))
         min_idx = i;
     }
@@ -387,7 +403,8 @@ class ConvexHull {
       while (Det(Hull.getX(cur - 2), Hull.getY(cur - 2), Hull.getX(cur - 1),
                  Hull.getY(cur - 1), Ss.getX(i), Ss.getY(i)) <= 0) {
         Hull.pop_back();
-        if (Hull.size() < 2) break;
+        if (Hull.size() < 2)
+          break;
         cur = Hull.size();
       }
       Hull.add(Ss.getX(i), Ss.getY(i));
@@ -454,7 +471,7 @@ class ConvexHull {
   }
 
   // Find all the point in the interior of the convex hull
-  PointCloud2D FillHull(const PointCloud2D& Ps) const {
+  PointCloud2D FillHull(const PointCloud2D &Ps) const {
     int x_max = std::numeric_limits<int>::min();
     for (size_t i = 0, i_max = Ps.size(); i < i_max; ++i)
       x_max = std::max(x_max, Ps.getX(i));
@@ -469,42 +486,45 @@ class ConvexHull {
     }
 
     for (int i = 0; i < x_max + 1; ++i)
-      if (Xmin[i] == std::numeric_limits<int>::max() || Xmax[i] == -1)
-        throw std::runtime_error("ERROR 201: convex hull issue");
+      if (Xmax[i] == -1)
+        throw std::runtime_error("ERROR 201: convex hull issue, Xmin[" +
+                                 std::to_string(i) +
+                                 "]=" + std::to_string(Xmin[i]));
 
     PointCloud2D Rs;
     for (int x = 0; x < x_max + 1; ++x)
-      for (int y = Xmin[x], y_max = Xmax[x] + 1; y < y_max; ++y) Rs.add(x, y);
+      for (int y = Xmin[x], y_max = Xmax[x] + 1; y < y_max; ++y)
+        Rs.add(x, y);
 
     return Rs;
   }
 
- private:
+private:
   int anchor_x, anchor_y;
 };
 
 class Solver {
- public:
+public:
   // Standard c'tor
-  Solver(int n_log = 0) : _runtime(0.0), _n_log(n_log), L(-1) {}
+  Solver() : _runtime(0.0), _n_log(0), L(-1) {}
 
   // Return runtime in milliseconds
   double runtime() const { return _runtime; }
 
   // Compute KWD distance between A and B with bipartite graph
-  double dense(const Histogram2D& A, const Histogram2D& B) {
+  double dense(const Histogram2D &A, const Histogram2D &B) {
     // Compute xmin, xmax, ymin, ymax for each axis
     int xmax = std::numeric_limits<int>::min();
     int ymax = std::numeric_limits<int>::min();
     int xmin = std::numeric_limits<int>::max();
     int ymin = std::numeric_limits<int>::max();
-    for (const auto& p : A) {
+    for (const auto &p : A) {
       xmax = std::max(xmax, p.first.first);
       ymax = std::max(ymax, p.first.second);
       xmin = std::min(xmin, p.first.first);
       ymin = std::min(ymin, p.first.second);
     }
-    for (const auto& p : B) {
+    for (const auto &p : B) {
       xmax = std::max(xmax, p.first.first);
       ymax = std::max(ymax, p.first.second);
       xmin = std::min(xmin, p.first.first);
@@ -522,11 +542,11 @@ class Solver {
 
     {
       int a = 0;
-      for (const auto& p : A) {
+      for (const auto &p : A) {
         Ha[ID(p.first.first - xmin, p.first.second - ymin)] = a++;
       }
 
-      for (const auto& p : B) {
+      for (const auto &p : B) {
         Hb[ID(p.first.first - xmin, p.first.second - ymin)] = a++;
       }
     }
@@ -543,12 +563,14 @@ class Solver {
     // add first d source nodes
     {
       int i = 0;
-      for (const auto& p : A) simplex.addNode(i++, p.second);
-      for (const auto& p : B) simplex.addNode(i++, -p.second);
+      for (const auto &p : A)
+        simplex.addNode(i++, p.second);
+      for (const auto &p : B)
+        simplex.addNode(i++, -p.second);
     }
 
-    for (const auto& p : A) {
-      for (const auto& q : B) {
+    for (const auto &p : A) {
+      for (const auto &q : B) {
         int v = p.first.first - q.first.first;
         int w = p.first.second - q.first.second;
 
@@ -571,8 +593,9 @@ class Solver {
   }
 
   // Compute KWD distance between A and B
-  double distance(const Histogram2D& A, const Histogram2D& B, int _L = 3) {
-    if (L != _L) init_coprimes(_L);
+  double distance(const Histogram2D &A, const Histogram2D &B, int _L = 3) {
+    if (L != _L)
+      init_coprimes(_L);
 
     PointCloud2D ps = mergeHistograms(A, B);
 
@@ -597,10 +620,12 @@ class Solver {
     auto ID = [&ymax](int x, int y) { return x * (ymax + 1) + y; };
 
     std::vector<bool> M((xmax + 1) * (ymax + 1), false);
-    for (size_t i = 0; i < n; ++i) M[ID(Rs.getX(i), Rs.getY(i))] = true;
+    for (size_t i = 0; i < n; ++i)
+      M[ID(Rs.getX(i), Rs.getY(i))] = true;
 
     std::vector<size_t> H((xmax + 1) * (ymax + 1), 0);
-    for (size_t i = 0; i < n; ++i) H[ID(Rs.getX(i), Rs.getY(i))] = i;
+    for (size_t i = 0; i < n; ++i)
+      H[ID(Rs.getX(i), Rs.getY(i))] = i;
 
     typedef double FlowType;
     typedef double CostType;
@@ -611,20 +636,20 @@ class Solver {
         _n_log);
 
     // add first d source nodes
-    for (size_t i = 0; i < n; ++i) simplex.addNode(int(i), Rs.getB(i));
+    for (size_t i = 0; i < n; ++i)
+      simplex.addNode(int(i), Rs.getB(i));
 
     int m = 0;
     for (size_t h = 0; h < n; ++h) {
       int i = Rs.getX(h);
       int j = Rs.getY(h);
-      for (const auto& p : coprimes) {
-        int v = p.first;
-        int w = p.second;
+      for (const auto &p : coprimes) {
+        int v = p.v;
+        int w = p.w;
         if (i + v >= 0 && i + v <= xmax && j + w >= 0 && j + w <= ymax &&
             M[ID(i + v, j + w)]) {
           size_t ff = H[ID(i + v, j + w)];
-          simplex.addArc(static_cast<int>(h), static_cast<int>(ff),
-                         sqrt(pow(v, 2) + pow(w, 2)));
+          simplex.addArc(static_cast<int>(h), static_cast<int>(ff), p.c_vw);
           m++;
         }
       }
@@ -643,14 +668,19 @@ class Solver {
   }
 
   // Compute Kantorovich-Wasserstein distance between two measures
-  double column_generation(const Histogram2D& A, const Histogram2D& B, int _L) {
-    if (L != _L) init_coprimes(_L);
+  double column_generation(const Histogram2D &A, const Histogram2D &B, int _L) {
+    auto start_t = std::chrono::steady_clock::now();
+    double _all_p = 0.0;
+
+    if (L != _L)
+      init_coprimes(_L);
 
     PointCloud2D ps = mergeHistograms(A, B);
 
     // Compute convex hull
     ConvexHull ch;
     PointCloud2D As = ch.find(ps);
+
     PointCloud2D Rs = ch.FillHull(As);
 
     Rs.merge(ps);
@@ -658,8 +688,8 @@ class Solver {
     size_t n = Rs.size();
 
     // Compute xmax, ymax for each axis
-    int xmax = std::numeric_limits<int>::min();
-    int ymax = std::numeric_limits<int>::min();
+    int xmax = Rs.getX(0);
+    int ymax = Rs.getY(0);
     for (size_t i = 0; i < n; ++i) {
       xmax = std::max(xmax, Rs.getX(i));
       ymax = std::max(ymax, Rs.getY(i));
@@ -669,103 +699,125 @@ class Solver {
     auto ID = [&ymax](int x, int y) { return x * (ymax + 1) + y; };
 
     std::vector<bool> M((xmax + 1) * (ymax + 1), false);
-    for (size_t i = 0; i < n; ++i) M[ID(Rs.getX(i), Rs.getY(i))] = true;
+    for (size_t i = 0; i < n; ++i)
+      M[ID(Rs.getX(i), Rs.getY(i))] = true;
 
     std::vector<size_t> H((xmax + 1) * (ymax + 1), 0);
-    for (size_t i = 0; i < n; ++i) H[ID(Rs.getX(i), Rs.getY(i))] = i;
+    for (size_t i = 0; i < n; ++i)
+      H[ID(Rs.getX(i), Rs.getY(i))] = i;
 
     typedef double FlowType;
     typedef double CostType;
 
     // Build the graph for min cost flow
-    NetSimplex<FlowType, CostType> simplex('E', static_cast<int>(n), 0, 0);
+    NetSimplex<FlowType, CostType> simplex('E', static_cast<int>(n), 0, _n_log);
 
     // add first d source nodes
-    for (size_t i = 0; i < n; ++i) simplex.addNode(int(i), Rs.getB(i));
+    for (size_t i = 0; i < n; ++i)
+      simplex.addNode(int(i), Rs.getB(i));
 
     int it = 0;
     int n_cuts = 0;
     CostType fobj = 0;
 
-    int cmp_tot = 0;
-
-    vector<double> PI(n, 0);
+    vector<double> pi(n, 0);
 
     Vars vars(n);
-    for (int i = 0; i < n; ++i) vars[i].a = i;
+    for (size_t i = 0; i < n; ++i)
+      vars[i].a = int(i);
 
     Vars vnew;
     vnew.reserve(n);
 
     // Init the simplex
-    ProblemType status = simplex.run();
+    simplex.run();
 
     // Start separation
     while (true) {
-      ProblemType status = simplex.reRun();
+      simplex.reRun();
 
       // Take the dual values
       double umin = std::numeric_limits<double>::infinity();
-      for (int j = 0; j < n; ++j) {
-        PI[j] = -simplex.potential(j);
-        umin = std::min<double>(umin, PI[j]);
+      for (size_t j = 0; j < n; ++j) {
+        pi[j] = -simplex.potential(int(j));
+        umin = std::min<double>(umin, pi[j]);
       }
 
       // Solve separation problem:
-      for (size_t h = 0; h < n; ++h) {
-        int a = Rs.getX(h);
-        int b = Rs.getY(h);
+      //#pragma omp parallel
+      auto start_tt = std::chrono::steady_clock::now();
 
-        double best_v = -FEASIBILITY_TOL;
-        double best_c = -1;
-        int best_j = 0;
+      {
+        //#pragma omp for schedule(dynamic, 8)
+        for (size_t h = 0; h < n; ++h) {
+          int a = Rs.getX(h);
+          int b = Rs.getY(h);
 
-        for (const auto& p : coprimes) {
-          int v = p.first;
-          int w = p.second;
-          double c_ij = sqrt(pow(v, 2) + pow(w, 2));  // TODO: Memomize!
-          if (a + v >= 0 && a + v <= xmax && b + w >= 0 && b + w <= ymax &&
-              M[ID(a + v, b + w)]) {
-            size_t j = H[ID(a + v, b + w)];
+          double best_v = -FEASIBILITY_TOL;
+          double best_c = -1;
+          int best_j = 0;
 
-            double violation = c_ij - PI[h] + PI[j];
-            if (violation < best_v) {
-              best_v = violation;
-              best_c = c_ij;
-              best_j = j;
+          for (const auto &p : coprimes) {
+            int v = p.v;
+            int w = p.w;
+            double c_ij = p.c_vw; // TODO: Memomize!
+            if (a + v >= 0 && a + v <= xmax && b + w >= 0 && b + w <= ymax &&
+                M[ID(a + v, b + w)]) {
+              size_t j = H[ID(a + v, b + w)];
+
+              double violation = c_ij - pi[h] + pi[j];
+              if (violation < best_v) {
+                best_v = violation;
+                best_c = c_ij;
+                best_j = j;
+              }
             }
           }
+          // Store most violated cuts for element i
+          vars[h].b = best_j;
+          vars[h].c = best_c;
         }
-        // Store most violated cuts for element i
-        vars[h].b = best_j;
-        vars[h].c = best_c;
       }
+      auto end_tt = std::chrono::steady_clock::now();
+      _all_p += double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                           end_tt - start_tt)
+                           .count()) /
+                1000;
 
       // Take all negative reduced cost variables
       vnew.clear();
-      for (auto& v : vars) {
-        if (v.c > -1) vnew.push_back(v);
+      for (auto &v : vars) {
+        if (v.c > -1)
+          vnew.push_back(v);
         v.c = -1;
       }
 
-      if (vnew.empty()) break;
+      if (vnew.empty())
+        break;
 
       std::sort(vnew.begin(), vnew.end(),
-                [](const Var& v, const Var& w) { return v.c > w.c; });
+                [](const Var &v, const Var &w) { return v.c > w.c; });
 
       // Replace old constraints with new ones
       int new_arcs = simplex.updateArcs(vnew);
 
       n_cuts += new_arcs;
 
-      fobj = simplex.totalCost();
-
       ++it;
     }
 
-    fobj = simplex.totalCost();
-    simplex.checkFeasibility();
     _runtime = simplex.runtime();
+
+    auto end_t = std::chrono::steady_clock::now();
+    auto _all = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                           end_t - start_t)
+                           .count()) /
+                1000;
+
+    fobj = simplex.totalCost();
+
+    PRINT("it: %d, fobj: %.4f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
+          _all, _runtime, _all_p);
 
     return fobj;
   }
@@ -774,15 +826,17 @@ class Solver {
     coprimes.clear();
     for (int v = -L; v <= L; ++v)
       for (int w = -L; w <= L; ++w)
-        if (!(v == 0 && w == 0) && GCD(v, w) == 1) coprimes.emplace_back(v, w);
+        if (!(v == 0 && w == 0) && GCD(v, w) == 1)
+          coprimes.emplace_back(v, w, sqrt(pow(v, 2) + pow(w, 2)));
     coprimes.shrink_to_fit();
   }
 
   // Parse data from file, with format: i j b1 b1
-  PointCloud2D parse(const std::string& filename, char sep = ' ', int off = 0) {
+  PointCloud2D parse(const std::string &filename, char sep = ' ', int off = 0) {
     std::ifstream in_file(filename);
 
-    if (!in_file) throw std::runtime_error("FATAL ERROR: Cannot open file");
+    if (!in_file)
+      throw std::runtime_error("FATAL ERROR: Cannot open file");
 
     PointCloud2D Rs;
     std::vector<double> Bs;
@@ -831,7 +885,7 @@ class Solver {
     return Rs;
   }
 
- private:
+private:
   // Runtime in milliseconds
   double _runtime;
   // Interval for logging iterations in the simplex algorithm (if =0 no logs at
@@ -839,14 +893,14 @@ class Solver {
   int _n_log;
 
   // Merge two historgram into a PointCloud
-  PointCloud2D mergeHistograms(const Histogram2D& A, const Histogram2D& B) {
+  PointCloud2D mergeHistograms(const Histogram2D &A, const Histogram2D &B) {
     int xmin = std::numeric_limits<int>::max();
     int ymin = std::numeric_limits<int>::max();
-    for (const auto& p : A) {
+    for (const auto &p : A) {
       xmin = std::min(xmin, p.first.first);
       ymin = std::min(ymin, p.first.second);
     }
-    for (const auto& p : B) {
+    for (const auto &p : B) {
       xmin = std::min(xmin, p.first.first);
       ymin = std::min(ymin, p.first.second);
     }
@@ -854,10 +908,10 @@ class Solver {
     PointCloud2D Rs;
 
     // Read first line
-    for (const auto& k : A)
+    for (const auto &k : A)
       Rs.add(k.first.first - xmin, k.first.second - ymin, k.second);
 
-    for (const auto& k : B)
+    for (const auto &k : B)
       Rs.update(k.first.first - xmin, k.first.second - ymin, k.second);
 
     // Use as few memory as possible
@@ -868,7 +922,7 @@ class Solver {
 
   int L;
   // List of pair of coprimes number between (-L, L)
-  std::vector<std::pair<int, int>> coprimes;
+  std::vector<coprimes_t> coprimes;
 };
 
-}  // end namespace KWD
+} // end namespace KWD

@@ -13,8 +13,8 @@ INCLUDE         = ${MYHOME}/include
 LIB             = ${MYHOME}/lib
 SRC             = ${MYHOME}/src
 
-OPTFLAG = -O3 -ffast-math -march=native -DNDEBUG -Wall -std=c++11 -fopenmp -DLINUX -Wall
-LDFLAGS = -O3 -DNDEBUG -lm -pthread -std=c++11 -fopenmp
+OPTFLAG = -O2 -ffast-math -march=native -DNDEBUG -Wall -mavx2 -std=c++11 -fopenmp -DLINUX -Wall
+LDFLAGS = -O2 -DNDEBUG -lm -pthread -std=c++11 -fopenmp
 
 COMPILER    = g++-10 ${OPTFLAG}
 LINKER      = g++-10 ${LDFLAGS}

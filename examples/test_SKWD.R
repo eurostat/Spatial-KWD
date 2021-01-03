@@ -34,6 +34,6 @@ c$normalize()
 # with L_2 as ground distance
 s <- new(SpatialKWD::Solver)
 
-print(sprintf("d(a,b) = %f", s$distance(a, b, 3)))
-print(sprintf("d(a,c) = %f", s$distance(a, c, 3)))
-print(sprintf("d(b,c) = %f", s$distance(b, c, 3)))
+print(sprintf("d(a,b) = %f, runtime: %.3f", s$distance(a, b, 3), s$runtime()))
+print(sprintf("d(a,c) = %f, runtime: %.3f", s$distance(a, c, 3), s$runtime()))
+print(sprintf("d(b,c) = %f, runtime: %.3f", s$distance(b, c, 3), s$runtime()))

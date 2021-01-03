@@ -45,7 +45,7 @@ cdef class Solver:
     cdef PySolver m
 
     def __cinit__(self):
-        self.m = PySolver()
+        self.m = PySolver()  # TODO: change the log frequency
 
     def distance(self, Histogram2D A, Histogram2D B, L):
         return self.m.distance(A.mu, B.mu, L)

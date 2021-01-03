@@ -36,10 +36,6 @@ double distanceDF(const Rcpp::DataFrame& DF, int L) {
 	KWD::Histogram2D a;
 	KWD::Histogram2D b;
 
-	// Safe check: to be removed
-	a.add(0, 0, 0);
-	b.add(0, 0, 0);
-
 	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
 		a.add(X[i], Y[i], H1[i]);
 		b.add(X[i], Y[i], H2[i]);
@@ -48,10 +44,10 @@ double distanceDF(const Rcpp::DataFrame& DF, int L) {
 	a.normalize();
 	b.normalize();
 
-	KWD::Solver s(n_log);
+	KWD::Solver s;
 
 	try {
-		return s.distance(a, b, L);
+		return s.column_generation(a, b, L);
 	}
 	catch (...) {
 		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
@@ -72,6 +68,7 @@ RCPP_MODULE(SKWD) {
 		.constructor()
 
 		.method("add", &KWD::Histogram2D::add, "add an non empty support point")
+		.method("update", &KWD::Histogram2D::update, "update an non empty support point")
 		.method("size", &KWD::Histogram2D::size, "return the number of nonempty points")
 		.method("balance", &KWD::Histogram2D::balance, "return the total sum of all the weights")
 		.method("normalize", &KWD::Histogram2D::normalize, "normalize the weights to sum them up to one")
@@ -83,5 +80,15 @@ RCPP_MODULE(SKWD) {
 
 		.method("distance", &KWD::Solver::distance, 
 			"compute the distance between a pair of histograms with given L")
-		;
+		
+		.method("column_generation", &KWD::Solver::column_generation, 
+			"compute the distance between a pair of histograms with given L using column generation")
+
+		.method("dense", &KWD::Solver::dense, 
+			"compute the distance between a pair of histograms with given L using a bipartite graph (slow on large instances)")
+
+		.method("runtime", &KWD::Solver::runtime, 
+			"get the runtime in seconds of Network Simplex algorithm")
+		; 
+		
 }

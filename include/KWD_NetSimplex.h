@@ -28,12 +28,12 @@
 
 #pragma once
 
-#ifdef MY_RCPP_WRAPPER
-#include <R_ext/Print.h.>
-#define MY_PRINTF Rprintf
+#ifdef MY_RCPP
+#include <R_ext/Print.h>
+#define PRINT Rprintf
 #else
-#define MY_PRINTF printf
-#endif // MY_RCPP_WRAPPER
+#define PRINT printf
+#endif // MY_RCPP
 
 #include <chrono>
 #include <exception>
@@ -57,13 +57,18 @@ public:
 typedef GVar<int, double> Var;
 typedef std::vector<Var> Vars;
 
-enum class ProblemType { INFEASIBLE = 0, OPTIMAL = 1, UNBOUNDED = 2 };
+enum class ProblemType {
+  INFEASIBLE = 0,
+  OPTIMAL = 1,
+  UNBOUNDED = 2,
+  TIMELIMIT = 3
+};
 
 enum class PivotRule { BLOCK_SEARCH = 0 };
 
 template <typename V = int, typename C = V> class NetSimplex {
 public:
-  // The type of the flow amounts, capacity bounds and supply values
+  // The type of the flow amounts and supply values
   typedef V Value;
   // The type of the arc costs
   typedef C Cost;
@@ -126,7 +131,13 @@ private:
 
   double _runtime;
 
+  double _timelimit;
+  double _verbosity;
+  double _opt_tolerance;
+
   int N_IT_LOG;
+
+  uint64_t _iterations;
 
   double t1, t2, t3, t4, t5, t6;
 
@@ -148,13 +159,17 @@ private:
     int _block_size;
     int _next_arc;
 
+    // Negative eps
+    const double negeps;
+
   public:
     // Constructor
     BlockSearchPivotRule(NetSimplex &ns)
         : _source(ns._source), _target(ns._target), _cost(ns._cost),
           _state(ns._state), _pi(ns._pi), _in_arc(ns.in_arc),
           _arc_num(ns._arc_num), _dummy_arc(ns._dummy_arc),
-          _next_arc(ns._next_arc) {
+          _next_arc(ns._next_arc),
+          negeps(std::nextafter(-ns._opt_tolerance, -0.0)) {
       // The main parameters of the pivot rule
       const double BLOCK_SIZE_FACTOR = 1;
       const int MIN_BLOCK_SIZE = 20;
@@ -167,21 +182,7 @@ private:
 
     // Find next entering arc
     bool findEnteringArc() {
-      const double negeps = std::nextafter(-1e-10, -0.0);
       Cost min = negeps;
-
-      // for (int e = _dummy_arc; e < _arc_num; ++e) {
-      //  Cost c = _state[e] * (_cost[e] + _pi[_source[e]] - _pi[_target[e]]);
-      //  if (c < min) {
-      //    min = c;
-      //    _in_arc = e;
-      //  }
-      //}
-      // if (min >= negeps)
-      //  return false;
-
-      //_next_arc = _in_arc;
-      // return true;
 
       int cnt = _block_size;
 
@@ -222,14 +223,14 @@ private:
   }; // class BlockSearchPivotRule
 
 public:
-  NetSimplex(const char INIT, int node_num, int arc_num, int _n_log)
+  NetSimplex(const char INIT, int node_num, int arc_num)
       : _node_num(node_num), _arc_num(0), _root(-1), in_arc(-1), join(-1),
         u_in(-1), v_in(-1), u_out(-1), v_out(-1),
         MAX((std::numeric_limits<Value>::max)()),
         INF(std::numeric_limits<Value>::has_infinity
                 ? std::numeric_limits<Value>::infinity()
                 : MAX),
-        _runtime(0.0), N_IT_LOG(_n_log) {
+        _runtime(0.0) {
     // Check the number types
     if (!std::numeric_limits<Value>::is_signed)
       throw std::runtime_error(
@@ -279,12 +280,20 @@ public:
     _arc_num = _node_num;
     _next_arc = _dummy_arc;
 
+    // Interal parameters
+    N_IT_LOG = 1000; // check runtime every IT_LOG iterations
+    _timelimit = std::numeric_limits<double>::max();
+    _verbosity = KWD_INFO;
+    _opt_tolerance = 1e-06;
+    _iterations = 0;
+    // Benchmarking
     t1 = 0.0, t2 = 0.0, t3 = 0.0, t4 = 0.0, t5 = 0.0, t6 = 0.0;
   }
 
   ProblemType run(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
     // shuffle();
-    _runtime = 0;
+    _runtime = 0.0;
+    _iterations = 0;
     if (!init())
       return ProblemType::INFEASIBLE;
     return start(pivot_rule);
@@ -294,7 +303,9 @@ public:
     return start(pivot_rule);
   }
 
-  int num_arcs() const { return int(_source.size()) - _dummy_arc; }
+  uint64_t num_arcs() const { return uint64_t(_source.size()) - _dummy_arc; }
+
+  uint64_t num_nodes() const { return _node_num; }
 
   void addNode(int i, Value b) { _supply[i] = b; }
 
@@ -360,12 +371,9 @@ public:
 
   Cost totalCost() const {
     Cost c = 0;
-    Cost tot_flow = 0;
     for (int e = _dummy_arc; e < _arc_num; ++e)
-      if (_source[e] != _root && _target[e] != _root) {
+      if (_source[e] != _root && _target[e] != _root)
         c += _flow[e] * _cost[e];
-        tot_flow += _flow[e];
-      }
 
     return c;
   }
@@ -373,9 +381,8 @@ public:
   Cost totalFlow() const {
     Cost tot_flow = 0;
     for (int e = _dummy_arc; e < _arc_num; ++e)
-      if (_source[e] != _root && _target[e] != _root) {
+      if (_source[e] != _root && _target[e] != _root)
         tot_flow += _flow[e];
-      }
 
     return tot_flow;
   }
@@ -385,6 +392,14 @@ public:
 
   // Runtime in milliseconds
   double runtime() const { return _runtime; }
+
+  // Number of iterations of simplex algorithms
+  uint64_t iterations() const { return _iterations; }
+
+  // Set basic parameters
+  void setTimelimit(double t) { _timelimit = t; }
+  void setVerbosity(double v) { _verbosity = v; }
+  void setOptTolerance(double o) { _opt_tolerance = o; }
 
   // Check feasibility
   ProblemType checkFeasibility() {
@@ -629,7 +644,6 @@ private:
       _dirty_revs.clear();
       _dirty_revs.push_back(v_in);
       while (stem != u_out) {
-        // fprintf(stdout, "stem %d %d\n", stem, u_out);
         // Insert the next stem node into the thread list
         next_stem = _parent[stem];
         _thread[last] = next_stem;
@@ -740,65 +754,80 @@ private:
     // Benchmarking
 
     // Execute the Network Simplex algorithm
-    int it = 0;
     while (true) {
-      auto start_t = std::chrono::steady_clock::now();
+      // auto start_t = std::chrono::steady_clock::now();
       bool stop = pivot.findEnteringArc();
-      auto end_t = std::chrono::steady_clock::now();
-      t1 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // auto end_t = std::chrono::steady_clock::now();
+      // t1 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
       if (!stop)
         break;
 
-      start_t = std::chrono::steady_clock::now();
+      // start_t = std::chrono::steady_clock::now();
       findJoinNode();
-      end_t = std::chrono::steady_clock::now();
-      t2 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // end_t = std::chrono::steady_clock::now();
+      // t2 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
-      start_t = std::chrono::steady_clock::now();
+      // start_t = std::chrono::steady_clock::now();
       findLeavingArc();
-      end_t = std::chrono::steady_clock::now();
-      t3 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // end_t = std::chrono::steady_clock::now();
+      // t3 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
-      start_t = std::chrono::steady_clock::now();
+      // start_t = std::chrono::steady_clock::now();
       changeFlow();
-      end_t = std::chrono::steady_clock::now();
-      t4 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // end_t = std::chrono::steady_clock::now();
+      // t4 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
-      start_t = std::chrono::steady_clock::now();
+      // start_t = std::chrono::steady_clock::now();
       updateTreeStructure();
-      end_t = std::chrono::steady_clock::now();
-      t5 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // end_t = std::chrono::steady_clock::now();
+      // t5 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
-      start_t = std::chrono::steady_clock::now();
+      // start_t = std::chrono::steady_clock::now();
       updatePotential();
-      end_t = std::chrono::steady_clock::now();
-      t6 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t -
-                                                                        start_t)
-                       .count()) /
-            1000000000;
+      // end_t = std::chrono::steady_clock::now();
+      // t6 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
       // Add as log file
+      _iterations++;
       if (N_IT_LOG > 0) {
-        it++;
-        if (it % N_IT_LOG == 0)
-          MY_PRINTF("NetSimplex:\t iterations=%d\t distance=%.4f\n", it,
-                    totalCost());
+        if (_iterations % N_IT_LOG == 0) {
+          auto end_t = std::chrono::steady_clock::now();
+          double tot =
+              double(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         end_t - start_tt)
+                         .count()) /
+              1000000000;
+          if (tot > _timelimit)
+            return ProblemType::TIMELIMIT;
+          if (_verbosity == KWD_DEBUG)
+            PRINT("NetSimplex it: %ld, distance: %.4f, runtime: %.4f\n",
+                  _iterations, totalCost(), tot);
+        }
       }
     }
 
@@ -808,8 +837,8 @@ private:
                            .count()) /
                 1000;
 
-    fprintf(stdout,
-            "enter: %.3f, join: %.3f, leave: %.3f, change: %.3f, tree: %.3f, "
+    if (_verbosity == KWD_DEBUG)
+      PRINT("enter: %.3f, join: %.3f, leave: %.3f, change: %.3f, tree: %.3f,"
             "potential: %.3f, runtime: %.3f\n",
             t1, t2, t3, t4, t5, t6, _runtime);
 

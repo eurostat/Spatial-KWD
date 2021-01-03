@@ -13,3 +13,6 @@ bin/solver
 /wrappers/python/baseline.zip
 /wrappers/python/KWD.cpython-38-x86_64-linux-gnu.so
 /wrappers/python/test_csv.py
+/.vs
+*.bak
+/wrappers/SpatialKWD.Rcheck

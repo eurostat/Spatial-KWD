@@ -28,12 +28,12 @@
 
 #pragma once
 
-#ifdef MY_RCPP_WRAPPER
+#ifdef MY_RCPP
 #include <R_ext/Print.h.>
-#define MY_PRINTF Rprintf
+#define PRINT Rprintf
 #else
-#define MY_PRINTF printf
-#endif  // MY_RCPP_WRAPPER
+#define PRINT printf
+#endif // MY_RCPP
 
 #include <chrono>
 #include <exception>
@@ -43,12 +43,11 @@ namespace KWD {
 const double FEASIBILITY_TOL = 1e-09;
 const double PRIC_TOL = 1e-09;
 
-template <typename V = int, typename C = V>
-class GVar {
- public:
-  V a;  // First point
-  V b;  // Second point
-  C c;  // Distance
+template <typename V = int, typename C = V> class GVar {
+public:
+  V a; // First point
+  V b; // Second point
+  C c; // Distance
 
   GVar() : a(0), b(0), c(-1) {}
 
@@ -62,15 +61,14 @@ enum class ProblemType { INFEASIBLE = 0, OPTIMAL = 1, UNBOUNDED = 2 };
 
 enum class PivotRule { BLOCK_SEARCH = 0 };
 
-template <typename V = int, typename C = V>
-class NetSimplex {
- public:
-  // The type of the flow amounts, capacity bounds and supply values
+template <typename V = int, typename C = V> class NetSimplex {
+public:
+  // The type of the flow amounts and supply values
   typedef V Value;
   // The type of the arc costs
   typedef C Cost;
 
- private:
+private:
   typedef std::vector<int> IntVector;
   typedef std::vector<Value> ValueVector;
   typedef std::vector<Cost> CostVector;
@@ -90,7 +88,7 @@ class NetSimplex {
   int _node_num;
   int _arc_num;
 
-  int _dummy_arc;  // Arc id where begin the basic arcs
+  int _dummy_arc; // Arc id where begin the basic arcs
   int _next_arc;
 
   // Parameters of the problem
@@ -130,17 +128,19 @@ class NetSimplex {
 
   int N_IT_LOG;
 
- private:
+  double t1, t2, t3, t4, t5, t6;
+
+private:
   // Implementation of the Block Search pivot rule
   class BlockSearchPivotRule {
-   private:
+  private:
     // References to the NetworkSimplex class
-    const IntVector& _source;
-    const IntVector& _target;
-    const CostVector& _cost;
-    const BoolVector& _state;
-    const CostVector& _pi;
-    int& _in_arc;
+    const IntVector &_source;
+    const IntVector &_target;
+    const CostVector &_cost;
+    const BoolVector &_state;
+    const CostVector &_pi;
+    int &_in_arc;
     int _arc_num;
     int _dummy_arc;
 
@@ -148,17 +148,12 @@ class NetSimplex {
     int _block_size;
     int _next_arc;
 
-   public:
+  public:
     // Constructor
-    BlockSearchPivotRule(NetSimplex& ns)
-        : _source(ns._source),
-          _target(ns._target),
-          _cost(ns._cost),
-          _state(ns._state),
-          _pi(ns._pi),
-          _in_arc(ns.in_arc),
-          _arc_num(ns._arc_num),
-          _dummy_arc(ns._dummy_arc),
+    BlockSearchPivotRule(NetSimplex &ns)
+        : _source(ns._source), _target(ns._target), _cost(ns._cost),
+          _state(ns._state), _pi(ns._pi), _in_arc(ns.in_arc),
+          _arc_num(ns._arc_num), _dummy_arc(ns._dummy_arc),
           _next_arc(ns._next_arc) {
       // The main parameters of the pivot rule
       const double BLOCK_SIZE_FACTOR = 1;
@@ -174,6 +169,7 @@ class NetSimplex {
     bool findEnteringArc() {
       const double negeps = std::nextafter(-1e-10, -0.0);
       Cost min = negeps;
+
       int cnt = _block_size;
 
       for (int e = _next_arc; e < _arc_num; ++e) {
@@ -183,7 +179,8 @@ class NetSimplex {
           _in_arc = e;
         }
         if (--cnt == 0) {
-          if (min < negeps) goto search_end;
+          if (min < negeps)
+            goto search_end;
           cnt = _block_size;
         }
       }
@@ -195,37 +192,31 @@ class NetSimplex {
           _in_arc = e;
         }
         if (--cnt == 0) {
-          if (min < negeps) goto search_end;
+          if (min < negeps)
+            goto search_end;
           cnt = _block_size;
         }
       }
 
-      if (min >= negeps) return false;
+      if (min >= negeps)
+        return false;
 
     search_end:
       _next_arc = _in_arc;
       return true;
     }
 
-  };  // class BlockSearchPivotRule
+  }; // class BlockSearchPivotRule
 
- public:
+public:
   NetSimplex(const char INIT, int node_num, int arc_num, int _n_log)
-      : _node_num(node_num),
-        _arc_num(0),
-        _root(-1),
-        in_arc(-1),
-        join(-1),
-        u_in(-1),
-        v_in(-1),
-        u_out(-1),
-        v_out(-1),
+      : _node_num(node_num), _arc_num(0), _root(-1), in_arc(-1), join(-1),
+        u_in(-1), v_in(-1), u_out(-1), v_out(-1),
         MAX((std::numeric_limits<Value>::max)()),
         INF(std::numeric_limits<Value>::has_infinity
                 ? std::numeric_limits<Value>::infinity()
                 : MAX),
-        _runtime(0.0),
-        N_IT_LOG(_n_log) {
+        _runtime(0.0), N_IT_LOG(_n_log) {
     // Check the number types
     if (!std::numeric_limits<Value>::is_signed)
       throw std::runtime_error(
@@ -250,10 +241,10 @@ class NetSimplex {
     // 2*n arcs from nodes to root and from root to node;
     // 2*n-1 nodes in a basic solution
     int max_arc_num = 0;
-    if (INIT == 'F')  // Full
+    if (INIT == 'F') // Full
       max_arc_num = 2 * _node_num + arc_num + 1;
 
-    if (INIT == 'E')  // Empty, for Column Generation
+    if (INIT == 'E') // Empty, for Column Generation
       max_arc_num = 4 * _node_num + 1;
 
     _source.reserve(max_arc_num);
@@ -274,12 +265,15 @@ class NetSimplex {
     _dummy_arc = _node_num;
     _arc_num = _node_num;
     _next_arc = _dummy_arc;
+
+    t1 = 0.0, t2 = 0.0, t3 = 0.0, t4 = 0.0, t5 = 0.0, t6 = 0.0;
   }
 
   ProblemType run(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
     // shuffle();
     _runtime = 0;
-    if (!init()) return ProblemType::INFEASIBLE;
+    if (!init())
+      return ProblemType::INFEASIBLE;
     return start(pivot_rule);
   }
 
@@ -313,7 +307,7 @@ class NetSimplex {
     _arc_num++;
   }
 
-  int updateArcs(const Vars& as) {
+  int updateArcs(const Vars &as) {
     int new_arc = 0;
     size_t idx = 0;
     size_t idx_max = as.size();
@@ -331,17 +325,20 @@ class NetSimplex {
           break;
         ++e;
       }
-      if (e >= e_max) break;
+      if (e >= e_max)
+        break;
       _source[e] = as[idx].a;
       _target[e] = as[idx].b;
       _cost[e] = as[idx].c;
-      if (new_arc == 0) _next_arc = e;
+      if (new_arc == 0)
+        _next_arc = e;
       new_arc++;
     }
 
     for (; idx < idx_max; ++idx) {
       addArc(as[idx].a, as[idx].b, as[idx].c);
-      if (new_arc == 0) _next_arc = e;
+      if (new_arc == 0)
+        _next_arc = e;
       new_arc++;
     }
 
@@ -350,12 +347,9 @@ class NetSimplex {
 
   Cost totalCost() const {
     Cost c = 0;
-    Cost tot_flow = 0;
     for (int e = _dummy_arc; e < _arc_num; ++e)
-      if (_source[e] != _root && _target[e] != _root) {
+      if (_source[e] != _root && _target[e] != _root)
         c += _flow[e] * _cost[e];
-        tot_flow += _flow[e];
-      }
 
     return c;
   }
@@ -363,9 +357,8 @@ class NetSimplex {
   Cost totalFlow() const {
     Cost tot_flow = 0;
     for (int e = _dummy_arc; e < _arc_num; ++e)
-      if (_source[e] != _root && _target[e] != _root) {
+      if (_source[e] != _root && _target[e] != _root)
         tot_flow += _flow[e];
-      }
 
     return tot_flow;
   }
@@ -408,10 +401,11 @@ class NetSimplex {
     _state.resize(o + s, STATE_LOWER);
   }
 
- private:
+private:
   // Initialize internal data structures
   bool init() {
-    if (_node_num == 0) return false;
+    if (_node_num == 0)
+      return false;
 
     // Check the sum of supply values
     _sum_supply = 0;
@@ -432,7 +426,8 @@ class NetSimplex {
     } else {
       ART_COST = 0;
       for (int i = _dummy_arc; i != _arc_num; ++i) {
-        if (_cost[i] > ART_COST) ART_COST = _cost[i];
+        if (_cost[i] > ART_COST)
+          ART_COST = _cost[i];
       }
       ART_COST = (ART_COST + 1) * _node_num;
     }
@@ -512,7 +507,8 @@ class NetSimplex {
     for (int u = first; u != join; u = _parent[u]) {
       e = _pred[u];
       d = _flow[e];
-      if (_pred_dir[u] == DIR_DOWN) d = INF - d;
+      if (_pred_dir[u] == DIR_DOWN)
+        d = INF - d;
 
       if (d < delta) {
         delta = d;
@@ -525,7 +521,8 @@ class NetSimplex {
     for (int u = second; u != join; u = _parent[u]) {
       e = _pred[u];
       d = _flow[e];
-      if (_pred_dir[u] == DIR_UP) d = INF - d;
+      if (_pred_dir[u] == DIR_UP)
+        d = INF - d;
 
       if (d <= delta) {
         delta = d;
@@ -606,16 +603,15 @@ class NetSimplex {
 
       // Update _thread and _parent along the stem nodes (i.e. the nodes
       // between u_in and u_out, whose parent have to be changed)
-      int stem = u_in;              // the current stem node
-      int par_stem = v_in;          // the new parent of stem
-      int next_stem;                // the next stem node
-      int last = _last_succ[u_in];  // the last successor of stem
+      int stem = u_in;             // the current stem node
+      int par_stem = v_in;         // the new parent of stem
+      int next_stem;               // the next stem node
+      int last = _last_succ[u_in]; // the last successor of stem
       int before, after = _thread[last];
       _thread[v_in] = u_in;
       _dirty_revs.clear();
       _dirty_revs.push_back(v_in);
       while (stem != u_out) {
-        // fprintf(stdout, "stem %d %d\n", stem, u_out);
         // Insert the next stem node into the thread list
         next_stem = _parent[stem];
         _thread[last] = next_stem;
@@ -709,52 +705,102 @@ class NetSimplex {
     }
   }
 
-  // 0
-
   // Execute the algorithm
   ProblemType start(PivotRule pivot_rule) {
     // Select the pivot rule implementation
     switch (pivot_rule) {
-      case PivotRule::BLOCK_SEARCH:
-        return start<BlockSearchPivotRule>();
+    case PivotRule::BLOCK_SEARCH:
+      return start<BlockSearchPivotRule>();
     }
-    return ProblemType::INFEASIBLE;  // avoid warning
+    return ProblemType::INFEASIBLE; // avoid warning
   }
 
-  template <typename PivotRuleImpl>
-  ProblemType start() {
-    auto start_t = std::chrono::steady_clock::now();
+  template <typename PivotRuleImpl> ProblemType start() {
+    auto start_tt = std::chrono::steady_clock::now();
     PivotRuleImpl pivot(*this);
+
+    // Benchmarking
 
     // Execute the Network Simplex algorithm
     int it = 0;
-    while (pivot.findEnteringArc()) {
+    while (true) {
+      // auto start_t = std::chrono::steady_clock::now();
+      bool stop = pivot.findEnteringArc();
+      // auto end_t = std::chrono::steady_clock::now();
+      // t1 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
+
+      if (!stop)
+        break;
+
+      // start_t = std::chrono::steady_clock::now();
       findJoinNode();
+      // end_t = std::chrono::steady_clock::now();
+      // t2 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
+      // start_t = std::chrono::steady_clock::now();
       findLeavingArc();
+      // end_t = std::chrono::steady_clock::now();
+      // t3 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
+      // start_t = std::chrono::steady_clock::now();
       changeFlow();
+      // end_t = std::chrono::steady_clock::now();
+      // t4 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
+      // start_t = std::chrono::steady_clock::now();
       updateTreeStructure();
+      // end_t = std::chrono::steady_clock::now();
+      // t5 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
+      // start_t = std::chrono::steady_clock::now();
       updatePotential();
+      // end_t = std::chrono::steady_clock::now();
+      // t6 += double(std::chrono::duration_cast<std::chrono::nanoseconds>(end_t
+      // -
+      //                                                                  start_t)
+      //                 .count()) /
+      //      1000000000;
 
       // Add as log file
       if (N_IT_LOG > 0) {
         it++;
         if (it % N_IT_LOG == 0)
-          MY_PRINTF("NetSimplex:\t iterations=%d\t distance=%.4f\n", it,
-                    totalCost());
+          PRINT("NetSimplex:\t iterations=%d\t distance=%.4f\n", it,
+                totalCost());
       }
     }
 
     auto end_t = std::chrono::steady_clock::now();
     _runtime += double(std::chrono::duration_cast<std::chrono::milliseconds>(
-                           end_t - start_t)
+                           end_t - start_tt)
                            .count()) /
                 1000;
+
+    // PRINT("enter: %.3f, join: %.3f, leave: %.3f, change: %.3f, tree: %.3f, "
+    //      "potential: %.3f, runtime: %.3f\n",
+    //      t1, t2, t3, t4, t5, t6, _runtime);
 
     return ProblemType::OPTIMAL;
   }
 };
-}  // namespace KWD
+} // namespace KWD

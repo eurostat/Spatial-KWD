@@ -16,7 +16,7 @@ extensions = Extension(
         extra_link_args=['-fopenmp'])
 
 setup(name='Spatial-KWD',
-      version='0.1.2',
+      version='0.1.3',
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
       author_email='stefano.gualandi@gmail.com',
