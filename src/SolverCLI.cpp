@@ -11,7 +11,7 @@
 #include "KWD_Histogram2D.h"
 
 int main(int argc, char *argv[]) {
-  int n = 128;
+  int n = 256;
 
   if (argc > 1)
     n = atoi(argv[1]);
@@ -25,6 +25,77 @@ int main(int argc, char *argv[]) {
   std::uniform_int_distribution<> Uniform0N(0, n);
 
   if (true) {
+    size_t samples = n * n / 2;
+    vector<int> Xs(samples, 0);
+    vector<int> Ys(samples, 0);
+    vector<double> W1(samples, 0);
+
+    size_t m = 3;
+
+    vector<double> Ws(samples * m, 0);
+    for (size_t i = 0; i < samples; i++) {
+      Xs[i] = Uniform0N(gen);
+      Ys[i] = Uniform0N(gen);
+      W1[i] = Uniform01(gen);
+      // Matrix as a flat array
+      Ws[i] = Uniform01(gen);
+      Ws[samples + i] = Uniform01(gen);
+      Ws[2 * samples + i] = Uniform01(gen);
+    }
+
+    PRINT("start solver\n");
+    KWD::Solver solver;
+    // ----------------------------------------------------------------------------
+    solver.setParam(KWD_METHOD, KWD_APPROX);
+
+    for (auto algo : {KWD_COLGEN, KWD_MINCOSTFLOW}) {
+      solver.setParam(KWD_ALGORITHM, algo);
+      auto dist =
+          solver.compareApprox(Xs.size(), 3, &Xs[0], &Ys[0], &W1[0], &Ws[0], 3);
+
+      for (double d : dist)
+        PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
+              "arcs: "
+              "%ld, nodes: %ld\n",
+              n, d, solver.runtime(), solver.status().c_str(),
+              solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    }
+
+    KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
+
+    KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &Ws[0]);
+    KWD::Histogram2D C(Xs.size(), &Xs[0], &Ys[0], &Ws[samples]);
+    KWD::Histogram2D D(Xs.size(), &Xs[0], &Ys[0], &Ws[2 * samples]);
+
+    double d = solver.distance(A, B, 3);
+    double r = solver.runtime();
+    auto s = solver.status();
+    uint64_t its = solver.iterations();
+
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+
+    d = solver.distance(A, C, 3);
+    r += solver.runtime();
+    s = solver.status();
+    its += solver.iterations();
+
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+
+    d = solver.distance(A, D, 3);
+    r += solver.runtime();
+    s = solver.status();
+    its += solver.iterations();
+
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+  }
+
+  if (false) {
     size_t samples = n * n / 2;
     vector<int> Xs(samples, 0);
     vector<int> Ys(samples, 0);
@@ -47,7 +118,6 @@ int main(int argc, char *argv[]) {
 
     PRINT("start solver\n");
     KWD::Solver solver;
-    solver.setParam(KWD_METHOD, KWD_EXACT);
     // solver.setParam(KWD_VERBOSITY, KWD_DEBUG);
     KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
     KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &W2[0]);
@@ -79,6 +149,8 @@ int main(int argc, char *argv[]) {
           "%ld, nodes: %ld\n",
           n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
 
+    // ----------------------------------------------------------------------------
+    solver.setParam(KWD_METHOD, KWD_EXACT);
     for (auto algo : {KWD_BIPARTITE, KWD_MINCOSTFLOW, KWD_COLGEN}) {
       solver.setParam(KWD_ALGORITHM, algo);
       double dist =
@@ -88,6 +160,20 @@ int main(int argc, char *argv[]) {
             "%ld, nodes: %ld\n",
             n, dist, solver.runtime(), solver.status().c_str(),
             solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    }
+
+    // ----------------------------------------------------------------------------
+    solver.setParam(KWD_METHOD, KWD_APPROX);
+    for (auto algo : {KWD_MINCOSTFLOW, KWD_COLGEN}) {
+      solver.setParam(KWD_ALGORITHM, algo);
+      double dist =
+          solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+
+      PRINT(
+          "Approx => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, dist, solver.runtime(), solver.status().c_str(),
+          solver.iterations(), solver.num_arcs(), solver.num_nodes());
     }
   }
 

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <omp.h>
+
 #include <vector>
 using std::vector;
 
@@ -143,6 +145,7 @@ public:
   // Make all the weights sum up to 1
   void normalize() {
     double t = balance();
+
     for (auto &k : Ws)
       k.second = k.second / t;
   }
@@ -741,8 +744,9 @@ public:
     simplex.setOptTolerance(opt_tolerance);
 
     // add first d source nodes
-    for (size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i) {
       simplex.addNode(int(i), Rs.getB(i));
+    }
 
     for (size_t h = 0; h < n; ++h) {
       int i = Rs.getX(h);
@@ -1311,6 +1315,655 @@ public:
     return -1;
   }
 
+  double compareApprox(int _n, int *_Xs, int *_Ys, double *_W1, double *_W2,
+                       int _L) {
+    intpair2int XY = reindex(_n, _Xs, _Ys);
+    int n = XY.size();
+
+    vector<int> Xs, Ys;
+    vector<double> W1, W2;
+    Xs.resize(n, 0);
+    Ys.resize(n, 0);
+    W1.resize(n, 0);
+    W2.resize(n, 0);
+    for (int i = 0; i < _n; i++) {
+      int idx = XY[int_pair(_Xs[i], _Ys[i])];
+      Xs[idx] = _Xs[i];
+      Ys[idx] = _Ys[i];
+      W1[idx] += _W1[i];
+      W2[idx] += _W2[i];
+    }
+
+    // Get the largest bounding box
+    auto xy = getMinMax(n, &Xs[0], &Ys[0]);
+
+    int xmin = xy[0];
+    int ymin = xy[1];
+    // int xmax = xy[2];
+    // int ymax = xy[3];
+
+    // Rescale all integers coordinates to (0,0)
+    double tot_w1 = 0.0;
+    double tot_w2 = 0.0;
+    for (int i = 0; i < n; ++i) {
+      Xs[i] = Xs[i] - xmin;
+      Ys[i] = Ys[i] - ymin;
+
+      tot_w1 += W1[i];
+      tot_w2 += W2[i];
+    }
+
+    for (int i = 0; i < n; ++i) {
+      W1[i] = W1[i] / tot_w1;
+      W2[i] = W2[i] / tot_w2;
+    }
+
+    // Second option for algorithm
+    if (algorithm == KWD_MINCOSTFLOW) {
+      PointCloud2D ps = mergeHistograms(n, &Xs[0], &Ys[0], &W1[0], &W2[0]);
+
+      // Compute convex hull
+      ConvexHull ch;
+      PointCloud2D As = ch.find(ps);
+      PointCloud2D Rs = ch.FillHull(As);
+
+      Rs.merge(ps);
+
+      int n = static_cast<int>(Rs.size());
+
+      // Compute xmax, ymax for each axis
+      int xmin = std::numeric_limits<int>::max();
+      int ymin = std::numeric_limits<int>::max();
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmin = std::min(xmin, Rs.getX(i));
+        ymin = std::min(ymin, Rs.getY(i));
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      xmax++;
+      ymax++;
+
+      if (_L != L) {
+        L = _L;
+        init_coprimes(_L); // TODO: make it parallel
+      }
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      typedef double FlowType;
+      typedef double CostType;
+
+      // Build the graph for min cost flow
+      NetSimplex<FlowType, CostType> simplex(
+          'F', n, n * static_cast<int>(coprimes.size()));
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      // add first d source nodes
+      for (int i = 0; i < n; ++i)
+        simplex.addNode(i, Rs.getB(i));
+
+      for (int h = 0; h < n; ++h) {
+        int i = Rs.getX(h);
+        int j = Rs.getY(h);
+        for (const auto &p : coprimes) {
+          int v = p.v;
+          int w = p.w;
+          if (i + v >= xmin && i + v < xmax && j + w >= ymin && j + w < ymax &&
+              M[ID(i + v, j + w)]) {
+            int ff = H[ID(i + v, j + w)];
+            simplex.addArc(h, ff, p.c_vw);
+          }
+        }
+      }
+
+      // Solve the problem to compute the distance
+      _status = simplex.run();
+
+      _runtime = simplex.runtime();
+      _iterations = simplex.iterations();
+      _num_arcs = simplex.num_arcs();
+      _num_nodes = simplex.num_nodes();
+
+      double distance = std::numeric_limits<CostType>::max();
+
+      if (_status != ProblemType::INFEASIBLE &&
+          _status != ProblemType::UNBOUNDED &&
+          _status != ProblemType::TIMELIMIT)
+        distance = simplex.totalCost();
+
+      return distance;
+    }
+
+    // Second option for algorithm
+    if (algorithm == KWD_COLGEN) {
+      auto start_t = std::chrono::steady_clock::now();
+      double _all_p = 0.0;
+
+      PointCloud2D ps = mergeHistograms(n, &Xs[0], &Ys[0], &W1[0], &W2[0]);
+
+      // Compute convex hull
+      ConvexHull ch;
+      PointCloud2D As = ch.find(ps);
+      PointCloud2D Rs = ch.FillHull(As);
+
+      Rs.merge(ps);
+
+      int n = Rs.size();
+
+      // Compute xmax, ymax for each axis
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      // The size is xmax+1, and ymax+1
+      xmax++;
+      ymax++;
+
+      if (_L != L) {
+        L = _L;
+        init_coprimes(_L); // TODO: make it parallel
+      }
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      typedef double FlowType;
+      typedef double CostType;
+
+      // Build the graph for min cost flow
+      NetSimplex<FlowType, CostType> simplex('E', n, 0);
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      // add first d source nodes
+      for (int i = 0; i < n; ++i)
+        simplex.addNode(i, Rs.getB(i));
+
+      int it = 0;
+      int n_cuts = 0;
+      CostType fobj = 0;
+      double negeps = std::nextafter(-opt_tolerance, -0.0);
+
+      vector<double> pi(n, 0);
+
+      Vars vars(n);
+      for (int i = 0; i < n; ++i)
+        vars[i].a = i;
+
+      Vars vnew;
+      vnew.reserve(n);
+
+      // Init the simplex
+      simplex.run();
+
+      // Start separation
+      while (true) {
+        _status = simplex.reRun();
+        if (_status == ProblemType::TIMELIMIT)
+          break;
+
+        // Take the dual values
+        for (int j = 0; j < n; ++j)
+          pi[j] = -simplex.potential(j);
+
+        // Solve separation problem:
+        auto start_tt = std::chrono::steady_clock::now();
+#pragma omp parallel
+        {
+#pragma omp for schedule(dynamic, 1)
+          for (int h = 0; h < n; ++h) {
+            int a = Rs.getX(h);
+            int b = Rs.getY(h);
+
+            double best_v = negeps;
+            double best_c = -1;
+            int best_j = 0;
+
+            for (const auto &p : coprimes) {
+              int v = p.v;
+              int w = p.w;
+              double c_ij = p.c_vw;
+              if (a + v >= 0 && a + v < xmax && b + w >= 0 && b + w < ymax &&
+                  M[ID(a + v, b + w)]) {
+                int j = H[ID(a + v, b + w)];
+
+                double violation = c_ij - pi[h] + pi[j];
+                if (violation < best_v) {
+                  best_v = violation;
+                  best_c = c_ij;
+                  best_j = j;
+                }
+              }
+            }
+            // Store most violated cuts for element i
+            vars[h].b = best_j;
+            vars[h].c = best_c;
+          }
+        }
+
+        // Take all negative reduced cost variables
+        vnew.clear();
+        for (auto &v : vars) {
+          if (v.c > -1)
+            vnew.push_back(v);
+          v.c = -1;
+        }
+
+        auto end_tt = std::chrono::steady_clock::now();
+        _all_p += double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                             end_tt - start_tt)
+                             .count()) /
+                  1000;
+
+        if (vnew.empty())
+          break;
+
+        std::sort(vnew.begin(), vnew.end(),
+                  [](const Var &v, const Var &w) { return v.c > w.c; });
+
+        // Replace old constraints with new ones
+        int new_arcs = simplex.updateArcs(vnew);
+
+        n_cuts += new_arcs;
+
+        ++it;
+      }
+
+      auto end_t = std::chrono::steady_clock::now();
+      auto _all = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                             end_t - start_t)
+                             .count()) /
+                  1000;
+
+      _runtime = _all;
+      _iterations = simplex.iterations();
+      _num_arcs = simplex.num_arcs();
+      _num_nodes = simplex.num_nodes();
+
+      fobj = simplex.totalCost();
+
+      if (_n_log > 0)
+        PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
+              _all, _runtime, _all_p);
+
+      return fobj;
+    }
+
+    return -1;
+  }
+
+  vector<double> compareApprox(int _n, int _m, int *_Xs, int *_Ys, double *_W1,
+                               double *_Ws, int _L) {
+    // Get the largest bounding box
+    auto xy = getMinMax(_n, _Xs, _Ys);
+
+    int xmin = xy[0];
+    int ymin = xy[1];
+    // int xmax = xy[2];
+    // int ymax = xy[3];
+
+    // Reindex and scale
+    intpair2int XY = reindex(_n, _Xs, _Ys);
+    int N = XY.size();
+
+    // Binary vector for positions
+    // auto WD = [&n](int x, int y) { return y * n + x; };
+
+    vector<int> Xs, Ys;
+    vector<double> W1, Ws;
+    Xs.resize(N, 0);
+    Ys.resize(N, 0);
+    W1.resize(N, 0.0);
+    Ws.resize(size_t(N) * size_t(_m), 0.0);
+
+    double tot_w1 = 0.0;
+    vector<double> tot_ws(_m, 0.0);
+
+    intpair2int MXY;
+    for (int i = 0; i < _n; i++) {
+      int idx = XY.at(int_pair(_Xs[i], _Ys[i]));
+
+      Xs[idx] = _Xs[i] - xmin;
+      Ys[idx] = _Ys[i] - ymin;
+      MXY[int_pair(Xs[idx], Ys[idx])] = idx;
+
+      W1[idx] += _W1[i];
+      tot_w1 += _W1[i];
+
+      for (int j = 0; j < _m; ++j) {
+        Ws[j * N + idx] += _Ws[j * _n + i];
+        tot_ws[j] += _Ws[j * _n + i];
+      }
+    }
+
+    // Rescale all integers coordinates to (0,0)
+    for (int i = 0; i < N; ++i) {
+      W1[i] = W1[i] / tot_w1;
+      for (int j = 0; j < _m; ++j)
+        Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
+    }
+
+    // Set the coprimes set
+    if (_L != L) {
+      L = _L;
+      init_coprimes(_L); // TODO: make it parallel
+    }
+
+    // Return value
+    vector<double> Ds(_m, -1);
+
+    PointCloud2D ps = mergeCoordinates(N, &Xs[0], &Ys[0]);
+
+    // Compute convex hull
+    ConvexHull ch;
+    PointCloud2D As = ch.find(ps);
+    PointCloud2D Rs = ch.FillHull(As);
+
+    int n = static_cast<int>(Rs.size());
+
+    // Second option for algorithm
+    if (algorithm == KWD_MINCOSTFLOW) {
+      // Compute xmax, ymax for each axis
+      int xmin = std::numeric_limits<int>::max();
+      int ymin = std::numeric_limits<int>::max();
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmin = std::min(xmin, Rs.getX(i));
+        ymin = std::min(ymin, Rs.getY(i));
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      xmax++;
+      ymax++;
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      // Serve questo passaggio?
+      // Rs.merge(ps); // CHECK: Posso mettere i pesi direttamente sul modello
+
+      typedef double FlowType;
+      typedef double CostType;
+      // Build the graph for min cost flow
+      NetSimplex<FlowType, CostType> simplex(
+          'F', n, n * static_cast<int>(coprimes.size()));
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      // Initial set of arcs
+      for (int h = 0; h < n; ++h) {
+        int i = Rs.getX(h);
+        int j = Rs.getY(h);
+        for (const auto &p : coprimes) {
+          int v = p.v;
+          int w = p.w;
+          if (i + v >= xmin && i + v < xmax && j + w >= ymin && j + w < ymax &&
+              M[ID(i + v, j + w)]) {
+            int ff = H[ID(i + v, j + w)];
+            simplex.addArc(h, ff, p.c_vw);
+          }
+        }
+      }
+
+      // Model attributes
+      _num_arcs = simplex.num_arcs();
+
+      for (int jj = 0; jj < _m; ++jj) {
+
+        //_runtime = 0.0;
+        //_iterations = 0.0;
+
+        // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
+        // e usare quel bilancio ai nodi, se "i" è presente nella mappa
+        // devo iterare su cosa?
+        for (const auto &p : Rs.getM()) {
+          auto q = MXY.find(p.first);
+          if (q != MXY.end()) {
+            simplex.addNode(p.second, W1[q->second] - Ws[jj * N + q->second]);
+          } else
+            simplex.addNode(p.second, 0.0);
+        }
+
+        _num_nodes = simplex.num_nodes();
+
+        // Solve the problem to compute the distance
+        _status = simplex.run();
+
+        _runtime += simplex.runtime();
+        _iterations += simplex.iterations();
+
+        Ds[jj] = std::numeric_limits<CostType>::max();
+
+        if (_status != ProblemType::INFEASIBLE &&
+            _status != ProblemType::UNBOUNDED &&
+            _status != ProblemType::TIMELIMIT)
+          Ds[jj] = simplex.totalCost();
+        else
+          PRINT("ERROR 1001: Network Simplex wrong. Error code: %d\n",
+                (int)_status);
+      }
+
+      return Ds;
+    }
+
+    // Second option for algorithm
+    if (algorithm == KWD_COLGEN) {
+      double itime = omp_get_wtime();
+      auto start_t = std::chrono::steady_clock::now();
+      double _all_p = 0.0;
+
+      // Compute xmax, ymax for each axis
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      // The size is xmax+1, and ymax+1
+      xmax++;
+      ymax++;
+
+      if (_L != L) {
+        L = _L;
+        init_coprimes(_L); // TODO: make it parallel
+      }
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      typedef double FlowType;
+      typedef double CostType;
+
+      // Build the graph for min cost flow
+      NetSimplex<FlowType, CostType> simplex('E', n, 0);
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      for (int jj = 0; jj < _m; ++jj) {
+        // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
+        // e usare quel bilancio ai nodi, se "i" è presente nella mappa
+        // devo iterare su cosa?
+        for (const auto &p : Rs.getM()) {
+          auto q = MXY.find(p.first);
+          if (q != MXY.end()) {
+            simplex.addNode(p.second, W1[q->second] - Ws[jj * N + q->second]);
+          } else
+            simplex.addNode(p.second, 0.0);
+        }
+
+        _num_nodes = simplex.num_nodes();
+
+        int it = 0;
+        int n_cuts = 0;
+        CostType fobj = 0;
+        double negeps = std::nextafter(-opt_tolerance, -0.0);
+
+        vector<double> pi(n, 0);
+
+        Vars vars(n);
+        for (int i = 0; i < n; ++i)
+          vars[i].a = i;
+
+        Vars vnew;
+        vnew.reserve(n);
+
+        // Init the simplex
+        simplex.run();
+
+        // Start separation
+        while (true) {
+          _status = simplex.reRun();
+          if (_status == ProblemType::TIMELIMIT)
+            break;
+
+          // Take the dual values
+          for (int j = 0; j < n; ++j)
+            pi[j] = -simplex.potential(j);
+
+          // Solve separation problem:
+          auto start_tt = std::chrono::steady_clock::now();
+#pragma omp parallel
+          {
+#pragma omp for schedule(dynamic, 1)
+            for (int h = 0; h < n; ++h) {
+              int a = Rs.getX(h);
+              int b = Rs.getY(h);
+
+              double best_v = negeps;
+              double best_c = -1;
+              int best_j = 0;
+
+              for (const auto &p : coprimes) {
+                int v = p.v;
+                int w = p.w;
+                double c_ij = p.c_vw;
+                if (a + v >= 0 && a + v < xmax && b + w >= 0 && b + w < ymax &&
+                    M[ID(a + v, b + w)]) {
+                  int j = H[ID(a + v, b + w)];
+
+                  double violation = c_ij - pi[h] + pi[j];
+                  if (violation < best_v) {
+                    best_v = violation;
+                    best_c = c_ij;
+                    best_j = j;
+                  }
+                }
+              }
+              // Store most violated cuts for element i
+              vars[h].b = best_j;
+              vars[h].c = best_c;
+            }
+          }
+
+          // Take all negative reduced cost variables
+          vnew.clear();
+          for (auto &v : vars) {
+            if (v.c > -1)
+              vnew.push_back(v);
+            v.c = -1;
+          }
+
+          auto end_tt = std::chrono::steady_clock::now();
+          _all_p +=
+              double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                         end_tt - start_tt)
+                         .count()) /
+              1000;
+
+          if (vnew.empty())
+            break;
+
+          std::sort(vnew.begin(), vnew.end(),
+                    [](const Var &v, const Var &w) { return v.c > w.c; });
+
+          // Replace old constraints with new ones
+          int new_arcs = simplex.updateArcs(vnew);
+
+          n_cuts += new_arcs;
+
+          ++it;
+        }
+
+        _iterations += simplex.iterations();
+        _num_arcs = simplex.num_arcs();
+        _num_nodes = simplex.num_nodes();
+        auto end_t = std::chrono::steady_clock::now();
+        auto _all = double(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                               end_t - start_t)
+                               .count()) /
+                    1000000000;
+
+        Ds[jj] = simplex.totalCost();
+
+        if (_n_log > 0)
+          PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
+                _all, _runtime, _all_p);
+      }
+      auto end_t = std::chrono::steady_clock::now();
+      auto _all = double(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                             end_t - start_t)
+                             .count()) /
+                  1000000000;
+      _runtime = _all;
+      fprintf(stdout, "%f %f\n", omp_get_wtime() - itime, _all);
+
+      return Ds;
+    }
+
+    return Ds;
+  }
+
   // Parse data from file, with format: i j b1 b1
   PointCloud2D parse(const std::string &filename, char sep = ' ', int off = 0) {
     std::ifstream in_file(filename);
@@ -1387,6 +2040,22 @@ private:
 
     for (const auto &k : B)
       Rs.update(k.first.first - xmin, k.first.second - ymin, -k.second);
+
+    // Use as few memory as possible
+    Rs.shrink_to_fit();
+
+    return Rs;
+  }
+
+  PointCloud2D mergeCoordinates(size_t n, int *Xs, int *Ys) {
+    // PREREQUISITIES: Ensures that Xs[i],Ys[i] have not duplicates
+
+    PointCloud2D Rs;
+    Rs.reserve(n);
+
+    // Point cloud
+    for (size_t i = 0; i < n; ++i)
+      Rs.add(Xs[i], Ys[i], 0.0);
 
     // Use as few memory as possible
     Rs.shrink_to_fit();

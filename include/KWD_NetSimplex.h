@@ -271,7 +271,7 @@ public:
     _source.resize(_node_num);
     _target.resize(_node_num);
 
-    _cost.resize(_node_num, 1);
+    _cost.resize(_node_num, 0);
     _flow.resize(_node_num, 0);
     _state.resize(_node_num, STATE_LOWER);
 
@@ -294,6 +294,13 @@ public:
     // shuffle();
     _runtime = 0.0;
     _iterations = 0;
+
+    // Reset arc variables
+    for (int e = 0; e < _arc_num; ++e) {
+      _state[e] = STATE_LOWER;
+      _flow[e] = 0.0;
+    }
+
     if (!init())
       return ProblemType::INFEASIBLE;
     return start(pivot_rule);
