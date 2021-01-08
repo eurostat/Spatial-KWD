@@ -11,7 +11,7 @@ The \code{Histogram2D} class represents a single spatial 2-dimensional histogram
 
   A 2D histogram can be also defined by adding (or updating) a single element a the time (see second constructor).
 
-  Note that the bins position are not required to lay on rectangular (or squared) grid, but they can lay every in the plane. Before of computing the distance between a pair of algorithms, the solver will compute a convex hull of all non-empty bins.
+  Note that the bins position are not required to lay on rectangular (or squared) grid, but they can lay every where in the plane. Before of computing the distance between a pair of algorithms, the solver will compute a convex hull of all non-empty bins.
 }
 \usage{
 # Import the library
@@ -47,19 +47,19 @@ h2$normalize()
 
   The \code{size} method returns the number of non-empty bins in \code{h}.
 
-  The \code{balance} method returns the sum of the weights in \code{h}. 
+  The \code{balance} method returns the sum of the weights in \code{h}.
 }
 \details{
   The public methods of the \code{Histogram2D} class are:
   \itemize{
-    \item \code{add(int x, int y, double w)}: it adds a bin located at position \emph{x} and \emph{y} with weight \emph{w}. 
-    
+    \item \code{add(int x, int y, double w)}: it adds a bin located at position \emph{x} and \emph{y} with weight \emph{w}.
+
     \item \code{update(int x, int y, double w)}: if position \emph{(x, y)} is not in the histogram, it adds a bin located at position \emph{x} and \emph{y} with weight \emph{w}, otherwise, it increments the current weight of the quantity \emph{w}.
-    
-    \item \code{size()}: return the number of non-empty bin \emph{n} of this histogram.
-    
-    \item \code{balance}: return the total mass balance of this histogram, that is, return the quantity \eqn{\sum_{i=1,\dots,n} w_i}.
-    
+
+    \item \code{size()}: return the number of non-empty bins \emph{n} of this histogram.
+
+    \item \code{balance()}: return the total mass balance of this histogram, that is, return the quantity \eqn{\sum_{i=1,\dots,n} w_i}.
+
     \item \code{normalize()}: normalize the weights of all non-empty bins, such that they all sum up to 1. Indeed, this method perform the operation: \eqn{w_i \gets \frac{w_i}{\sum_{i=1,\dots,n} w_i}}.
   }
 

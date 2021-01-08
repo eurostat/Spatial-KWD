@@ -16,3 +16,6 @@ bin/solver
 /.vs
 *.bak
 /wrappers/SpatialKWD.Rcheck
+/msvc/SKWD/.vs/SKWD/v15
+/SpatialKWD.Rcheck
+/SpatialKWD_0.1.3.tar.gz

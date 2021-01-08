@@ -16,8 +16,11 @@ SRC             = ${MYHOME}/src
 OPTFLAG = -O2 -ffast-math -march=native -DNDEBUG -Wall -mavx2 -std=c++11 -fopenmp -DLINUX -Wall
 LDFLAGS = -O2 -DNDEBUG -lm -pthread -std=c++11 -fopenmp
 
-COMPILER    = g++-10 ${OPTFLAG}
-LINKER      = g++-10 ${LDFLAGS}
+#COMPILER    = g++-10 ${OPTFLAG}
+#LINKER      = g++-10 ${LDFLAGS}
+
+COMPILER    = g++ ${OPTFLAG}
+LINKER      = g++ ${LDFLAGS}
 
 # Directory for output files
 OUT_DIR=bin lib
@@ -29,6 +32,10 @@ MKL_LIB = -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gn
 laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
 	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
 	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o
+
+crancheck:
+	R CMD build wrappers/R
+	R CMD check --as-cran SpatialKWD_0.1.3.tar.gz
 
 # Create subdirectory for output files (bin,lib)
 MKDIR_P = mkdir -p

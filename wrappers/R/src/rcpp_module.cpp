@@ -55,13 +55,98 @@ double distanceDF(const Rcpp::DataFrame& DF, int L) {
 	}
 }
 
+Rcpp::NumericVector compareExact(const Rcpp::DataFrame& DF) {
+	Rcpp::NumericVector ds;
+	if (!(DF.containsElementNamed("Xs") && DF.containsElementNamed("Ys"))) {
+		throw(Rcpp::exception("The Dataframe must contain at least vectors Xs and Ys, and a subset of W1, W2, and/or Ws."));
+		return ds;
+	}
 
+	Rcpp::IntegerVector Xs = DF["Xs"];
+	Rcpp::IntegerVector Ys = DF["Ys"];
+
+	int n = Xs.size();
+
+	KWD::Solver s;
+
+	try {
+		if (DF.containsElementNamed("W1") && DF.containsElementNamed("W2")) {
+			Rcpp::NumericVector W1 = DF["W1"];
+			Rcpp::NumericVector W2 = DF["W2"];
+
+			double d = s.compareExact(n, Xs.begin(), Ys.begin(), W1.begin(), W2.begin());
+			ds.push_back(d);
+			return ds;
+		}
+		if (DF.containsElementNamed("W1") && DF.containsElementNamed("Ws")) {
+			Rcpp::NumericVector W1 = DF["W1"];
+			Rcpp::NumericMatrix Ws = DF["Ws"];
+
+			int m = Ws.ncol();
+			vector<double> _ds = s.compareApprox(n, m, Xs.begin(), Ys.begin(), W1.begin(), Ws.begin(), n - 1);
+			ds.import(_ds.begin(), _ds.end());
+			return ds;
+
+		}
+		// TODO: add the case of a single matrix
+		throw(Rcpp::exception("The column format of this DataFrame is not supported: it must contain at least vectors Xs and Ys, and a subset of W1, W2, and/or Ws."));
+		return ds;
+	}
+	catch (...) {
+		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
+		return ds;
+	}
+}
+
+Rcpp::NumericVector compareApprox(const Rcpp::DataFrame& DF, int L) {
+	Rcpp::NumericVector ds;
+	if (!(DF.containsElementNamed("Xs") && DF.containsElementNamed("Ys"))) {
+		throw(Rcpp::exception("The Dataframe must contain at least vectors Xs and Ys, and a subset of W1, W2, and/or Ws."));
+		return ds;
+	}
+
+	Rcpp::IntegerVector Xs = DF["Xs"];
+	Rcpp::IntegerVector Ys = DF["Ys"];
+
+	int n = Xs.size();
+
+	KWD::Solver s;
+
+	try {
+		if (DF.containsElementNamed("W1") && DF.containsElementNamed("W2")) {
+			Rcpp::NumericVector W1 = DF["W1"];
+			Rcpp::NumericVector W2 = DF["W2"];
+
+			double d = s.compareApprox(n, Xs.begin(), Ys.begin(), W1.begin(), W2.begin(), L);
+			ds.push_back(d);
+			return ds;
+		}
+		if (DF.containsElementNamed("W1") && DF.containsElementNamed("Ws")) {
+			Rcpp::NumericVector W1 = DF["W1"];
+			Rcpp::NumericMatrix Ws = DF["Ws"];
+
+			int m = Ws.ncol();
+			vector<double> _ds = s.compareApprox(n, m, Xs.begin(), Ys.begin(), W1.begin(), Ws.begin(), L);
+			ds.import(_ds.begin(), _ds.end());
+			return ds;
+		}
+		// TODO: add the case of a single matrix
+		throw(Rcpp::exception("The column format of this DataFrame is not supported: it must contain at least vectors Xs and Ys, and a subset of W1, W2, and/or Ws."));
+		return ds;
+	}
+	catch (...) {
+		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
+		return ds;
+	}
+}
 
 RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
 
-	function("distanceDF", &distanceDF, "documentation for distanceDF");
+	function("distanceDF", &distanceDF, "compare two Histogram2D");
 
+	function("compareExact", &compareExact, "compare histograms with exact OT");
+	function("compareApprox", &compareApprox, "compare histograms with compareApprox OT");
 
 	class_<KWD::Histogram2D>("Histogram2D")
 		// expose the default constructor
@@ -78,17 +163,44 @@ RCPP_MODULE(SKWD) {
 		// expose the default constructor
 		.constructor()
 
-		.method("distance", &KWD::Solver::distance, 
+		// Solution methods
+		.method("distance", &KWD::Solver::distance,
 			"compute the distance between a pair of histograms with given L")
-		
-		.method("column_generation", &KWD::Solver::column_generation, 
+
+		.method("column_generation", &KWD::Solver::column_generation,
 			"compute the distance between a pair of histograms with given L using column generation")
 
-		.method("dense", &KWD::Solver::dense, 
+		.method("dense", &KWD::Solver::dense,
 			"compute the distance between a pair of histograms with given L using a bipartite graph (slow on large instances)")
 
-		.method("runtime", &KWD::Solver::runtime, 
+		//.method("compareExact", &KWD::Solver::compareExact,
+		//	"compare two histograms in vector format with an exact algortihm")
+
+		//.method("compareApprox", &KWD::Solver::compareApprox,
+		//	"compare two histograms in vector format with an approximate algortihm")
+
+
+		// Paramaters and attributes
+		.method("runtime", &KWD::Solver::runtime,
 			"get the runtime in seconds of Network Simplex algorithm")
-		; 
-		
+
+		.method("iterations", &KWD::Solver::iterations,
+			"get the number of iterations of Network Simplex algorithm")
+
+		.method("num_arcs", &KWD::Solver::num_arcs,
+			"get the number of arcs in the Network model")
+
+		.method("num_nodes", &KWD::Solver::num_nodes,
+			"get the number of arcs in the Network model")
+
+		.method("status", &KWD::Solver::status,
+			"get the status of Network Simplex solver")
+
+		.method("setParam", &KWD::Solver::setParam,
+			"set a parameter of the Network Simplex solver")
+
+		.method("getParam", &KWD::Solver::getParam,
+			"set a parameter of the Network Simplex solver")
+		;
+
 }
