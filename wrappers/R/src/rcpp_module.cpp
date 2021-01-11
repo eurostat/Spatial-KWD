@@ -54,8 +54,7 @@ double distanceDF(const Rcpp::DataFrame& DF, int L) {
 	}
 }
 
-Rcpp::DataFrame compareOneToOne(const Rcpp::DataFrame& Data, int L,
-	const Rcpp::DataFrame& Options) {
+Rcpp::DataFrame compareOneToOne(const Rcpp::DataFrame& Data, const Rcpp::DataFrame& Options) {
 	Rcpp::DataFrame sol;
 	if (!(Data.containsElementNamed("Xs") && Data.containsElementNamed("Ys") &&
 		Data.containsElementNamed("W1") && Data.containsElementNamed("W2"))) {
@@ -67,6 +66,13 @@ Rcpp::DataFrame compareOneToOne(const Rcpp::DataFrame& Data, int L,
 	Rcpp::IntegerVector Ys = Data["Ys"];
 	Rcpp::NumericVector W1 = Data["W1"];
 	Rcpp::NumericVector W2 = Data["W2"];
+
+	int L = 3;
+	if (Options.containsElementNamed("L")) {
+		L = Rcpp::as<int>(Options["L"]);
+		if (L < 1)
+			Rprintf("WARNING: Paramater L can take only value greater than 1. Using default value L=3.");
+	}
 
 	std::string method = "KWD_APPROX";
 	if (Options.containsElementNamed("Method"))
@@ -105,10 +111,10 @@ Rcpp::DataFrame compareOneToOne(const Rcpp::DataFrame& Data, int L,
 	return sol;
 }
 
-Rcpp::DataFrame compareOneToMany(const Rcpp::DataFrame& Data,
-	Rcpp::NumericMatrix& Ws, int L, const Rcpp::DataFrame& Options)
+Rcpp::List compareOneToMany(const Rcpp::DataFrame& Data,
+	Rcpp::NumericMatrix& Ws, const Rcpp::DataFrame& Options)
 {
-	Rcpp::DataFrame sol;
+	Rcpp::List sol;
 	if (!(Data.containsElementNamed("Xs") && Data.containsElementNamed("Ys") &&
 		Data.containsElementNamed("W1"))) {
 		throw(Rcpp::exception(
@@ -118,6 +124,13 @@ Rcpp::DataFrame compareOneToMany(const Rcpp::DataFrame& Data,
 	Rcpp::IntegerVector Xs = Data["Xs"];
 	Rcpp::IntegerVector Ys = Data["Ys"];
 	Rcpp::NumericVector W1 = Data["W1"];
+
+	int L = 3;
+	if (Options.containsElementNamed("L")) {
+		L = Rcpp::as<int>(Options["L"]);
+		if (L < 1)
+			Rprintf("WARNING: Paramater L can take only value greater than 1. Using default value L=3.");
+	}
 
 	std::string method = "KWD_APPROX";
 	if (Options.containsElementNamed("Method"))
@@ -147,8 +160,8 @@ Rcpp::DataFrame compareOneToMany(const Rcpp::DataFrame& Data,
 			for (auto v : _ds)
 				ds.push_back(v);
 		}
-		sol = Rcpp::DataFrame::create(
-			Rcpp::Named("distance") = ds,
+		sol = Rcpp::List::create(
+			Rcpp::Named("distances") = ds,
 			Rcpp::Named("runtime") = s.runtime(),
 			Rcpp::Named("iterations") = s.iterations(),
 			Rcpp::Named("nodes") = s.num_nodes(),
@@ -184,11 +197,11 @@ RCPP_MODULE(SKWD) {
 		"compare histograms with compareApprox OT");*/
 
 	function("compareOneToOne", &compareOneToOne,
-		List::create(_["Data"], _["L"], _["Options"]),
+		List::create(_["Data"], _["Options"]),
 		"compare two histograms with given search options");
 
 	function("compareOneToMany", &compareOneToMany,
-		List::create(_["Data"], _["Ws"], _["L"], _["Options"]),
+		List::create(_["Data"], _["Ws"], _["Options"]),
 		"compare one to many histograms with given search options");
 
 	//function("compareManyToMany", &compareManyToMany,

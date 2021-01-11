@@ -1,8 +1,8 @@
 \name{Solver-class}
 \Rdversion{1.1}
 \docType{class}
-\alias{Rcpp_Solver-class}
 \alias{Solver}
+\alias{Rcpp_Solver-class}
 \title{
   Spatial-KWD Solver
 }

@@ -12,7 +12,9 @@ All the algorithms are based on a core implementation of the Network Simplex alg
 Each implemented algorithm builds a different network, exploiting the special structure of spatial maps.
 }
 \details{
-This library contains two main classes and a number of helper functions.
+This library contains three helper functions and two main classes.
+
+The three helper functions are \code{\link{compareOneToOne}}, \code{compareOneToOne}, \code{compareOneToMany}, and \code{compareAll}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different algorithms.
 
 The helper functions are built on top of two main classes: \code{Histogram2D} and \code{Solver}. If you need to specify your algorithms, you can also use directly those two classes.
 
@@ -26,6 +28,33 @@ The helper functions are built on top of two main classes: \code{Histogram2D} an
 
 %Adding  Table X  into the documentation, at least for the first few values of L, is a great a idea !
 
+}
+\seealso{
+See Also as \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{Histogram2D}}, \code{\link{Solver}}.
+}
+\examples{
+  \dontrun{
+library(SpatialKWD)
+
+# Random coordinates
+N = 900
+Xs <- as.integer(runif(N, 0, 31))
+Ys <- as.integer(runif(N, 0, 31))
+
+# Random weights
+W1 <- runif(N, 0, 1)
+W2 <- runif(N, 0, 1)
+
+# Data frame with four columns named: "Xs", "Ys", "W1", "W2"
+one2one <- data.frame(Xs, Ys, W1, W2)
+
+# Compute distance
+print("Compare one-to-one with exact algorithm:")
+opt = data.frame(Method="KWD_EXACT")
+start_time <- Sys.time()
+ls <- compareOneToOne(one2one, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+}
 }
 \author{
 Stefano Gualandi, stefano.gualandi@gmail.com.

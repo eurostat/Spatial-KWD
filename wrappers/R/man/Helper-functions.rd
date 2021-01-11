@@ -6,15 +6,14 @@
 \alias{distanceDF}
 \docType{methods}
 \title{
-  Helper functions
+  Spatial-KWD: Helper functions
 }
 \description{
 The Spatial KWD package has a set of helper functions to ease the use of the library, without explicitly dealing with the internal data structures of the library specified later.
 }
 \usage{
-distanceDF(DF, L) # DEPRECATED, TO BE REMOVED
-compareOneToOne(Data, L, Options)
-compareOneToMany(Data, Ws, L, Options)
+compareOneToOne(Data, Options)
+compareOneToMany(Data, Ws, Options)
 }
 \details{
 The next table shows the worst-case approximation ratio as a function of the parameter \code{L}. The table reports also the number of arcs in the network flow model as a function of the number of bins \emph{n} contained in the convex hull of the support points of the histograms given in input with the dataframe.
@@ -27,28 +26,24 @@ The next table shows the worst-case approximation ratio as a function of the par
 
 }
 \arguments{
-\item{DF}{It is a \code{Dataframe} object that contains the following fields:
-\itemize{
-  \item{\code{x}: }{Vector of horizontal coordinates the bins. Type: vector of integers.}
-  \item{\code{y}: }{Vector of vertical coordinates the bins. Type: vector of integers.}
-  \item{\code{h1}: }{Vector of positive weights of the bin at the positions specified by \code{x} and \code{y}. Type: vector of doubles.}
-  \item{\code{h2}: }{Vector of positive weights of the bin at the positions specified by \code{x} and \code{y}. Type: vector of doubles.}
-  }
-}
 \item{Data}{It is a \code{Dataframe} object that contains the following fields:
 \itemize{
-  \item{\code{Xs}: }{Vector of horizontal coordinates the bins. Type: vector of integers.}
-  \item{\code{Ys}: }{Vector of vertical coordinates the bins. Type: vector of integers.}
-  \item{\code{W1}: }{Vector of positive weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
+  \item{\code{Xs}: }{Vector of horizontal coordinates the bins. Data type: vector of integers.}
+  \item{\code{Ys}: }{Vector of vertical coordinates the bins. Data type: vector of integers.}
+  \item{\code{W1}: }{Vector of positive weights of the bins located at the positions specified by \code{Xs} and \code{Ys}. Data type: vector of doubles.}
   }
 }
 
-\item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: matrix of doubles.}
+\item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Data type: matrix of doubles.}
 
-\item{L}{Approximation parameter.
-Higher values of \emph{L} gives more accurate solution, but requires longer running time.
-Table X gives the guarantee approximation bound as a function of \emph{L}.Type: positive integer}
-\item{Options}{See definition at page X.}
+\item{Options}{The main options are described below:
+  \itemize{
+  \item{\code{L}: }{Approximation parameter.
+    Higher values of \emph{L} gives more accurate solution, but requires longer running time.
+    The table below gives the percentage worst-case approximation error as a function of \emph{L}. Data type: positive integer}
+  \item{\code{Method}: }{Method for KW distance algorithm: \code{KWD_EXACT} or \code{KWD_APPROX}.}
+  }
+}
 }
 \value{
     Return a dataframe with the following attributes:
@@ -86,24 +81,27 @@ one2many <- data.frame(Xs=Xs, Ys=Ys, W1=W1)
 print("Compare one-to-one with exact algorithm:")
 opt = data.frame(Method="KWD_EXACT")
 start_time <- Sys.time()
-print(compareOneToOne(one2one, L=1, Options=opt))
+print(compareOneToOne(one2one, Options=opt))
 print(c("R total time:", Sys.time()-start_time))
 
 print("Compare one-to-one with approximate algorithm:")
-opt = data.frame(Method="KWD_APPROX")
+opt = data.frame(Method="KWD_APPROX", L=2)
 start_time <- Sys.time()
-print(compareOneToOne(one2one, L=1, Options=opt))
+print(compareOneToOne(one2one, Options=opt))
 print(c("R total time:", Sys.time()-start_time))
 
-print(compareOneToOne(one2one, L=5, Options=opt))
+opt = data.frame(Method="KWD_APPROX", L=3)
+print(compareOneToOne(one2one, Options=opt))
 print(c("R total time:", Sys.time()-start_time))
 
-print(compareOneToOne(one2one, L=10, Options=opt))
+opt = data.frame(Method="KWD_APPROX", L=10)
+print(compareOneToOne(one2one, Options=opt))
 print(c("R total time:", Sys.time()-start_time))
 
 print("Compare one-to-many with approximate algorithm:")
+opt = data.frame(Method="KWD_APPROX")
 start_time <- Sys.time()
-d <- compareOneToMany(one2many, Ws, L=3, Options=opt)
+d <- compareOneToMany(one2many, Ws, Options=opt)
 print(d)
 print(c("R total time:", Sys.time()-start_time))
 }
