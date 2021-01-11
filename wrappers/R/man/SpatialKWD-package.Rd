@@ -1,4 +1,5 @@
 \name{SpatialKWD-package}
+\Rdversion{1.1}
 \alias{SpatialKWD-package}
 \alias{SpatialKWD}
 \docType{package}
@@ -31,5 +32,7 @@ Stefano Gualandi, stefano.gualandi@gmail.com.
 
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 }
-%\references{}
+\references{
+    \url{https://github.com/eurostat/Spatial-KWD}
+}
 \keyword{ package }

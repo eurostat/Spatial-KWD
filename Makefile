@@ -33,9 +33,18 @@ laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
 	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
 	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o
 
+# Build R package with the official c++ source code
 crancheck:
+	cp include/KWD_Histogram2D.h wrappers/R/src
+	cp include/KWD_NetSimplex.h wrappers/R/src
 	R CMD build wrappers/R
-	R CMD check --as-cran SpatialKWD_0.1.3.tar.gz
+	R CMD check --as-cran SpatialKWD_0.1.4.tar.gz
+
+checkR:
+	cp include/KWD_Histogram2D.h wrappers/R/src
+	cp include/KWD_NetSimplex.h wrappers/R/src
+	R CMD build wrappers/R
+	R CMD check SpatialKWD_0.1.4.tar.gz
 
 # Create subdirectory for output files (bin,lib)
 MKDIR_P = mkdir -p

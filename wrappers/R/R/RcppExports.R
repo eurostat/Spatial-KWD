@@ -5,10 +5,10 @@ distanceDF <- function() {
     .Call(`_SpatialKWD_distanceDF`)
 }
 
-compareExact <- function() {
-    .Call(`_SpatialKWD_compareExact`)
+compareOneToOne <- function() {
+    .Call(`_SpatialKWD_compareOneToOne`)
 }
 
-compareApprox <- function() {
-    .Call(`_SpatialKWD_compareApprox`)
+compareOneToMany <- function() {
+    .Call(`_SpatialKWD_compareOneToMany`)
 }

@@ -23,19 +23,27 @@ Ws <- matrix(runif(m*N, 0, 1), ncol=3)
 one2one <- data.frame(Xs, Ys, W1, W2)
 one2many <- data.frame(Xs=Xs, Ys=Ys, W1=W1)
 
-
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
+opt = data.frame(Method="KWD_EXACT")
 start_time <- Sys.time()
-d <- compareExact(one2one)
-print(c(d, Sys.time()-start_time))
+print(compareOneToOne(one2one, L=1, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
 
 print("Compare one-to-one with approximate algorithm:")
+opt = data.frame(Method="KWD_APPROX")
 start_time <- Sys.time()
-d <- compareApprox(one2one, 5)
-print(c(d, Sys.time()-start_time))
+print(compareOneToOne(one2one, L=1, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print(compareOneToOne(one2one, L=5, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print(compareOneToOne(one2one, L=10, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
 
 print("Compare one-to-many with approximate algorithm:")
 start_time <- Sys.time()
-d <- compareOneToManyApprox(one2many, Ws, 3)
-print(c(d, Sys.time()-start_time))
+d <- compareOneToMany(one2many, Ws, L=3, Options=opt)
+print(d)
+print(c("R total time:", Sys.time()-start_time))

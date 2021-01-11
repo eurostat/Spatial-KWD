@@ -24,7 +24,7 @@ c <- new(SpatialKWD::Histogram2D)
 # Add at position (1,0) and (0,1) an half unit of mass
 c$add(1, 0, 0.5)
 c$add(0, 1, 0.5)
-# Add at position (5,5) a unit of mass
+# Add at position (5,5) a unit of massvi
 c$add(5, 5, 1)
 # Normalize the histogram
 c$normalize()

@@ -1,8 +1,8 @@
 \name{Solver-class}
-\alias{Solver-class}
-\alias{Solver}
-\alias{Rcpp_Solver}
+\Rdversion{1.1}
 \docType{class}
+\alias{Rcpp_Solver-class}
+\alias{Solver}
 \title{
   Spatial-KWD Solver
 }
@@ -11,79 +11,8 @@ The \code{Solver} class is the main wrapper to the core algorithms implemented i
 It has a number of methods that permit to compare two, or more, objects of type \code{Histogram2D}.
 If you use the helper functions described at the begging of this document, you can avoid to use directly this class.
 }
-\usage{
-# Create an instance of type Solver
-s <- new(SpatialKWD::Solver)
-
-# To compute the KW distance between the two histograms H1 and H2, using parameter L
-s$distance(H1, H2, L)
-
-# The public methods of the class are:
-s$compareExact(n, Xs, Ys, W1, W2)
-s$compareExact(n, Xs, Ys, W1, Ws)
-s$compareExact(n, Xs, Ys, Ws)
-
-s$compareApprox(n, Xs, Ys, W1, W2, L)
-s$compareApprox(n, Xs, Ys, W1, Ws, L)
-s$compareApprox(n, Xs, Ys, Ws, L)
-
-s$runtime()
-s$preprocesstime()
-
-s$setParam(name, value)
-s$getParam(name)
-}
-
-\arguments{
-  \item{n}{Number of bins in the histograms \code{Xs, Yw, W1, W2, Ws}.}
-  \item{H1}{First object of type \code{Histogram2D}.}
-  \item{H2}{Second object of type \code{Histogram2D}.}
-  \item{L}{Approximation parameter. Higher values of \emph{L} gives more accurate solution, but require longer running time.
-  Table X gives the guarantee approximation bound as a function of \emph{L}. Type: positive integer.}
-  \item{Xs}{Vector of horizontal coordinates the bins. Type: vector of integers.}
-  \item{Ys}{Vector of vertical coordinates the bins. Type: vector of integers.}
-  \item{W1}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
-  \item{W2}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
-  \item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: matrix of doubles.}
-  \item{name}{Name of the parameter to set and/or get. Type: string.}
-  \item{value}{Value to set the corresponding parameter specified by \code{name}. Type: double.}
-}
 \details{
     The public methods of this class are:
-  \itemize{
-    \item \code{compareExact(Xs, Ys, W1, W2)}: compute the exact distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.
-
-    \item \code{compareExact(Xs, Ys, W1, Ws)}: compute the exact distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.
-
-    \item \code{compareExact(Xs, Ys, Ws)}: compute a symmetric matrix of pairwise exact distances between all the possible pairs of the vector listed in \code{Ws}.
-    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-
-
-    \item \code{compareApprox(Xs, Ys, W1, W2, L)}: compute the approximate distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.
-
-    \item \code{compareApprox(Xs, Ys, W1, Ws, L)}: compute the approximate distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
-    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.
-
-    \item \code{compareApprox(Xs, Ys, Ws, L)}: compute a symmetric matrix of pairwise approximate distances (which quality depends on the value of \emph{L}) between all the possible pairs of the vector listed in \code{Ws}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
-
-
-    \item \code{runtime()}: return the runtime in seconds to the last call to one of the \emph{compare} methods. It reports the runtime of the execution of the Network Simplex algorithm.
-
-    \item \code{preprocesstime()}: return the preprocessing time in seconds to the last call to one of the \emph{compare} methods. It reports the execution time to set up the main data structures and to compute the convex hull of all the input histograms.
-
-
-    \item \code{setParam(name, value)}: set the parameter \code{name} to the new \code{value}. Every parameter has a default value. See below for the existing parameters.
-
-    \item \code{getParam(name)}: return the current value of the parameter \code{name}.
-  }
 
   The \code{Solver} class can be controlled by the list of parameters given in the following table, which can be set with the \code{setParam(name, value)} method. A detailed description of each parameter is given below.
 
@@ -129,5 +58,55 @@ s$getParam(name)
 \examples{
   \dontrun{
 # Define a simple example
+
 }
+}
+\keyword{classes}
+\section{Methods}{
+  \describe{
+    \item{\code{compareExact(Xs, Ys, W1, W2)}:}{compute the exact distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
+    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
+    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
+
+    \item{\code{compareExact(Xs, Ys, W1, Ws)}:}{compute the exact distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
+    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
+    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
+
+    \item{\code{compareExact(Xs, Ys, Ws)}:}{compute a symmetric matrix of pairwise exact distances between all the possible pairs of the vector listed in \code{Ws}.
+    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).}
+
+    \item{\code{compareApprox(Xs, Ys, W1, W2, L)}:}{compute the approximate distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
+    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
+    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
+
+    \item{\code{compareApprox(Xs, Ys, W1, Ws, L)}:}{compute the approximate distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
+    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
+    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
+
+    \item{\code{compareApprox(Xs, Ys, Ws, L)}:}{compute a symmetric matrix of pairwise approximate distances (which quality depends on the value of \emph{L}) between all the possible pairs of the vector listed in \code{Ws}.
+    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).}
+
+    \item{\code{runtime()}:}{return the runtime in seconds to the last call to one of the \emph{compare} methods. It reports the runtime of the execution of the Network Simplex algorithm.}
+
+    \item{\code{preprocesstime()}:}{return the preprocessing time in seconds to the last call to one of the \emph{compare} methods. It reports the execution time to set up the main data structures and to compute the convex hull of all the input histograms.}
+
+    \item{\code{setParam(name, value)}:}{set the parameter \code{name} to the new \code{value}. Every parameter has a default value. See below for the existing parameters.}
+
+    \item{\code{getParam(name)}:}{return the current value of the parameter \code{name}.}
+  }
+
+}
+\arguments{
+  \item{n}{Number of bins in the histograms \code{Xs, Yw, W1, W2, Ws}.}
+  \item{H1}{First object of type \code{Histogram2D}.}
+  \item{H2}{Second object of type \code{Histogram2D}.}
+  \item{L}{Approximation parameter. Higher values of \emph{L} gives more accurate solution, but require longer running time.
+  Table X gives the guarantee approximation bound as a function of \emph{L}. Type: positive integer.}
+  \item{Xs}{Vector of horizontal coordinates the bins. Type: vector of integers.}
+  \item{Ys}{Vector of vertical coordinates the bins. Type: vector of integers.}
+  \item{W1}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
+  \item{W2}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
+  \item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: matrix of doubles.}
+  \item{name}{Name of the parameter to set and/or get. Type: string.}
+  \item{value}{Value to set the corresponding parameter specified by \code{name}. Type: double.}
 }

@@ -1,7 +1,8 @@
 \name{Helper-functions}
+\Rdversion{1.1}
 \alias{Helper-functions}
-\alias{compareExact}
-\alias{compareApprox}
+\alias{compareOneToOne}
+\alias{compareOneToMany}
 \alias{distanceDF}
 \docType{methods}
 \title{
@@ -11,51 +12,99 @@
 The Spatial KWD package has a set of helper functions to ease the use of the library, without explicitly dealing with the internal data structures of the library specified later.
 }
 \usage{
-# Exact methods
-compareExact(Xs, Ys, W1, W2)
-compareExact(Xs, Ys, W1, Ws)
-compareExact(Xs, Ys, Ws)
-
-# Approximation methods (with bound guarantee)
-compareApprox(Xs, Ys, W1, W2, L)
-compareApprox(Xs, Ys, W1, Ws, L)
-compareApprox(Xs, Ys, Ws, L)
-}
-
-\arguments{
-  \item{Xs}{Vector of horizontal coordinates the bins. Type: vector of integers.}
-  \item{Ys}{Vector of vertical coordinates the bins. Type: vector of integers.}
-  \item{W1}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
-  \item{W2}{Vector of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
-  \item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: matrix of doubles.}
-  \item{L}{Approximation parameter. Higher values of \emph{L} gives more accurate solution, but require longer running time.
-  Table X gives the guarantee approximation bound as a function of \emph{L}. Type: positive integer.}
+distanceDF(DF, L) # DEPRECATED, TO BE REMOVED
+compareOneToOne(Data, L, Options)
+compareOneToMany(Data, Ws, L, Options)
 }
 \details{
-    The detailed descriptions of the helper functions is as follows:
+The next table shows the worst-case approximation ratio as a function of the parameter \code{L}. The table reports also the number of arcs in the network flow model as a function of the number of bins \emph{n} contained in the convex hull of the support points of the histograms given in input with the dataframe.
+
+    \tabular{lllllll}{
+    \bold{L} \tab \bold{1} \tab \bold{2} \tab \bold{3} \tab \bold{5} \tab \bold{10}\tab \bold{15} \cr
+    \code{Worst-case errror}  \tab 7.61\% \tab  2.68\% \tab  1.29\% \tab 0.49\%  \tab 0.12\%  \tab   0.06\%  \cr
+    \code{Number of arcs} \tab \emph{O(8n)} \tab \emph{O(16n)} \tab \emph{O(32n)}  \tab \emph{O(80n)} \tab \emph{O(256n)} \tab \emph{O(576n)} \cr
+    }
+
+}
+\arguments{
+\item{DF}{It is a \code{Dataframe} object that contains the following fields:
+\itemize{
+  \item{\code{x}: }{Vector of horizontal coordinates the bins. Type: vector of integers.}
+  \item{\code{y}: }{Vector of vertical coordinates the bins. Type: vector of integers.}
+  \item{\code{h1}: }{Vector of positive weights of the bin at the positions specified by \code{x} and \code{y}. Type: vector of doubles.}
+  \item{\code{h2}: }{Vector of positive weights of the bin at the positions specified by \code{x} and \code{y}. Type: vector of doubles.}
+  }
+}
+\item{Data}{It is a \code{Dataframe} object that contains the following fields:
+\itemize{
+  \item{\code{Xs}: }{Vector of horizontal coordinates the bins. Type: vector of integers.}
+  \item{\code{Ys}: }{Vector of vertical coordinates the bins. Type: vector of integers.}
+  \item{\code{W1}: }{Vector of positive weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: vector of doubles.}
+  }
+}
+
+\item{Ws}{Matrix of weights of the bin at the positions specified by \code{Xs} and \code{Ys}. Type: matrix of doubles.}
+
+\item{L}{Approximation parameter.
+Higher values of \emph{L} gives more accurate solution, but requires longer running time.
+Table X gives the guarantee approximation bound as a function of \emph{L}.Type: positive integer}
+\item{Options}{See definition at page X.}
+}
+\value{
+    Return a dataframe with the following attributes:
   \itemize{
-    \item \code{compareExact(Xs, Ys, W1, W2)}: compute the exact distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.
-
-    \item \code{compareExact(Xs, Ys, W1, Ws)}: compute the exact distances between the vector of weights \code{W1} and each of the vectors of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    This method returns a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.
-
-    \item \code{compareExact(Xs, Ys, Ws)}: compute a symmetric matrix of pairwise exact distances between all the possible pairs of the vector listed in \code{Ws}.
-    The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-
-
-    \item \code{compareApprox(Xs, Ys, W1, W2, L)}: compute the approximate distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.
-
-    \item \code{compareApprox(Xs, Ys, W1, Ws, L)}: compute the approximate distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.
-
-    \item \code{compareApprox(Xs, Ys, Ws, L)}: compute a symmetric matrix of pairwise approximate distances (which quality depends on the value of \emph{L}) between all the possible pairs of the vector listed in \code{Ws}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
+  \item{\code{distance}: }{Vector of values, with the KW-distances betweeen the input histograms.}
+  \item{\code{status}: }{Status of the solver used to compute the distances.}
+  \item{\code{runtime}: }{Overall runtime in seconds to compute all the distances.}
+  \item{\code{iterations}: }{Overall number of iterations of the Network Simplex algorithm.}
+  \item{\code{nodes}: }{Number of nodes in the network model used to compute the distances.}
+  \item{\code{arcs}:}{Number of arcs in the network model used to compute the distances.}
   }
 }
 \examples{
   \dontrun{
 # Define a simple example
+library(SpatialKWD)
+
+# Random coordinates
+N = 900
+Xs <- as.integer(runif(N, 0, 31))
+Ys <- as.integer(runif(N, 0, 31))
+
+# Random weights
+W1 <- runif(N, 0, 1)
+W2 <- runif(N, 0, 1)
+
+m <- 3
+Ws <- matrix(runif(m*N, 0, 1), ncol=3)
+
+# Data frame with four columns named: "x", "y", "h1", "h2"
+one2one <- data.frame(Xs, Ys, W1, W2)
+one2many <- data.frame(Xs=Xs, Ys=Ys, W1=W1)
+
+# Compute distance
+print("Compare one-to-one with exact algorithm:")
+opt = data.frame(Method="KWD_EXACT")
+start_time <- Sys.time()
+print(compareOneToOne(one2one, L=1, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print("Compare one-to-one with approximate algorithm:")
+opt = data.frame(Method="KWD_APPROX")
+start_time <- Sys.time()
+print(compareOneToOne(one2one, L=1, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print(compareOneToOne(one2one, L=5, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print(compareOneToOne(one2one, L=10, Options=opt))
+print(c("R total time:", Sys.time()-start_time))
+
+print("Compare one-to-many with approximate algorithm:")
+start_time <- Sys.time()
+d <- compareOneToMany(one2many, Ws, L=3, Options=opt)
+print(d)
+print(c("R total time:", Sys.time()-start_time))
 }
 }
