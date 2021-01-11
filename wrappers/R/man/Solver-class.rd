@@ -1,6 +1,7 @@
 \name{Solver-class}
 \alias{Solver-class}
 \alias{Solver}
+\alias{Rcpp_Solver}
 \docType{class}
 \title{
   Spatial-KWD Solver

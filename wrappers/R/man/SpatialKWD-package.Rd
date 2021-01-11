@@ -31,7 +31,5 @@ Stefano Gualandi, stefano.gualandi@gmail.com.
 
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 }
-\references{
-
-}
+%\references{}
 \keyword{ package }

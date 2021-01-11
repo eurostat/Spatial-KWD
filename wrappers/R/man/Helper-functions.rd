@@ -1,5 +1,8 @@
 \name{Helper-functions}
 \alias{Helper-functions}
+\alias{compareExact}
+\alias{compareApprox}
+\alias{distanceDF}
 \docType{methods}
 \title{
   Helper functions

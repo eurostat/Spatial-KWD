@@ -1,6 +1,7 @@
 \name{Histogram2D-class}
 \alias{Histogram2D-class}
 \alias{Histogram2D}
+\alias{Rccp_Histogram2D}
 \docType{class}
 \title{
   Two Dimensional Histogram for Spatial Data
