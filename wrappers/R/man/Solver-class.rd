@@ -18,34 +18,39 @@ If you use the helper functions described at the begging of this document, you c
 
     \tabular{lll}{
     \bold{Parameter Name} \tab \bold{Possible Values} \tab \bold{Default Value} \cr
-    \code{ExactMethod}  \tab \code{bipartite, mincostflow, colgen} \tab \code{colgen} \cr
-    \code{ApproxMethod} \tab \code{mincostflow, colgen} \tab \code{colgen}\cr
-    \code{Verbosity}    \tab \code{SILENT, INFO, DEBUG} \tab \code{INFO} \cr
+    \code{Method}  \tab \code{exact, approx} \tab \code{approx} \cr
+    \code{Model}  \tab \code{bipartite, mincostflow} \tab \code{mincostflow} \cr
+    \code{Algorithm} \tab \code{fullmodel, colgen} \tab \code{colgen}\cr
+    \code{Verbosity}    \tab \code{silent, info, debug} \tab \code{info} \cr
     \code{TimeLimit}    \tab Any positive integer smaller than \code{INTMAX} \tab \code{INTMAX} \cr
-    \code{OptTolerance} \tab Any value in \eqn{[10^{-1}, 10^{-9}]} \tab \eqn{10^{-6}}
+    \code{OptTolerance} \tab Any value in \eqn{[10^{-9}, 10^{-1}]} \tab \eqn{10^{-6}}
     }
 
   \itemize{
-    \item \code{ExactMethod}: set which algorithm to use to compute the exact distance between a pair of histograms. The options for this parameter are:
+    \item \code{Method}: set which method to use for computing the exact distance between a pair of histograms. The options for this parameter are:
       \itemize{
-      \item \code{bipartite}: it uses a complete bipartite graph. This method is only useful for small and sparse spatial maps.
+      \item \code{exact}: Compute the exact KW distance. This method is only useful for small and sparse spatial maps.
 
-      \item \code{mincostflow}: it uses a complete uncapacitated network flow, corresponding to use an approximate method with the parameter \emph{L=N-1}. This may be faster than the \code{bipartite} method, depending on the type of histograms.
-
-      \item \code{colgen}: it use a column generation algorithm on the same network used by \code{mincostflow}. However, the arcs of the network are added only when they are violated. Moreover, the arcs of the network are removed as soon as their slack is strictly positive. This permits to handle only a number of variables of size \emph{O(n)}, where \emph{n} is the number of non-empty bins.
+      \item \code{approx}: Compute an approximation KW distance which depends on the parameter \emph{L}. This is the default value.
       }
-      The default value is set to \code{colgen}.
 
-    \item \code{ApproxMethod}: set which algorithm to use to compute an approximate distance between a pair of histograms, which depends on the parameter \emph{L}. The options for this parameter are:
+\item \code{Model}: set which network model to use for computing the exact distance between a pair of histograms. The options for this parameter are:
       \itemize{
-      \item \code{mincostflow}: it uses an uncapacitated network flow which size depends on the input parameter \emph{L}. Larger value of \emph{L} gives more precise distances, but at the expense of higher running times.
+      \item \code{bipartite}: Build a complete bipartite graph. This method is only useful for small and sparse spatial maps.
 
-      \item \code{colgen}: it uses an uncapacitated network flow which size depends on the input parameter \emph{L}, but where the arc variables are added and removed dynamically, in order to keep the core problem as small as possible. It is the recommended method for very large spatial maps. On medium and small spatial maps the previous method could be faster.
+      \item \code{mincostflow}: Build an uncapacitated network flow. This is in general smaller than the \code{bipartite} model, except for very sparse histograms.
+      }
+
+    \item \code{Algorithm}: set which algorithm to use to compute an approximate distance between a pair of histograms, which depends on the parameter \emph{L}. The options for this parameter are:
+      \itemize{
+      \item \code{fullmodel}: Build a complete network model and solve the corresponding problem.
+
+      \item \code{colgen}: Build incrementally the network model while computing the KW distance. It is the recommended method for very large dense spatial maps. On medium and small spatial maps the fullmodel could be faster.
     }
       The default value is set to \code{colgen}.
 
-    \item \code{Verbosity}: set the level of verbosity of the logs. Possible values are \code{SILENT}, \code{INFO}, \code{DEBUG}. The last is clearly more verbose than the other two.
-      The default value is set to \code{INFO}.
+    \item \code{Verbosity}: set the level of verbosity of the logs. Possible values are \code{silent}, \code{info}, \code{debug}. The last is clearly more verbose than the other two.
+      The default value is set to \code{info}.
 
     \item \code{TimeLimit}: set the time limit for computing the distance between a pair of spatial maps. Min values: \code{INTMAX}.
           The default value is set to \code{INTMAX}.

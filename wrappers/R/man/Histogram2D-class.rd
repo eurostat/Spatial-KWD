@@ -59,11 +59,11 @@ print(sprintf("Histogram total weight = \%f", s$balance()))
   \item{n}{Number of non-empty bins. Type: positive integer.}
   \item{Xs}{Vector of horizontal coordinates the bins. Type: vector of integers.}
   \item{Ys}{Vector of vertical coordinates the bins. Type: vector of integers.}
-  \item{Ws}{Vector of positive weights of the bin at position \emph{(x,y)}. Type: vector of doubles.}
+  \item{Ws}{Vector of positive weights of the bin at position \emph{(x,y)}. Type: vector of positive doubles.}
   \item{x}{Horizontal coordinate of a bin. Type: integer.}
   \item{y}{Vertical coordinate of a bin. Type: integer.}
-  \item{w}{Weight of the bin at position \emph{(x,y)}. Type: double.}
-  \item{u}{Weight of the bin to be added to the weight at position \emph{(x,y)}. If a bin in position \emph{(x,y)} is absent, then it is added with weight equal to \code{u}. Type: double.}
+  \item{w}{Weight of the bin at position \emph{(x,y)}. Type: positive double.}
+  \item{u}{Weight of the bin to be added to the weight at position \emph{(x,y)}. If a bin in position \emph{(x,y)} is absent, then it is added with weight equal to \code{u}. Type: positive double.}
 }
 \value{
   The \code{add}, \code{update}, and \code{normalize} does not return any value.

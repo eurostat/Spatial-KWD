@@ -26,273 +26,375 @@
 
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
-double distanceDF(const Rcpp::DataFrame &DF, int L) {
-  Rcpp::IntegerVector X = DF["x"];
-  Rcpp::IntegerVector Y = DF["y"];
-  Rcpp::NumericVector H1 = DF["h1"];
-  Rcpp::NumericVector H2 = DF["h2"];
+double distanceDF(const Rcpp::DataFrame& DF, int L) {
+	Rcpp::IntegerVector X = DF["x"];
+	Rcpp::IntegerVector Y = DF["y"];
+	Rcpp::NumericVector H1 = DF["h1"];
+	Rcpp::NumericVector H2 = DF["h2"];
 
-  KWD::Histogram2D a;
-  KWD::Histogram2D b;
+	KWD::Histogram2D a;
+	KWD::Histogram2D b;
 
-  for (int i = 0, i_max = X.size(); i < i_max; ++i) {
-    a.add(X[i], Y[i], H1[i]);
-    b.add(X[i], Y[i], H2[i]);
-  }
+	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
+		a.add(X[i], Y[i], H1[i]);
+		b.add(X[i], Y[i], H2[i]);
+	}
 
-  a.normalize();
-  b.normalize();
+	a.normalize();
+	b.normalize();
 
-  KWD::Solver s;
+	KWD::Solver s;
 
-  try {
-    return s.column_generation(a, b, L);
-  } catch (...) {
-    throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
-    return 0.0;
-  }
+	try {
+		return s.column_generation(a, b, L);
+	}
+	catch (...) {
+		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
+		return 0.0;
+	}
 }
 
-Rcpp::List compareOneToOne(const Rcpp::DataFrame &Data,
-                           const Rcpp::DataFrame &Options) {
-  Rcpp::List sol;
-  if (!(Data.containsElementNamed("Xs") && Data.containsElementNamed("Ys") &&
-        Data.containsElementNamed("W1") && Data.containsElementNamed("W2")))
-    throw(Rcpp::exception("The Dataframe must contain the vectors Xs, "
-                          "Ys, W1,  and W2."));
+Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options) {
+	Rcpp::List sol;
+	if (Coordinates.ncol() != 2)
+		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
 
-  Rcpp::IntegerVector Xs = Data["Xs"];
-  Rcpp::IntegerVector Ys = Data["Ys"];
-  Rcpp::NumericVector W1 = Data["W1"];
-  Rcpp::NumericVector W2 = Data["W2"];
+	if (Weigths.ncol() != 2)
+		throw(Rcpp::exception("The Weigths matrix must contain two columns for W1 and W1."));
 
-  int L = 3;
-  if (Options.containsElementNamed("L")) {
-    L = Rcpp::as<int>(Options["L"]);
-    if (L < 1)
-      Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-              "default value L=3.");
-  }
+	// Input data
+	int n = Coordinates.nrow();
 
-  std::string method = "KWD_APPROX";
-  if (Options.containsElementNamed("Method"))
-    method = Rcpp::as<std::string>(Options["Method"]);
+	vector<int> data1 = Rcpp::as<vector<int>>(Coordinates);
+	int* Xs = &data1[0];
+	int* Ys = &data1[n];
+	vector<double> data2 = Rcpp::as<vector<double>>(Weigths);
+	double* W1 = &data2[0];
+	double* W2 = &data2[n];
 
-  int n = Xs.size();
 
-  KWD::Solver s;
-  s.setParam(KWD_ALGORITHM, KWD_COLGEN);
+	// Elaborate input parameters
+	int L = 3;
+	if (Options.containsElementNamed("L")) {
+		L = Rcpp::as<int>(Options["L"]);
+		if (L < 1)
+			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+				"default value L=3.");
+	}
 
-  try {
-    double d = -1;
-    if (method == "KWD_APPROX") {
-      Rprintf("Solution method: KWD_APPROX\n");
-      s.setParam(KWD_METHOD, KWD_APPROX);
+	std::string method = KWD_VAL_APPROX;
+	if (Options.containsElementNamed("Method"))
+		method = Rcpp::as<std::string>(Options["Method"]);
 
-      d = s.compareApprox(n, Xs.begin(), Ys.begin(), W1.begin(), W2.begin(), L);
-    } else {
-      Rprintf("Solution method: KWD_EXACT\n");
-      s.setParam(KWD_METHOD, KWD_EXACT);
-      d = s.compareExact(n, Xs.begin(), Ys.begin(), W1.begin(), W2.begin());
-    }
-    sol = Rcpp::List::create(
-        Rcpp::Named("distance") = d, Rcpp::Named("runtime") = s.runtime(),
-        Rcpp::Named("iterations") = s.iterations(),
-        Rcpp::Named("nodes") = s.num_nodes(),
-        Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
-  } catch (std::exception &e) {
-    Rprintf("Error 13: Rcpp::NumericVector compareOneToOne()\n");
-    forward_exception_to_r(e);
-  }
-  return sol;
+	std::string model = KWD_VAL_MINCOSTFLOW;
+	if (Options.containsElementNamed("Model"))
+		model = Rcpp::as<std::string>(Options["Model"]);
+
+	std::string algo = KWD_VAL_COLGEN;
+	if (Options.containsElementNamed("Algorithm"))
+		algo = Rcpp::as<std::string>(Options["Algorithm"]);
+
+	std::string verbosity = KWD_VAL_SILENT;
+	if (Options.containsElementNamed("Verbosity"))
+		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
+
+	double time_limit = std::numeric_limits<double>::max();
+	if (Options.containsElementNamed("TimeLimit"))
+		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
+
+	double opt_tolerance = 1e-06;
+	if (Options.containsElementNamed("OptTolerance"))
+		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
+
+
+	KWD::Solver s;
+	s.setStrParam(KWD_PAR_METHOD, method);
+	s.setStrParam(KWD_PAR_MODEL, model);
+	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
+	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
+	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+
+	try {
+		double d = -1;
+		if (method == KWD_VAL_APPROX) {
+			Rprintf("Solution method: APPROX\n");
+			d = s.compareApprox(n, Xs, Ys, W1, W2, L);
+		}
+		else {
+			Rprintf("Solution method: EXACT\n");
+			d = s.compareExact(n, Xs, Ys, W1, W2);
+		}
+		sol = Rcpp::List::create(
+			Rcpp::Named("distance") = d, Rcpp::Named("runtime") = s.runtime(),
+			Rcpp::Named("iterations") = s.iterations(),
+			Rcpp::Named("nodes") = s.num_nodes(),
+			Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
+	}
+	catch (std::exception& e) {
+		Rprintf("Error 13: Rcpp::NumericVector compareOneToOne()\n");
+		forward_exception_to_r(e);
+	}
+	return sol;
 }
 
-Rcpp::List compareOneToMany(const Rcpp::DataFrame &Data,
-                            Rcpp::NumericMatrix &Ws,
-                            const Rcpp::DataFrame &Options) {
-  Rcpp::List sol;
-  if (!(Data.containsElementNamed("Xs") && Data.containsElementNamed("Ys") &&
-        Data.containsElementNamed("W1")))
-    throw(Rcpp::exception(
-        "The Dataframe must contain at vectors Xs, Ys and Ws.\n"));
+Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options)
+{
+	Rcpp::List sol;
+	if (Coordinates.ncol() != 2)
+		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
 
-  Rcpp::IntegerVector Xs = Data["Xs"];
-  Rcpp::IntegerVector Ys = Data["Ys"];
-  Rcpp::NumericVector W1 = Data["W1"];
+	if (Weigths.ncol() < 2)
+		throw(Rcpp::exception("The Weigths matrix must contain at least two columns."));
 
-  int L = 3;
-  if (Options.containsElementNamed("L")) {
-    L = Rcpp::as<int>(Options["L"]);
-    if (L < 1)
-      Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-              "default value L=3.");
-  }
+	// Input data
+	int n = Coordinates.nrow();
+	int m = Weigths.ncol() - 1;
 
-  std::string method = "KWD_APPROX";
-  if (Options.containsElementNamed("Method"))
-    method = Rcpp::as<std::string>(Options["Method"]);
+	vector<int> data1 = Rcpp::as<vector<int>>(Coordinates);
+	int* Xs = &data1[0];
+	int* Ys = &data1[n];
 
-  int n = Xs.size();
-  int m = Ws.ncol();
+	vector<double> data2 = Rcpp::as<vector<double>>(Weigths);
+	double* W1 = &data2[0];
+	double* Ws = &data2[n];
 
-  KWD::Solver s;
-  s.setParam(KWD_ALGORITHM, KWD_COLGEN);
+	// Elaborate input parameters
+	int L = 3;
+	if (Options.containsElementNamed("L")) {
+		L = Rcpp::as<int>(Options["L"]);
+		if (L < 1)
+			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+				"default value L=3.");
+	}
 
-  try {
-    Rcpp::NumericVector ds;
-    if (method == "KWD_APPROX") {
-      Rprintf("Solution method: KWD_APPROX\n");
-      s.setParam(KWD_METHOD, KWD_APPROX);
-      vector<double> _ds = s.compareApprox(n, m, Xs.begin(), Ys.begin(),
-                                           W1.begin(), Ws.begin(), L);
-      for (auto v : _ds)
-        ds.push_back(v);
-    } else {
-      Rprintf("Solution method: KWD_EXACT\n");
-      s.setParam(KWD_METHOD, KWD_EXACT);
-      vector<double> _ds =
-          s.compareApprox(n, m, Xs.begin(), Ys.begin(), W1.begin(), Ws.begin(),
-                          n - 1); // TODO: Prepare the correct method
-      for (auto v : _ds)
-        ds.push_back(v);
-    }
-    sol = Rcpp::List::create(
-        Rcpp::Named("distances") = ds, Rcpp::Named("runtime") = s.runtime(),
-        Rcpp::Named("iterations") = s.iterations(),
-        Rcpp::Named("nodes") = s.num_nodes(),
-        Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
-  } catch (std::exception &e) {
-    Rprintf("Error 13: Rcpp::NumericVector compareOneToMany()\n");
-    forward_exception_to_r(e);
-  }
-  return sol;
+	std::string method = KWD_VAL_APPROX;
+	if (Options.containsElementNamed("Method"))
+		method = Rcpp::as<std::string>(Options["Method"]);
+
+	std::string model = KWD_VAL_MINCOSTFLOW;
+	if (Options.containsElementNamed("Model"))
+		model = Rcpp::as<std::string>(Options["Model"]);
+
+	std::string algo = KWD_VAL_COLGEN;
+	if (Options.containsElementNamed("Algorithm"))
+		algo = Rcpp::as<std::string>(Options["Algorithm"]);
+
+	std::string verbosity = KWD_VAL_SILENT;
+	if (Options.containsElementNamed("Verbosity"))
+		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
+
+	double time_limit = std::numeric_limits<double>::max();
+	if (Options.containsElementNamed("TimeLimit"))
+		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
+
+	double opt_tolerance = 1e-06;
+	if (Options.containsElementNamed("OptTolerance"))
+		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
+
+
+	KWD::Solver s;
+	s.setStrParam(KWD_PAR_METHOD, method);
+	s.setStrParam(KWD_PAR_MODEL, model);
+	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
+	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
+	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+
+	try {
+		Rcpp::NumericVector ds;
+		if (method == KWD_VAL_APPROX) {
+			Rprintf("Solution method: APPROX\n");
+			vector<double> _ds = s.compareApprox(n, m, Xs, Ys, W1, Ws, L);
+			for (auto v : _ds)
+				ds.push_back(v);
+		}
+		else {
+			Rprintf("Solution method: EXACT\n");
+			vector<double> _ds =
+				s.compareApprox(n, m, Xs, Ys, W1, Ws, n - 1);
+			for (auto v : _ds)
+				ds.push_back(v);
+		}
+		sol = Rcpp::List::create(
+			Rcpp::Named("distance") = ds, Rcpp::Named("runtime") = s.runtime(),
+			Rcpp::Named("iterations") = s.iterations(),
+			Rcpp::Named("nodes") = s.num_nodes(),
+			Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
+	}
+	catch (std::exception& e) {
+		Rprintf("Error 13: Rcpp::NumericVector compareOneToMany()\n");
+		forward_exception_to_r(e);
+	}
+	return sol;
 }
 
-Rcpp::List compareAll(const Rcpp::DataFrame &Data, Rcpp::NumericMatrix &Ws,
-                      const Rcpp::DataFrame &Options) {
-  Rcpp::List sol;
-  if (!(Data.containsElementNamed("Xs") && Data.containsElementNamed("Ys")))
-    throw(
-        Rcpp::exception("The Dataframe must contain at vectors Xs and Ys.\n"));
+Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options)
+{
+	Rcpp::List sol;
+	if (Coordinates.ncol() != 2)
+		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
 
-  Rcpp::IntegerVector Xs = Data["Xs"];
-  Rcpp::IntegerVector Ys = Data["Ys"];
+	if (Weigths.ncol() < 2)
+		throw(Rcpp::exception("The Weigths matrix must contain at least two columns."));
 
-  int L = 3;
-  if (Options.containsElementNamed("L")) {
-    L = Rcpp::as<int>(Options["L"]);
-    if (L < 1)
-      Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-              "default value L=3.");
-  }
+	// Input data
+	int n = Coordinates.nrow();
+	int m = Weigths.ncol();
 
-  std::string method = "KWD_APPROX";
-  if (Options.containsElementNamed("Method"))
-    method = Rcpp::as<std::string>(Options["Method"]);
+	vector<int> data1 = Rcpp::as<vector<int>>(Coordinates);
+	int* Xs = &data1[0];
+	int* Ys = &data1[n];
 
-  int n = Ws.nrow();
-  int m = Ws.ncol();
+	vector<double> data2 = Rcpp::as<vector<double>>(Weigths);
+	double* Ws = &data2[0];
 
-  KWD::Solver s;
-  s.setParam(KWD_ALGORITHM, KWD_COLGEN);
+	// Elaborate input parameters
+	int L = 3;
+	if (Options.containsElementNamed("L")) {
+		L = Rcpp::as<int>(Options["L"]);
+		if (L < 1)
+			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+				"default value L=3.");
+	}
 
-  try {
-    Rcpp::NumericMatrix ds(m, m);
-    if (method == "KWD_APPROX") {
-      Rprintf("Solution method: KWD_APPROX\n");
-      s.setParam(KWD_METHOD, KWD_APPROX);
-      vector<double> _ds =
-          s.compareApprox(n, m, Xs.begin(), Ys.begin(), Ws.begin(), L);
-      for (auto v : _ds)
-        ds.push_back(v);
-    } else {
-      Rprintf("Solution method: KWD_EXACT\n");
-      s.setParam(KWD_METHOD, KWD_EXACT);
-      vector<double> _ds =
-          s.compareApprox(n, m, Xs.begin(), Ys.begin(), Ws.begin(),
-                          n - 1); // TODO: Prepare the correct method
-      for (auto v : _ds)
-        ds.push_back(v);
-    }
-    sol = Rcpp::List::create(
-        Rcpp::Named("distances") = ds, Rcpp::Named("runtime") = s.runtime(),
-        Rcpp::Named("iterations") = s.iterations(),
-        Rcpp::Named("nodes") = s.num_nodes(),
-        Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
-  } catch (std::exception &e) {
-    Rprintf("Error 13: Rcpp::NumericVector compareAll()\n");
-    forward_exception_to_r(e);
-  }
-  return sol;
+	std::string method = KWD_VAL_APPROX;
+	if (Options.containsElementNamed("Method"))
+		method = Rcpp::as<std::string>(Options["Method"]);
+
+	std::string model = KWD_VAL_MINCOSTFLOW;
+	if (Options.containsElementNamed("Model"))
+		model = Rcpp::as<std::string>(Options["Model"]);
+
+	std::string algo = KWD_VAL_COLGEN;
+	if (Options.containsElementNamed("Algorithm"))
+		algo = Rcpp::as<std::string>(Options["Algorithm"]);
+
+	std::string verbosity = KWD_VAL_SILENT;
+	if (Options.containsElementNamed("Verbosity"))
+		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
+
+	double time_limit = std::numeric_limits<double>::max();
+	if (Options.containsElementNamed("TimeLimit"))
+		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
+
+	double opt_tolerance = 1e-06;
+	if (Options.containsElementNamed("OptTolerance"))
+		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
+
+
+	KWD::Solver s;
+	s.setStrParam(KWD_PAR_METHOD, method);
+	s.setStrParam(KWD_PAR_MODEL, model);
+	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
+	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
+	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+
+	try {
+		Rcpp::NumericMatrix ds;
+		if (method == KWD_VAL_APPROX) {
+			Rprintf("Solution method: APPROX\n");
+			vector<double> _ds =
+				s.compareApprox(n, m, Xs, Ys, Ws, L);
+			for (auto v : _ds)
+				ds.push_back(v);
+		}
+		else {
+			Rprintf("Solution method: EXACT\n");
+			vector<double> _ds =
+				s.compareApprox(n, m, Xs, Ys, Ws, n - 1);
+			for (auto v : _ds)
+				ds.push_back(v);
+		}
+		sol = Rcpp::List::create(
+			Rcpp::Named("distance") = ds, Rcpp::Named("runtime") = s.runtime(),
+			Rcpp::Named("iterations") = s.iterations(),
+			Rcpp::Named("nodes") = s.num_nodes(),
+			Rcpp::Named("arcs") = s.num_arcs(), Rcpp::Named("status") = s.status());
+	}
+	catch (std::exception& e) {
+		Rprintf("Error 13: Rcpp::NumericVector compareAll()\n");
+		forward_exception_to_r(e);
+	}
+	return sol;
 }
+
+
 RCPP_MODULE(SKWD) {
-  using namespace Rcpp;
+	using namespace Rcpp;
 
-  function("distanceDF", &distanceDF, List::create(_["DF"], _["L"]),
-           "compare two stored in the Dataframe DF");
+	function("distanceDF", &distanceDF, List::create(_["DF"], _["L"]),
+		"compare two stored in the Dataframe DF");
 
-  function("compareOneToOne", &compareOneToOne,
-           List::create(_["Data"], _["Options"]),
-           "compare two histograms using the given search options");
+	function("compareOneToOne", &compareOneToOne,
+		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		"compare two histograms using the given search options");
 
-  function("compareOneToMany", &compareOneToMany,
-           List::create(_["Data"], _["Ws"], _["Options"]),
-           "compare one to many histograms using the given search options");
+	function("compareOneToMany", &compareOneToMany,
+		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		"compare one to many histograms using the given search options");
 
-  function("compareAll", &compareAll,
-           List::create(_["Data"], _["Ws"], _["Options"]),
-           "compare all histograms using the given search options");
+	function("compareAll", &compareAll,
+		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		"compare all histograms using the given search options");
 
-  class_<KWD::Histogram2D>("Histogram2D")
-      // expose the default constructor
-      .constructor()
-      //.constructor<int, int*, int*, double*>()
+	class_<KWD::Histogram2D>("Histogram2D")
+		// expose the default constructor
+		.constructor()
+		//.constructor<int, int*, int*, double*>()
 
-      .method("add", &KWD::Histogram2D::add, "add an non empty support point")
-      .method("update", &KWD::Histogram2D::update,
-              "update an non empty support point")
-      .method("size", &KWD::Histogram2D::size,
-              "return the number of nonempty points")
-      .method("balance", &KWD::Histogram2D::balance,
-              "return the total sum of all the weights")
-      .method("normalize", &KWD::Histogram2D::normalize,
-              "normalize the weights to sum them up to one");
+		.method("add", &KWD::Histogram2D::add, "add an non empty support point")
+		.method("update", &KWD::Histogram2D::update,
+			"update an non empty support point")
+		.method("size", &KWD::Histogram2D::size,
+			"return the number of nonempty points")
+		.method("balance", &KWD::Histogram2D::balance,
+			"return the total sum of all the weights")
+		.method("normalize", &KWD::Histogram2D::normalize,
+			"normalize the weights to sum them up to one");
 
-  class_<KWD::Solver>("Solver")
-      // expose the default constructor
-      .constructor()
+	class_<KWD::Solver>("Solver")
+		// expose the default constructor
+		.constructor()
 
-      // Solution methods
-      .method("distance", &KWD::Solver::distance,
-              "compute the distance between a pair of histograms with given L")
+		// Solution methods
+		.method("distance", &KWD::Solver::distance,
+			"compute the distance between a pair of histograms with given L")
 
-      .method("column_generation", &KWD::Solver::column_generation,
-              "compute the distance between a pair of histograms with given L "
-              "using column generation")
+		.method("column_generation", &KWD::Solver::column_generation,
+			"compute the distance between a pair of histograms with given L "
+			"using column generation")
 
-      .method("dense", &KWD::Solver::dense,
-              "compute the distance between a pair of histograms with given L "
-              "using a bipartite graph (slow on large instances)")
+		.method("dense", &KWD::Solver::dense,
+			"compute the distance between a pair of histograms with given L "
+			"using a bipartite graph (slow on large instances)")
 
-      // Paramaters and attributes
-      .method("runtime", &KWD::Solver::runtime,
-              "get the runtime in seconds of Network Simplex algorithm")
+		// Paramaters and attributes
+		.method("runtime", &KWD::Solver::runtime,
+			"get the runtime in seconds of Network Simplex algorithm")
 
-      .method("iterations", &KWD::Solver::iterations,
-              "get the number of iterations of Network Simplex algorithm")
+		.method("iterations", &KWD::Solver::iterations,
+			"get the number of iterations of Network Simplex algorithm")
 
-      .method("num_arcs", &KWD::Solver::num_arcs,
-              "get the number of arcs in the Network model")
+		.method("num_arcs", &KWD::Solver::num_arcs,
+			"get the number of arcs in the Network model")
 
-      .method("num_nodes", &KWD::Solver::num_nodes,
-              "get the number of arcs in the Network model")
+		.method("num_nodes", &KWD::Solver::num_nodes,
+			"get the number of arcs in the Network model")
 
-      .method("status", &KWD::Solver::status,
-              "get the status of Network Simplex solver")
+		.method("status", &KWD::Solver::status,
+			"get the status of Network Simplex solver")
 
-      .method("setParam", &KWD::Solver::setParam,
-              "set a parameter of the Network Simplex solver")
+		.method("setDblParam", &KWD::Solver::setDblParam,
+			"set a double parameter of the Network Simplex solver")
 
-      .method("getParam", &KWD::Solver::getParam,
-              "set a parameter of the Network Simplex solver");
+		.method("getDblParam", &KWD::Solver::getDblParam,
+			"get a double parameter of the Network Simplex solver")
+
+		.method("setStrParam", &KWD::Solver::setStrParam,
+			"set a string parameter of the Network Simplex solver")
+
+		.method("getStrParam", &KWD::Solver::getStrParam,
+			"get a string parameter of the Network Simplex solver");
 }
