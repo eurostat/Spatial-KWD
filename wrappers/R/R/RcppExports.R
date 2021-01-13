@@ -12,3 +12,7 @@ compareOneToOne <- function() {
 compareOneToMany <- function() {
     .Call(`_SpatialKWD_compareOneToMany`)
 }
+
+compareAll <- function() {
+    .Call(`_SpatialKWD_compareAll`)
+}

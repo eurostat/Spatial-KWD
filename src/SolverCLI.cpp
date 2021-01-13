@@ -11,7 +11,7 @@
 #include "KWD_Histogram2D.h"
 
 int main(int argc, char *argv[]) {
-  int n = 256;
+  int n = 32;
 
   if (argc > 1)
     n = atoi(argv[1]);
@@ -51,10 +51,19 @@ int main(int argc, char *argv[]) {
     for (auto algo : {KWD_COLGEN, KWD_MINCOSTFLOW}) {
       solver.setParam(KWD_ALGORITHM, algo);
       auto dist =
-          solver.compareApprox(Xs.size(), 3, &Xs[0], &Ys[0], &W1[0], &Ws[0], 3);
+          solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &W1[0], &Ws[0], 3);
 
       for (double d : dist)
         PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
+              "arcs: "
+              "%ld, nodes: %ld\n",
+              n, d, solver.runtime(), solver.status().c_str(),
+              solver.iterations(), solver.num_arcs(), solver.num_nodes());
+
+      dist = solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &Ws[0], 3);
+
+      for (double d : dist)
+        PRINT("AllCmp => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
               "arcs: "
               "%ld, nodes: %ld\n",
               n, d, solver.runtime(), solver.status().c_str(),

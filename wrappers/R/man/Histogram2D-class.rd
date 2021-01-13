@@ -18,6 +18,9 @@ The \code{Histogram2D} class represents a single spatial 2-dimensional histogram
 \details{
   The public methods of the \code{Histogram2D} class are.
 }
+\seealso{
+See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{Solver}}.
+}
 \examples{
 \dontrun{
 # Define a simple histogram

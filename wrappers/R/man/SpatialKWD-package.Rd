@@ -14,9 +14,9 @@ Each implemented algorithm builds a different network, exploiting the special st
 \details{
 This library contains three helper functions and two main classes.
 
-The three helper functions are \code{\link{compareOneToOne}}, \code{compareOneToOne}, \code{compareOneToMany}, and \code{compareAll}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different algorithms.
+The three helper functions are \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, and \code{\link{compareAll}}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different algorithms.
 
-The helper functions are built on top of two main classes: \code{Histogram2D} and \code{Solver}. If you need to specify your algorithms, you can also use directly those two classes.
+The helper functions are built on top of two main classes: \code{\link{Histogram2D}} and \code{\link{Solver}}. If you need to specify your algorithms, you can also use directly those two classes.
 
 % COMMENTS LEFT TO INTEGRATE:
 %I would mention already in the description of helper-functions at page 2 that convex-hull thing
@@ -30,7 +30,7 @@ The helper functions are built on top of two main classes: \code{Histogram2D} an
 
 }
 \seealso{
-See Also as \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{Histogram2D}}, \code{\link{Solver}}.
+See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
   \dontrun{

@@ -55,11 +55,8 @@ If you use the helper functions described at the begging of this document, you c
           The default value is set to \eqn{10^{-6}}.
     }
 }
-\examples{
-  \dontrun{
-# Define a simple example
-
-}
+\seealso{
+See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{Histogram2D}}.
 }
 \keyword{classes}
 \section{Methods}{
