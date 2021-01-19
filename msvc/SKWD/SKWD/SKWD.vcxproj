@@ -144,8 +144,6 @@
     <ClCompile Include="..\..\..\src\SolverCLI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\KWD_ColumnGeneration.h" />
-    <ClInclude Include="..\..\..\include\KWD_DotSimplex.h" />
     <ClInclude Include="..\..\..\include\KWD_Histogram2D.h" />
     <ClInclude Include="..\..\..\include\KWD_NetSimplex.h" />
   </ItemGroup>

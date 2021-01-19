@@ -22,11 +22,5 @@
     <ClInclude Include="..\..\..\include\KWD_NetSimplex.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\KWD_DotSimplex.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\KWD_ColumnGeneration.h">
-      <Filter>include</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

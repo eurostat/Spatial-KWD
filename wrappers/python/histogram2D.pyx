@@ -47,6 +47,62 @@ cdef class Solver:
     def __cinit__(self):
         self.m = PySolver()  # TODO: change the log frequency
 
+    def compareApprox(self, n, X, Y, W1, W2, L):
+        if not X.flags['C_CONTIGUOUS']:
+            X = np.ascontiguousarray(X, dtype=int) # Makes a contiguous copy of the numpy array.
+        cdef int[::1] Xmv = X
+
+        if not Y.flags['C_CONTIGUOUS']:
+            Y = np.ascontiguousarray(Y, dtype=int) # Makes a contiguous copy of the numpy array.
+        cdef int[::1] Ymv = Y
+
+        if not W1.flags['C_CONTIGUOUS']:
+            W1 = np.ascontiguousarray(W1, dtype=float) # Makes a contiguous copy of the numpy array.
+        cdef double[::1] Wmv1 = W1
+
+        if not W2.flags['C_CONTIGUOUS']:
+            W2 = np.ascontiguousarray(W2, dtype=float) # Makes a contiguous copy of the numpy array.
+        cdef double[::1] Wmv2 = W2
+
+        return self.m.compareApprox(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0], L)
+
+    
+    def compareApprox2(self, n, m, X, Y, W1, Ws, L):
+        if not X.flags['C_CONTIGUOUS']:
+            X = np.ascontiguousarray(X, dtype=int) # Makes a contiguous copy of the numpy array.
+        cdef int[::1] Xmv = X
+
+        if not Y.flags['C_CONTIGUOUS']:
+            Y = np.ascontiguousarray(Y, dtype=int) # Makes a contiguous copy of the numpy array.
+        cdef int[::1] Ymv = Y
+
+        if not W1.flags['C_CONTIGUOUS']:
+            W1 = np.ascontiguousarray(W1, dtype=float) # Makes a contiguous copy of the numpy array.
+        cdef double[::1] Wmv1 = W1
+
+        if not Ws.flags['C_CONTIGUOUS']:
+            Ws = np.ascontiguousarray(Ws, dtype=float) # Makes a contiguous copy of the numpy array.
+        cdef double[::1] Wmvs = Ws
+
+        return self.m.compareApprox(n, m, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmvs[0], L)
+
+
+    # def compareApprox(self, n, m, X, Y, Ws, L):
+    #     if not X.flags['C_CONTIGUOUS']:
+    #         X = np.ascontiguousarray(X, dtype=int) # Makes a contiguous copy of the numpy array.
+    #     cdef int[::1] Xmv = X
+
+    #     if not Y.flags['C_CONTIGUOUS']:
+    #         Y = np.ascontiguousarray(Y, dtype=int) # Makes a contiguous copy of the numpy array.
+    #     cdef int[::1] Ymv = Y
+
+    #     if not Ws.flags['C_CONTIGUOUS']:
+    #         Ws = np.ascontiguousarray(Ws, dtype=float) # Makes a contiguous copy of the numpy array.
+    #     cdef double[::1] Wmvs = Ws
+
+    #     return self.m.compareApprox(n, m, Xmv, Ymv, Wmvs, L)
+    
+    
     def distance(self, Histogram2D A, Histogram2D B, L):
         return self.m.distance(A.mu, B.mu, L)
 
@@ -58,3 +114,15 @@ cdef class Solver:
 
     def runtime(self):
         return self.m.runtime()
+
+    def setStrParam(self, param, value):
+        return self.m.setStrParam(param, value)
+
+    def setDblParam(self, param, value):
+        return self.m.setDblParam(param, value)
+
+    def getStrParam(self, param):
+        return self.m.getStrParam(param)
+
+    def getDblParam(self, param):
+        return self.m.getDblParam(param)

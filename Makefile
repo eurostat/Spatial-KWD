@@ -33,6 +33,12 @@ laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
 	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
 	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o
 
+# Build Python wrapper
+buildpython:
+	cd wrappers/python
+	python3 setup.py build_ext --inplace
+	cd ../..
+
 # Build R package with the official c++ source code
 crancheck:
 	cp include/KWD_Histogram2D.h wrappers/R/src
