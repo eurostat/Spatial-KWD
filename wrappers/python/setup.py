@@ -13,16 +13,16 @@ from Cython.Build import cythonize
 extensions = Extension("KWD", ["histogram2D.pyx"],
                        extra_compile_args=[
                            '-Wno-unused-function', '-std=c++11', '-fopenmp',
-                           '-O2', '-ffast-math', '-march=native', '-DNDEBUG', 
+                           '-O2', '-ffast-math', '-DNDEBUG', 
                            '-fno-wrapv'
                        ],
                        extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
 
-with open('README.md'), encoding="utf-8") as f:
+with open('README.md', encoding="utf-8") as f:
     long_descr = f.read()
     
 setup(name='Spatial-KWD',
-      version='0.1.3',
+      version='0.1.5',
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
       author_email='stefano.gualandi@gmail.com',
