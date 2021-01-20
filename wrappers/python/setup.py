@@ -18,14 +18,20 @@ extensions = Extension("KWD", ["histogram2D.pyx"],
                        ],
                        extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
 
+with open('README.md'), encoding="utf-8") as f:
+    long_descr = f.read()
+    
 setup(name='Spatial-KWD',
       version='0.1.3',
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
       author_email='stefano.gualandi@gmail.com',
       url='https://github.com/eurostat/Spatial-KWD',
-      long_description='''
-           Spatial Kantorovich-Wasserstein Distances (Spatial-KWD) for Large Spatial Maps
-       ''',
+      platforms=['linux', 'macosx', 'windows'],
+      download_url='https://github.com/eurostat/Spatial-KWD/archive/v0.1.5-alpha.tar.gz',
+      setup_requires=['numpy>=1.16', 'cython>=0.23'],
+      install_requires=['numpy>=1.16'],
+      long_description=long_descr,
+      long_description_content_type='text/markdown',
       ext_modules=cythonize(extensions,
                             compiler_directives={'language_level': "3"}))
