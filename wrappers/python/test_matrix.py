@@ -5,7 +5,7 @@
 
 # Library for reading input files
 import pickle
-import numpy
+import numpy as np
 
 from random import randint, uniform, seed
 from time import perf_counter
@@ -28,8 +28,8 @@ for _ in range(N):
 
 
 # Scale coordinates
-X = np.array(X, dtype=np.int32)
-Y = np.array(Y, dtype=np.int32)
+X = np.array(X, dtype=int)
+Y = np.array(Y, dtype=int)
 A = np.array(A, dtype=float)
 B = np.array(B, dtype=float)
 
@@ -46,13 +46,33 @@ s.setStrParam("Model".encode('utf-8'), "mincostflow".encode('utf-8'));
 s.setStrParam("Algorithm".encode('utf-8'), "colgen".encode('utf-8'));
 
 
-start = perf_counter()
-print("approx: d(a,b) =", s.compareApprox(N, X, Y, A, B, 3), "- runtime:",
-      s.runtime(),
-      perf_counter() - start)
+# start = perf_counter()
+# print("approx: d(a,b) =", s.compareApprox(N, X, Y, A, B, 3), "- runtime:",
+#       s.runtime(),
+#       perf_counter() - start)
 
 
-start = perf_counter()
-print("approx: d(a,b) =", s.compareApprox2(N, M, X, Y, A, Ws, 3), "- runtime:",
-      s.runtime(),
-      perf_counter() - start)
+# start = perf_counter()
+# print("approx: d(a,b) =", s.compareApprox2(N, M, X, Y, A, Ws, 3), "- runtime:",
+#       s.runtime(),
+#       perf_counter() - start)
+
+
+# start = perf_counter()
+# print("approx: d(a,b) =", s.compareApprox3(N, M, X, Y, Ws, 3), "- runtime:",
+#       s.runtime(),
+#       perf_counter() - start)
+
+# Helper functions
+Coordinates = np.random.randint(0, 100, size=(N, 2), dtype=np.int32)
+Weights = np.random.uniform(0, 100, size=(N, 2))
+Options = {}
+print(compareOneToOne(Coordinates, Weights, Options))
+
+Weights = np.random.uniform(0, 100, size=(N, 3))
+Options = {}
+print(compareOneToMany(Coordinates, Weights, Options))
+
+Weights = np.random.uniform(0, 100, size=(N, 3))
+Options = {}
+print(compareAll(Coordinates, Weights, Options))

@@ -14,14 +14,20 @@ cdef extern from "KWD_Histogram2D.h" namespace "KWD":
 
     cdef cppclass Solver:
         Solver() except +
-        double compareApprox(int _n, int* _Xs, int* _Ys, double* _W1, double* _W2, int _L)
-        vector[double] compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _W1, double* _Ws, int _L)
-        # double* compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _Ws, int _L)        
+        double compareExact(int, int*, int*, double*, double*)
+        double compareApprox(int, int*, int*, double*, double*, int)
+        vector[double] compareApprox(int, int, int*, int*, double*, double*, int)
+        vector[double] compareApprox3(int, int, int*, int*, double*, int)        
         double distance(const Histogram2D& A, const Histogram2D& B, int L)
         double column_generation(const Histogram2D& A, const Histogram2D& B, int L)
         double dense(const Histogram2D& A, const Histogram2D& B)
         double runtime()
+        long iterations()
+        long num_nodes()
+        long num_arcs()
+        string status()
         void setStrParam(string param, string value)
         void setDblParam(string param, float value)
         void getStrParam(string param)
         void getDblParam(string param)
+        
