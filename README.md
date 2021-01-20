@@ -6,8 +6,8 @@ This software library contains efficient implementations of Discrete Optimal Tra
 
 The core library is written in standard ANSI-C++11, but it has two wrappers:
 
-1. A [Python wrapper](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/python) 
-2. An [R wrapper](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R) 
+1. A [Python wrapper](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/python)
+2. An [R wrapper](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R)
 
 If you need a wrapper in another language, please let us know by posting a request on GitHub.
 
@@ -24,7 +24,7 @@ The simplest way to test this library is to run one of the following notebooks o
 
 | Data | Notebook | Link |
 |:-|:-|:-|
-|**[2020/11/13]**|*Tutorial 1: Using Spatial-KWD with Python*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
+|**[2021/02/20]**|*Tutorial 1: Using Spatial-KWD v0.1.5-alpha with Python*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
 |**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_with_R_Tutorial_2.ipynb)|
 
 
@@ -78,13 +78,13 @@ If you need an interface for a different R data structure, again, please let us 
 ### <a name="About"></a>About
 
 <table align="center">
-    <tr> <td align="left"><i>Contributors</i></td> 
+    <tr> <td align="left"><i>Contributors</i></td>
     <td align="left" valign="middle">
 <a href="https://github.com/stegua"><img src="https://github.com/stegua.png" width="40"></a>
-</td>  </tr> 
+</td>  </tr>
     <!-- <tr> <td align="left"><i>version</i></td> <td align="left"> </td> </tr> -->
-    <tr> <td align="left"><i>Status</i></td> <td align="left">since 2020</td> </tr> 
-    <tr> <td align="left"><i>License</i></td> <td align="left"><a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL v1.2</a><i></i></td> </tr> 
+    <tr> <td align="left"><i>Status</i></td> <td align="left">since 2020</td> </tr>
+    <tr> <td align="left"><i>License</i></td> <td align="left"><a href="https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt">EUPL v1.2</a><i></i></td> </tr>
 </table>
 
 ### <a name="References"></a>Main References
