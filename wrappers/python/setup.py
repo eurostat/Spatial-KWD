@@ -13,9 +13,10 @@ from Cython.Build import cythonize
 extensions = Extension("KWD", ["histogram2D.pyx"],
                        extra_compile_args=[
                            '-Wno-unused-function', '-std=c++11', '-fopenmp',
-                           '-O2'
+                           '-O2', '-ffast-math', '-march=native', '-DNDEBUG', 
+                           '-fno-wrapv'
                        ],
-                       extra_link_args=['-fopenmp'])
+                       extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
 
 setup(name='Spatial-KWD',
       version='0.1.3',
