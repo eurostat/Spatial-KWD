@@ -1,4 +1,4 @@
-\name{Solver-class}
+  \name{Solver-class}
 \Rdversion{1.1}
 \docType{class}
 \alias{Solver}

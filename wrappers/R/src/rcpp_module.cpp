@@ -26,35 +26,37 @@
 
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
-double distanceDF(const Rcpp::DataFrame& DF, int L) {
-	Rcpp::IntegerVector X = DF["x"];
-	Rcpp::IntegerVector Y = DF["y"];
-	Rcpp::NumericVector H1 = DF["h1"];
-	Rcpp::NumericVector H2 = DF["h2"];
+//double distanceDF(const Rcpp::DataFrame& DF, int L) {
+//	Rcpp::IntegerVector X = DF["x"];
+//	Rcpp::IntegerVector Y = DF["y"];
+//	Rcpp::NumericVector H1 = DF["h1"];
+//	Rcpp::NumericVector H2 = DF["h2"];
+//
+//	KWD::Histogram2D a;
+//	KWD::Histogram2D b;
+//
+//	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
+//		a.add(X[i], Y[i], H1[i]);
+//		b.add(X[i], Y[i], H2[i]);
+//	}
+//
+//	a.normalize();
+//	b.normalize();
+//
+//	KWD::Solver s;
+//
+//	try {
+//		return s.column_generation(a, b, L);
+//	}
+//	catch (...) {
+//		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
+//		return 0.0;
+//	}
+//}
 
-	KWD::Histogram2D a;
-	KWD::Histogram2D b;
-
-	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
-		a.add(X[i], Y[i], H1[i]);
-		b.add(X[i], Y[i], H2[i]);
-	}
-
-	a.normalize();
-	b.normalize();
-
-	KWD::Solver s;
-
-	try {
-		return s.column_generation(a, b, L);
-	}
-	catch (...) {
-		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
-		return 0.0;
-	}
-}
-
-Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options) {
+Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+	const std::string& method = "approx", const std::string& algorithm = "colgen", const std::string& model = "mincostflow", const std::string& verbosity = "silent",
+	double timelimit = 14400, double opt_tolerance = 1e-06) {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
 		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
@@ -74,46 +76,17 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 
 
 	// Elaborate input parameters
-	int L = 3;
-	if (Options.containsElementNamed("L")) {
-		L = Rcpp::as<int>(Options["L"]);
-		if (L < 1)
-			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-				"default value L=3.");
-	}
-
-	std::string method = KWD_VAL_APPROX;
-	if (Options.containsElementNamed("Method"))
-		method = Rcpp::as<std::string>(Options["Method"]);
-
-	std::string model = KWD_VAL_MINCOSTFLOW;
-	if (Options.containsElementNamed("Model"))
-		model = Rcpp::as<std::string>(Options["Model"]);
-
-	std::string algo = KWD_VAL_COLGEN;
-	if (Options.containsElementNamed("Algorithm"))
-		algo = Rcpp::as<std::string>(Options["Algorithm"]);
-
-	std::string verbosity = KWD_VAL_SILENT;
-	if (Options.containsElementNamed("Verbosity"))
-		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
-
-	double time_limit = std::numeric_limits<double>::max();
-	if (Options.containsElementNamed("TimeLimit"))
-		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
-
-	double opt_tolerance = 1e-06;
-	if (Options.containsElementNamed("OptTolerance"))
-		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
-
+	if (L < 1)
+		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+			"default value L=3.");
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
 	s.setStrParam(KWD_PAR_MODEL, model);
-	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_ALGORITHM, algorithm);
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
-	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 
 	try {
 		double d = -1;
@@ -138,7 +111,10 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 	return sol;
 }
 
-Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options)
+Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+	const std::string& method = "approx", const std::string& algorithm = "colgen",
+	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
+	double timelimit = 14400, double opt_tolerance = 1e-06)
 {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
@@ -160,46 +136,17 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	double* Ws = &data2[n];
 
 	// Elaborate input parameters
-	int L = 3;
-	if (Options.containsElementNamed("L")) {
-		L = Rcpp::as<int>(Options["L"]);
-		if (L < 1)
-			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-				"default value L=3.");
-	}
-
-	std::string method = KWD_VAL_APPROX;
-	if (Options.containsElementNamed("Method"))
-		method = Rcpp::as<std::string>(Options["Method"]);
-
-	std::string model = KWD_VAL_MINCOSTFLOW;
-	if (Options.containsElementNamed("Model"))
-		model = Rcpp::as<std::string>(Options["Model"]);
-
-	std::string algo = KWD_VAL_COLGEN;
-	if (Options.containsElementNamed("Algorithm"))
-		algo = Rcpp::as<std::string>(Options["Algorithm"]);
-
-	std::string verbosity = KWD_VAL_SILENT;
-	if (Options.containsElementNamed("Verbosity"))
-		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
-
-	double time_limit = std::numeric_limits<double>::max();
-	if (Options.containsElementNamed("TimeLimit"))
-		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
-
-	double opt_tolerance = 1e-06;
-	if (Options.containsElementNamed("OptTolerance"))
-		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
-
+	if (L < 1)
+		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+			"default value L=3.");
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
 	s.setStrParam(KWD_PAR_MODEL, model);
-	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_ALGORITHM, algorithm);
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
-	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 
 	try {
 		Rcpp::NumericVector ds;
@@ -229,7 +176,10 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	return sol;
 }
 
-Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, Rcpp::List& Options)
+Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+	const std::string& method = "approx", const std::string& algorithm = "colgen",
+	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
+	double timelimit = 14400, double opt_tolerance = 1e-06)
 {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
@@ -250,46 +200,17 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 	double* Ws = &data2[0];
 
 	// Elaborate input parameters
-	int L = 3;
-	if (Options.containsElementNamed("L")) {
-		L = Rcpp::as<int>(Options["L"]);
-		if (L < 1)
-			Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
-				"default value L=3.");
-	}
-
-	std::string method = KWD_VAL_APPROX;
-	if (Options.containsElementNamed("Method"))
-		method = Rcpp::as<std::string>(Options["Method"]);
-
-	std::string model = KWD_VAL_MINCOSTFLOW;
-	if (Options.containsElementNamed("Model"))
-		model = Rcpp::as<std::string>(Options["Model"]);
-
-	std::string algo = KWD_VAL_COLGEN;
-	if (Options.containsElementNamed("Algorithm"))
-		algo = Rcpp::as<std::string>(Options["Algorithm"]);
-
-	std::string verbosity = KWD_VAL_SILENT;
-	if (Options.containsElementNamed("Verbosity"))
-		verbosity = Rcpp::as<std::string>(Options["Verbosity"]);
-
-	double time_limit = std::numeric_limits<double>::max();
-	if (Options.containsElementNamed("TimeLimit"))
-		time_limit = std::stod(Rcpp::as<std::string>(Options["TimeLimit"]));
-
-	double opt_tolerance = 1e-06;
-	if (Options.containsElementNamed("OptTolerance"))
-		opt_tolerance = std::stod(Rcpp::as<std::string>(Options["OptTolerance"]));
-
+	if (L < 1)
+		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
+			"default value L=3.");
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
 	s.setStrParam(KWD_PAR_MODEL, model);
-	s.setStrParam(KWD_PAR_ALGORITHM, algo);
+	s.setStrParam(KWD_PAR_ALGORITHM, algorithm);
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
-	s.setDblParam(KWD_PAR_TIMELIMIT, time_limit);
+	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 
 	try {
 		Rcpp::NumericMatrix ds;
@@ -324,19 +245,22 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
 
-	function("distanceDF", &distanceDF, List::create(_["DF"], _["L"]),
-		"compare two stored in the Dataframe DF");
-
 	function("compareOneToOne", &compareOneToOne,
-		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare two histograms using the given search options");
 
 	function("compareOneToMany", &compareOneToMany,
-		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare one to many histograms using the given search options");
 
 	function("compareAll", &compareAll,
-		List::create(_["Coordinates"], _["Weights"], _["Options"]),
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare all histograms using the given search options");
 
 	class_<KWD::Histogram2D>("Histogram2D")

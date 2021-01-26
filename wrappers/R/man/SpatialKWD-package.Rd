@@ -19,6 +19,9 @@ The three helper functions are \code{\link{compareOneToOne}}, \code{\link{compar
 The helper functions are built on top of two main classes: \code{\link{Histogram2D}} and \code{\link{Solver}}.
 
 Note that in case of non-convex maps, the algorithm builds the convex-hull of the input bins and pads the weights with zeros.
+
+In case of spatial histograms with weights which do not sum up to 1, all the weights are automatically rescaled in such a way the overall sum of the weight of each single histogram is equal to 1.0: \eqn{w_i \gets \frac{w_i}{\sum_{i=1,\dots,n} w_i}}.
+This way the spatial histograms have a natural interpretation as discrete probability measures.
 }
 \seealso{
 See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
@@ -38,8 +41,7 @@ weights <- matrix(runif(2*N, 0, 1), ncol=2)
 
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
-opt = data.frame(Method="Exact")
-d <- compareOneToOne(coordinates, weights, Options=opt)
+d <- compareOneToOne(coordinates, weights, L=3)
 cat("runtime:", d$runtime, " distance:", d$distance, "\n")
 }
 }

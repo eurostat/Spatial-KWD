@@ -552,7 +552,7 @@ namespace KWD {
 			timelimit(std::numeric_limits<double>::max()) {}
 
 		// Setter/getter for parameters
-		std::string getStrParam(const std::string& name) {
+		std::string getStrParam(const std::string& name) const {
 			if (name == KWD_PAR_METHOD)
 				return method;
 			if (name == KWD_PAR_ALGORITHM)
@@ -562,7 +562,7 @@ namespace KWD {
 			return "ERROR getStrParam: wrong parameter ->" + name;
 		}
 
-		double getDblParam(const std::string& name) {
+		double getDblParam(const std::string& name) const {
 			if (name == KWD_PAR_TIMELIMIT)
 				return timelimit;
 			if (name == KWD_PAR_OPTTOLERANCE)
@@ -587,6 +587,12 @@ namespace KWD {
 
 			if (name == KWD_PAR_OPTTOLERANCE)
 				opt_tolerance = value;
+		}
+
+		void dumpParam() const {
+			PRINT("%s %s %s %s %.3f %f",
+				method.c_str(), model.c_str(), algorithm.c_str(), verbosity.c_str(),
+				timelimit, opt_tolerance);
 		}
 
 		// Return status of the solver
@@ -986,6 +992,9 @@ namespace KWD {
 
 		// New interface for the solver
 		double compareExact(int _n, int* _Xs, int* _Ys, double* _W1, double* _W2) {
+			if (verbosity == KWD_VAL_DEBUG)
+				dumpParam();
+
 			intpair2int XY = reindex(_n, _Xs, _Ys);
 			int n = XY.size();
 
@@ -1333,6 +1342,8 @@ namespace KWD {
 
 		double compareApprox(int _n, int* _Xs, int* _Ys, double* _W1, double* _W2,
 			int _L) {
+			if (verbosity == KWD_VAL_DEBUG)
+				dumpParam();
 			intpair2int XY = reindex(_n, _Xs, _Ys);
 			int n = XY.size();
 
@@ -1638,6 +1649,9 @@ namespace KWD {
 
 		vector<double> compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _W1,
 			double* _Ws, int _L) {
+			if (verbosity == KWD_VAL_DEBUG)
+				dumpParam();
+
 			// Get the largest bounding box
 			auto xy = getMinMax(_n, _Xs, _Ys);
 
@@ -1982,6 +1996,9 @@ namespace KWD {
 
 		vector<double> compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _Ws,
 			int _L) {
+			if (verbosity == KWD_VAL_DEBUG)
+				dumpParam();
+
 			// Get the largest bounding box
 			auto xy = getMinMax(_n, _Xs, _Ys);
 
