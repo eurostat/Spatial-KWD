@@ -12,7 +12,7 @@ All the algorithms are based on an ad-hoc implementation of the Network Simplex 
 Each implemented algorithm builds a different network, exploiting the special structure of spatial maps.
 }
 \details{
-This library contains three helper functions and two main classes.
+This library contains three helper functions and two main classes [4].
 
 The three helper functions are \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, and \code{\link{compareAll}}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different parameters.
 
@@ -22,6 +22,8 @@ Note that in case of non-convex maps, the algorithm builds the convex-hull of th
 
 In case of spatial histograms with weights which do not sum up to 1, all the weights are automatically rescaled in such a way the overall sum of the weight of each single histogram is equal to 1.0: \eqn{w_i \gets \frac{w_i}{\sum_{i=1,\dots,n} w_i}}.
 This way the spatial histograms have a natural interpretation as discrete probability measures.
+
+For a detailed introduction on Computational Optimal Transport, we refer the reader to [3].
 }
 \seealso{
 See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
@@ -45,6 +47,9 @@ d <- compareOneToOne(coordinates, weights, L=3)
 cat("runtime:", d$runtime, " distance:", d$distance, "\n")
 }
 }
+\keyword{
+    Spatial Maps, Optimal Transport, Wasserstein Distance, Network Simplex.
+}
 \author{
 Stefano Gualandi, stefano.gualandi@gmail.com.
 
@@ -55,6 +60,7 @@ Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 
 [2] Cunningham, W.H., 1976. \emph{A Network Simplex method}. Mathematical Programming, 11(1), pp.105-116.
 
-[3] \url{https://github.com/eurostat/Spatial-KWD}
+[3] Peyré, G. and Cuturi, M., 2019. \emph{Computational optimal transport: With applications to data science}. Foundations and Trends in Machine Learning, 11(5-6), pp.355-607.
+
+[4] \url{https://github.com/eurostat/Spatial-KWD}
 }
-\keyword{ package }

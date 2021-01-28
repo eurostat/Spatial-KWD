@@ -54,15 +54,19 @@ RCPP_EXPOSED_AS(KWD::Histogram2D)
 //	}
 //}
 
-Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
+	int L = 3, bool recode = false,
 	const std::string& method = "approx", const std::string& algorithm = "colgen", const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06) {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
 		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
 
-	if (Weigths.ncol() != 2)
+	if (Weigths.ncol() < 2)
 		throw(Rcpp::exception("The Weigths matrix must contain two columns for W1 and W1."));
+
+	if (Weigths.ncol() > 2)
+		Rprintf("WARNING: only the first two columns of matrix Weights are used as histograms.");
 
 	// Input data
 	int n = Coordinates.nrow();
@@ -76,9 +80,12 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 
 
 	// Elaborate input parameters
+	int _L = 3;
 	if (L < 1)
 		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
 			"default value L=3.");
+	else
+		_L = L;
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
@@ -87,15 +94,17 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
+	if (recode)
+		s.setStrParam(KWD_PAR_RECODE, "true");
 
 	try {
 		double d = -1;
 		if (method == KWD_VAL_APPROX) {
-			Rprintf("Solution method: APPROX\n");
-			d = s.compareApprox(n, Xs, Ys, W1, W2, L);
+			Rprintf("CompareOneToOne, Solution method: APPROX\n");
+			d = s.compareApprox(n, Xs, Ys, W1, W2, _L);
 		}
 		else {
-			Rprintf("Solution method: EXACT\n");
+			Rprintf("CompareOneToOne, Solution method: EXACT\n");
 			d = s.compareExact(n, Xs, Ys, W1, W2);
 		}
 		sol = Rcpp::List::create(
@@ -111,7 +120,8 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 	return sol;
 }
 
-Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
+	int L = 3, bool recode = false,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06)
@@ -136,9 +146,12 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	double* Ws = &data2[n];
 
 	// Elaborate input parameters
+	int _L = 3;
 	if (L < 1)
 		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
 			"default value L=3.");
+	else
+		_L = L;
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
@@ -147,17 +160,19 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
+	if (recode)
+		s.setStrParam(KWD_PAR_RECODE, "true");
 
 	try {
 		Rcpp::NumericVector ds;
 		if (method == KWD_VAL_APPROX) {
-			Rprintf("Solution method: APPROX\n");
-			vector<double> _ds = s.compareApprox(n, m, Xs, Ys, W1, Ws, L);
+			Rprintf("CompareOneToMany, Solution method: APPROX\n");
+			vector<double> _ds = s.compareApprox(n, m, Xs, Ys, W1, Ws, _L);
 			for (auto v : _ds)
 				ds.push_back(v);
 		}
 		else {
-			Rprintf("Solution method: EXACT\n");
+			Rprintf("CompareOneToMany, Solution method: EXACT\n");
 			vector<double> _ds =
 				s.compareApprox(n, m, Xs, Ys, W1, Ws, n - 1);
 			for (auto v : _ds)
@@ -176,7 +191,8 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	return sol;
 }
 
-Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths, int L = 3,
+Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
+	int L = 3, bool recode = false,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06)
@@ -200,9 +216,12 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 	double* Ws = &data2[0];
 
 	// Elaborate input parameters
+	int _L = 3;
 	if (L < 1)
 		Rprintf("WARNING: Paramater L can take only value greater than 1. Using "
 			"default value L=3.");
+	else
+		_L = L;
 
 	KWD::Solver s;
 	s.setStrParam(KWD_PAR_METHOD, method);
@@ -211,18 +230,20 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 	s.setStrParam(KWD_PAR_VERBOSITY, verbosity);
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
+	if (recode)
+		s.setStrParam(KWD_PAR_RECODE, "true");
 
 	try {
 		Rcpp::NumericMatrix ds;
 		if (method == KWD_VAL_APPROX) {
-			Rprintf("Solution method: APPROX\n");
+			Rprintf("CompareAll, Solution method: APPROX\n");
 			vector<double> _ds =
-				s.compareApprox(n, m, Xs, Ys, Ws, L);
+				s.compareApprox(n, m, Xs, Ys, Ws, _L);
 			for (auto v : _ds)
 				ds.push_back(v);
 		}
 		else {
-			Rprintf("Solution method: EXACT\n");
+			Rprintf("CompareAll, Solution method: EXACT\n");
 			vector<double> _ds =
 				s.compareApprox(n, m, Xs, Ys, Ws, n - 1);
 			for (auto v : _ds)
@@ -246,19 +267,19 @@ RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
 
 	function("compareOneToOne", &compareOneToOne,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare two histograms using the given search options");
 
 	function("compareOneToMany", &compareOneToMany,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare one to many histograms using the given search options");
 
 	function("compareAll", &compareAll,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare all histograms using the given search options");

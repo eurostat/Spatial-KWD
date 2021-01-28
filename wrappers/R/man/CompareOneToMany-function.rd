@@ -15,7 +15,7 @@ The two lists of coordinates are passed to \code{compareOneToMany} as a matrix w
 The weights of the histograms are passed as a single matrix with \code{N} rows and \code{M} columns, where the first column is the reference histogram.
 }
 \usage{
-compareOneToMany(Coordinates, Weights, L = 3,
+compareOneToMany(Coordinates, Weights, L = 3, recode = FALSE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
            timelimit = 14400,    opt_tolerance = 1e-06)
@@ -37,6 +37,8 @@ compareOneToMany(Coordinates, Weights, L = 3,
 
   \item{L}{Approximation parameter.
     Higher values of \emph{L} gives more accurate solution, but requires longer running time. Data type: positive integer.}
+
+  \item{recode}{If equal to \code{True}, recode the input coordinates as consecutive integers.}
 
   \item{method}{Method for computing the KW distances: \code{exact} or \code{approx}.}
 

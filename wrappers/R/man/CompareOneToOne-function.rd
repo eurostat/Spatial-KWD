@@ -15,7 +15,7 @@ The two lists of coordinates are passed to \code{compareOneToOne} as a matrix wi
 The two lists of weights are passed as a matrix with \code{N} rows and two columns, a column for each histogram.
 }
 \usage{
-compareOneToOne(Coordinates, Weights, L = 3,
+compareOneToOne(Coordinates, Weights, L = 3, recode = FALSE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
            timelimit = 14400,    opt_tolerance = 1e-06)
@@ -37,6 +37,8 @@ compareOneToOne(Coordinates, Weights, L = 3,
 
   \item{L}{Approximation parameter.
     Higher values of \emph{L} gives more accurate solution, but requires longer running time. Data type: positive integer.}
+
+  \item{recode}{If equal to \code{True}, recode the input coordinates as consecutive integers.}
 
   \item{method}{Method for computing the KW distances: \code{exact} or \code{approx}.}
 
@@ -87,7 +89,6 @@ The table reports also the number of arcs in the network flow model as a functio
 See also \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
-  \dontrun{
 # Define a simple example
 library(SpatialKWD)
 
@@ -102,17 +103,16 @@ test1 <- matrix(runif(2*N, 0, 1), ncol=2, nrow=N)
 
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
-d <- compareOneToOne(coordinates, Weights=test1, method="exact")
-cat("runtime:", d$runtime, " distance:", d$distance, "\n")
+d <- compareOneToOne(coordinates, Weights=test1, method="exact", recode=TRUE, verbosity = "info")
+cat("runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
 print("Compare one-to-one with approximate algorithm:")
-d <- compareOneToOne(coordinates, Weights=test1, method="approx", L=2)
-cat("L: 2, runtime:", d$runtime, " distance:", d$distance, "\n")
+d <- compareOneToOne(coordinates, Weights=test1, L=2, recode=TRUE)
+cat("L: 2, runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
-d <- compareOneToOne(coordinates, Weights=test1, method="approx", L=3)
+d <- compareOneToOne(coordinates, Weights=test1, L=3)
 cat("L: 3 runtime:", d$runtime, " distance:", d$distance, "\n")
 
-d <- compareOneToOne(coordinates, Weights=test1, method="approx", L=5)
-cat("L: 5, runtime:", d$runtime, " distance:", d$distance, "\n")
-}
+d <- compareOneToOne(coordinates, Weights=test1, L=10)
+cat("L: 10, runtime:", d$runtime, " distance:", d$distance, "\n")
 }

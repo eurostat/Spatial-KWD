@@ -9,8 +9,8 @@ library(SpatialKWD)
 
 # Random coordinates
 N = 900
-Xs <- as.integer(runif(N, 0, 31))
-Ys <- as.integer(runif(N, 0, 31))
+Xs <- 5*as.integer(runif(N, 0, 31))
+Ys <- 5*as.integer(runif(N, 0, 31))
 coordinates <- matrix(c(Xs, Ys), ncol=2)
 
 # Random weights
@@ -21,31 +21,25 @@ test3 <- matrix(runif(m*N, 0, 1), ncol=m)
 
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
-opt = data.frame(Method="Exact")
-d <- compareOneToOne(coordinates, Weights=test1, Options=opt)
-cat("runtime:", d$runtime, " distance:", d$distance, "\n")
+d <- compareOneToOne(coordinates, Weights=test1, method="exact", recode=TRUE, verbosity = "debug")
+cat("runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
 print("Compare one-to-one with approximate algorithm:")
-opt = data.frame(Method="Approx", L=2)
-d <- compareOneToOne(coordinates, Weights=test1, Options=opt)
-cat("L: 2, runtime:", d$runtime, " distance:", d$distance, "\n")
+d <- compareOneToOne(coordinates, Weights=test1, L=2, recode=TRUE)
+cat("L: 2, runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
-opt = data.frame(Method="Approx", L=3)
-d <- compareOneToOne(coordinates, Weights=test1, Options=opt)
+d <- compareOneToOne(coordinates, Weights=test1, L=3)
 cat("L: 3 runtime:", d$runtime, " distance:", d$distance, "\n")
 
-opt = data.frame(Method="Approx", L=10)
-d <- compareOneToOne(coordinates, Weights=test1, Options=opt)
+d <- compareOneToOne(coordinates, Weights=test1, L=10)
 cat("L: 10, runtime:", d$runtime, " distance:", d$distance, "\n")
 
 print("Compare one-to-many with approximate algorithm:")
-opt = data.frame(Method="Approx")
-d <- compareOneToMany(coordinates, Weights=test2, Options=opt)
+d <- compareOneToMany(coordinates, Weights=test2)
 cat("L: 3, runtime:", d$runtime, " distances:", d$distance, "\n")
 
 print("Compare all with approximate algorithm:")
-opt = data.frame(Method="Approx")
-d <- compareAll(coordinates, Weights=test3, Options=opt)
+d <- compareAll(coordinates, Weights=test3, verbosity="info")
 cat("L: 3, runtime:", d$runtime, " distances:", "\n")
 m <- matrix(d$distance, ncol=3, nrow=3)
 print(m)
