@@ -47,9 +47,7 @@ d <- compareOneToOne(coordinates, weights, L=3)
 cat("runtime:", d$runtime, " distance:", d$distance, "\n")
 }
 }
-\keyword{
-    Spatial Maps, Optimal Transport, Wasserstein Distance, Network Simplex.
-}
+\keyword{package}
 \author{
 Stefano Gualandi, stefano.gualandi@gmail.com.
 
@@ -60,7 +58,7 @@ Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
 
 [2] Cunningham, W.H., 1976. \emph{A Network Simplex method}. Mathematical Programming, 11(1), pp.105-116.
 
-[3] Peyré, G. and Cuturi, M., 2019. \emph{Computational optimal transport: With applications to data science}. Foundations and Trends in Machine Learning, 11(5-6), pp.355-607.
+[3] Peyre, G., and Cuturi, M., 2019. \emph{Computational optimal transport: With applications to data science}. Foundations and Trends in Machine Learning, 11(5-6), pp.355-607.
 
 [4] \url{https://github.com/eurostat/Spatial-KWD}
 }

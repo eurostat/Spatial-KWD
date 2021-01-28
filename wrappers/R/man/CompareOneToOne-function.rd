@@ -103,12 +103,15 @@ test1 <- matrix(runif(2*N, 0, 1), ncol=2, nrow=N)
 
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
-d <- compareOneToOne(coordinates, Weights=test1, method="exact", recode=TRUE, verbosity = "info")
-cat("runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
+d <- compareOneToOne(coordinates, Weights=test1, method="exact",
+                     recode=TRUE, verbosity = "info")
+cat("runtime:", d$runtime, " distance:", d$distance,
+    " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
 print("Compare one-to-one with approximate algorithm:")
 d <- compareOneToOne(coordinates, Weights=test1, L=2, recode=TRUE)
-cat("L: 2, runtime:", d$runtime, " distance:", d$distance, " nodes:", d$nodes, " arcs:", d$arcs, "\n")
+cat("L: 2, runtime:", d$runtime, " distance:", d$distance,
+    " nodes:", d$nodes, " arcs:", d$arcs, "\n")
 
 d <- compareOneToOne(coordinates, Weights=test1, L=3)
 cat("L: 3 runtime:", d$runtime, " distance:", d$distance, "\n")
