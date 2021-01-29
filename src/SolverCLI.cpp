@@ -10,214 +10,277 @@
 
 #include "KWD_Histogram2D.h"
 
-int main(int argc, char* argv[]) {
-	int n = 32;
+int main(int argc, char *argv[]) {
+  int n = 32;
 
-	if (argc > 1)
-		n = atoi(argv[1]);
+  if (argc > 1)
+    n = atoi(argv[1]);
 
-	int seed = 13;
+  int seed = 13;
 
-	std::random_device
-		rd; // Will be used to obtain a seed for the random number engine
-	std::mt19937 gen(seed); // Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<> Uniform01(0, 1);
-	std::uniform_int_distribution<> Uniform0N(0, n);
+  std::random_device
+      rd; // Will be used to obtain a seed for the random number engine
+  std::mt19937 gen(seed); // Standard mersenne_twister_engine seeded with rd()
+  std::uniform_real_distribution<> Uniform01(0, 1);
+  std::uniform_int_distribution<> Uniform0N(0, n);
 
-	if (true) {
-		size_t samples = n * n / 2;
-		vector<int> Xs(samples, 0);
-		vector<int> Ys(samples, 0);
-		vector<double> W1(samples, 0);
+  // Test from command line
+  if (true) {
+    std::string filename;
+    if (argc > 2)
+      filename = std::string(argv[2]);
 
-		size_t m = 3;
+    fprintf(stdout, "%s\n", filename.c_str());
 
-		vector<double> Ws(samples * m, 0);
-		for (size_t i = 0; i < samples; i++) {
-			Xs[i] = Uniform0N(gen);
-			Ys[i] = Uniform0N(gen);
-			W1[i] = Uniform01(gen);
-			// Matrix as a flat array
-			Ws[i] = Uniform01(gen);
-			Ws[samples + i] = Uniform01(gen);
-			Ws[2 * samples + i] = Uniform01(gen);
-		}
+    std::ifstream in_file(filename);
 
-		PRINT("start solver\n");
-		KWD::Solver solver;
-		// ----------------------------------------------------------------------------
-		solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
+    if (!in_file)
+      throw std::runtime_error("FATAL ERROR: Cannot open file");
 
-		for (auto algo : { KWD_VAL_COLGEN, KWD_VAL_MINCOSTFLOW }) {
-			solver.setStrParam(KWD_PAR_ALGORITHM, algo);
-			auto dist =
-				solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &W1[0], &Ws[0], 3);
+    vector<int> Xs;
+    vector<int> Ys;
+    vector<double> W1;
+    vector<double> W2;
+    std::string line;
 
-			for (double d : dist)
-				PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
-					"arcs: "
-					"%ld, nodes: %ld\n",
-					n, d, solver.runtime(), solver.status().c_str(),
-					solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    char sep = ',';
+    std::getline(in_file, line);
 
-			dist = solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &Ws[0], 3);
+    while (std::getline(in_file, line)) {
+      std::stringstream lineStream(line);
+      std::string cell;
 
-			for (double d : dist)
-				PRINT("AllCmp => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
-					"arcs: "
-					"%ld, nodes: %ld\n",
-					n, d, solver.runtime(), solver.status().c_str(),
-					solver.iterations(), solver.num_arcs(), solver.num_nodes());
-		}
+      std::getline(lineStream, cell, sep);
+      int x = std::stoi(cell);
+      std::getline(lineStream, cell, sep);
+      int y = std::stoi(cell);
+      std::getline(lineStream, cell, sep);
+      double a = std::stof(cell);
+      std::getline(lineStream, cell, sep);
+      double b = std::stof(cell);
 
-		KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
+      Xs.push_back(x);
+      Ys.push_back(y);
+      W1.push_back(a);
+      W2.push_back(b);
+    }
 
-		KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &Ws[0]);
-		KWD::Histogram2D C(Xs.size(), &Xs[0], &Ys[0], &Ws[samples]);
-		KWD::Histogram2D D(Xs.size(), &Xs[0], &Ys[0], &Ws[2 * samples]);
+    int n = Xs.size();
 
-		double d = solver.distance(A, B, 3);
-		double r = solver.runtime();
-		auto s = solver.status();
-		uint64_t its = solver.iterations();
+    PRINT("start solver\n");
+    KWD::Solver solver;
+    solver.recoding(n, &Xs[0]);
+    solver.recoding(n, &Ys[0]);
+    // ----------------------------------------------------------------------------
+    solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
+    solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_COLGEN);
+    solver.setStrParam(KWD_PAR_MODEL, KWD_VAL_MINCOSTFLOW);
+    solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
 
-		PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+    auto dist =
+        solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
 
-		d = solver.distance(A, C, 3);
-		r += solver.runtime();
-		s = solver.status();
-		its += solver.iterations();
+    PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
+          "arcs: "
+          "%ld, nodes: %ld\n",
+          n, dist, solver.runtime(), solver.status().c_str(),
+          solver.iterations(), solver.num_arcs(), solver.num_nodes());
+  }
 
-		PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+  if (false) {
+    size_t samples = n * n / 2;
+    vector<int> Xs(samples, 0);
+    vector<int> Ys(samples, 0);
+    vector<double> W1(samples, 0);
 
-		d = solver.distance(A, D, 3);
-		r += solver.runtime();
-		s = solver.status();
-		its += solver.iterations();
+    size_t m = 3;
 
-		PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
-	}
+    vector<double> Ws(samples * m, 0);
+    for (size_t i = 0; i < samples; i++) {
+      Xs[i] = Uniform0N(gen);
+      Ys[i] = Uniform0N(gen);
+      W1[i] = Uniform01(gen);
+      // Matrix as a flat array
+      Ws[i] = Uniform01(gen);
+      Ws[samples + i] = Uniform01(gen);
+      Ws[2 * samples + i] = Uniform01(gen);
+    }
 
-	if (false) {
-		size_t samples = n * n / 2;
-		vector<int> Xs(samples, 0);
-		vector<int> Ys(samples, 0);
-		vector<double> W1(samples, 0);
-		vector<double> W2(samples, 0);
-		for (size_t i = 0; i < samples; i++) {
-			Xs[i] = Uniform0N(gen);
-			Ys[i] = Uniform0N(gen);
-			W1[i] = Uniform01(gen);
-			W2[i] = Uniform01(gen);
+    PRINT("start solver\n");
+    KWD::Solver solver;
+    // ----------------------------------------------------------------------------
+    solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
 
-			// fprintf(stdout, "%d %d %.4f %.4f\n", Xs[i], Ys[i], W1[i], W2[i]);
-		}
+    for (auto algo : {KWD_VAL_COLGEN, KWD_VAL_MINCOSTFLOW}) {
+      solver.setStrParam(KWD_PAR_ALGORITHM, algo);
+      auto dist =
+          solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &W1[0], &Ws[0], 3);
 
-		// vector<int> Xs = {0, 5};
-		// vector<int> Ys = {0, 7};
-		// vector<double> W1 = {1, 0};
-		// vector<double> W2 = {0, 1};
-		//    size_t samples = Xs.size();
+      for (double d : dist)
+        PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
+              "arcs: "
+              "%ld, nodes: %ld\n",
+              n, d, solver.runtime(), solver.status().c_str(),
+              solver.iterations(), solver.num_arcs(), solver.num_nodes());
 
-		PRINT("start solver\n");
-		KWD::Solver solver;
-		// solver.setParam(KWD_VERBOSITY, KWD_DEBUG);
-		KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
-		KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &W2[0]);
+      dist = solver.compareApprox(Xs.size(), m, &Xs[0], &Ys[0], &Ws[0], 3);
 
-		double d = solver.dense(A, B);
-		double r = solver.runtime();
-		auto s = solver.status();
-		uint64_t its = solver.iterations();
+      for (double d : dist)
+        PRINT("AllCmp => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
+              "arcs: "
+              "%ld, nodes: %ld\n",
+              n, d, solver.runtime(), solver.status().c_str(),
+              solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    }
 
-		PRINT("Dense => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+    KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
 
-		d = solver.distance(A, B, 3);
-		r = solver.runtime();
-		s = solver.status();
-		its = solver.iterations();
+    KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &Ws[0]);
+    KWD::Histogram2D C(Xs.size(), &Xs[0], &Ys[0], &Ws[samples]);
+    KWD::Histogram2D D(Xs.size(), &Xs[0], &Ys[0], &Ws[2 * samples]);
 
-		PRINT("Dista => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+    double d = solver.distance(A, B, 3);
+    double r = solver.runtime();
+    auto s = solver.status();
+    uint64_t its = solver.iterations();
 
-		d = solver.column_generation(A, B, 3);
-		r = solver.runtime();
-		s = solver.status();
-		its = solver.iterations();
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
 
-		PRINT("ColGe => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
-			"%ld, nodes: %ld\n",
-			n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+    d = solver.distance(A, C, 3);
+    r += solver.runtime();
+    s = solver.status();
+    its += solver.iterations();
 
-		// ----------------------------------------------------------------------------
-		solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_EXACT);
-		for (auto algo : { KWD_VAL_MINCOSTFLOW, KWD_VAL_COLGEN }) {
-			solver.setStrParam(KWD_PAR_ALGORITHM, algo);
-			double dist =
-				solver.compareExact(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0]);
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
 
-			PRINT("Exact => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
-				"%ld, nodes: %ld\n",
-				n, dist, solver.runtime(), solver.status().c_str(),
-				solver.iterations(), solver.num_arcs(), solver.num_nodes());
-		}
+    d = solver.distance(A, D, 3);
+    r += solver.runtime();
+    s = solver.status();
+    its += solver.iterations();
 
-		// ----------------------------------------------------------------------------
-		solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
-		for (auto algo : { KWD_VAL_MINCOSTFLOW, KWD_VAL_COLGEN }) {
-			solver.setStrParam(KWD_PAR_ALGORITHM, algo);
-			double dist =
-				solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+    PRINT("Dista => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+  }
 
-			PRINT(
-				"Approx => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
-				"%ld, nodes: %ld\n",
-				n, dist, solver.runtime(), solver.status().c_str(),
-				solver.iterations(), solver.num_arcs(), solver.num_nodes());
-		}
-	}
+  if (false) {
+    size_t samples = n * n / 2;
+    vector<int> Xs(samples, 0);
+    vector<int> Ys(samples, 0);
+    vector<double> W1(samples, 0);
+    vector<double> W2(samples, 0);
+    for (size_t i = 0; i < samples; i++) {
+      Xs[i] = Uniform0N(gen);
+      Ys[i] = Uniform0N(gen);
+      W1[i] = Uniform01(gen);
+      W2[i] = Uniform01(gen);
 
-	if (false) {
-		size_t samples = n * n / 2;
-		KWD::Histogram2D a;
-		KWD::Histogram2D b;
+      // fprintf(stdout, "%d %d %.4f %.4f\n", Xs[i], Ys[i], W1[i], W2[i]);
+    }
 
-		for (size_t i = 0; i < samples; i++) {
-			// a.add(-100 + Uniform0N(gen), -10 + Uniform0N(gen), Uniform01(gen));
-			// b.add(-20 + Uniform0N(gen), -30 + Uniform0N(gen), Uniform01(gen));
-			a.add(Uniform0N(gen), Uniform0N(gen), Uniform01(gen));
-			b.add(Uniform0N(gen), Uniform0N(gen), Uniform01(gen));
-		}
+    // vector<int> Xs = {0, 5};
+    // vector<int> Ys = {0, 7};
+    // vector<double> W1 = {1, 0};
+    // vector<double> W2 = {0, 1};
+    //    size_t samples = Xs.size();
 
-		a.normalize();
-		b.normalize();
+    PRINT("start solver\n");
+    KWD::Solver solver;
+    // solver.setParam(KWD_VERBOSITY, KWD_DEBUG);
+    KWD::Histogram2D A(Xs.size(), &Xs[0], &Ys[0], &W1[0]);
+    KWD::Histogram2D B(Xs.size(), &Xs[0], &Ys[0], &W2[0]);
 
-		PRINT("start solver\n");
-		KWD::Solver solver;
+    double d = solver.dense(A, B);
+    double r = solver.runtime();
+    auto s = solver.status();
+    uint64_t its = solver.iterations();
 
-		for (int L = 2; L <= 3; ++L) {
-			double dist = solver.distance(a, b, L);
-			PRINT("Full => %d: %d %.6f %.3f sec\n", n, L, dist, solver.runtime());
-		}
+    PRINT("Dense => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
 
-		for (int L = 2; L <= 3; ++L) {
-			PRINT("CG %d\n", L);
-			double dist = solver.column_generation(a, b, L);
-			PRINT("ColG => %d: %d %.6f %.3f sec\n", n, L, dist, solver.runtime());
-		}
+    d = solver.distance(A, B, 3);
+    r = solver.runtime();
+    s = solver.status();
+    its = solver.iterations();
 
-		// double dist = solver.dense(a, b);
-		// fprintf(stdout, "%d: %.6f %.3f ms\n", n, dist, solver.runtime());
-	}
+    PRINT("Dista => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
 
-	return EXIT_SUCCESS;
+    d = solver.column_generation(A, B, 3);
+    r = solver.runtime();
+    s = solver.status();
+    its = solver.iterations();
+
+    PRINT("ColGe => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
+          "%ld, nodes: %ld\n",
+          n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+
+    // ----------------------------------------------------------------------------
+    solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_EXACT);
+    for (auto algo : {KWD_VAL_MINCOSTFLOW, KWD_VAL_COLGEN}) {
+      solver.setStrParam(KWD_PAR_ALGORITHM, algo);
+      double dist =
+          solver.compareExact(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0]);
+
+      PRINT("Exact => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, arcs: "
+            "%ld, nodes: %ld\n",
+            n, dist, solver.runtime(), solver.status().c_str(),
+            solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    }
+
+    // ----------------------------------------------------------------------------
+    solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
+    for (auto algo : {KWD_VAL_MINCOSTFLOW, KWD_VAL_COLGEN}) {
+      solver.setStrParam(KWD_PAR_ALGORITHM, algo);
+      double dist =
+          solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+
+      PRINT("Approx => %d: fobj: %.6f, time: %.2f, status: %s, iter: %ld, "
+            "arcs: "
+            "%ld, nodes: %ld\n",
+            n, dist, solver.runtime(), solver.status().c_str(),
+            solver.iterations(), solver.num_arcs(), solver.num_nodes());
+    }
+  }
+
+  if (false) {
+    size_t samples = n * n / 2;
+    KWD::Histogram2D a;
+    KWD::Histogram2D b;
+
+    for (size_t i = 0; i < samples; i++) {
+      // a.add(-100 + Uniform0N(gen), -10 + Uniform0N(gen), Uniform01(gen));
+      // b.add(-20 + Uniform0N(gen), -30 + Uniform0N(gen), Uniform01(gen));
+      a.add(Uniform0N(gen), Uniform0N(gen), Uniform01(gen));
+      b.add(Uniform0N(gen), Uniform0N(gen), Uniform01(gen));
+    }
+
+    a.normalize();
+    b.normalize();
+
+    PRINT("start solver\n");
+    KWD::Solver solver;
+
+    for (int L = 2; L <= 3; ++L) {
+      double dist = solver.distance(a, b, L);
+      PRINT("Full => %d: %d %.6f %.3f sec\n", n, L, dist, solver.runtime());
+    }
+
+    for (int L = 2; L <= 3; ++L) {
+      PRINT("CG %d\n", L);
+      double dist = solver.column_generation(a, b, L);
+      PRINT("ColG => %d: %d %.6f %.3f sec\n", n, L, dist, solver.runtime());
+    }
+
+    // double dist = solver.dense(a, b);
+    // fprintf(stdout, "%d: %.6f %.3f ms\n", n, dist, solver.runtime());
+  }
+
+  return EXIT_SUCCESS;
 }
