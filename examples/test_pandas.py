@@ -6,13 +6,12 @@
 
 # Library for reading input files
 import pickle
-import pandas
 import numpy
 
 from KWD import *
 
 # open a file, where you stored the pickled data
-with open('Estimation_Results.pickle', 'rb') as file:
+with open('Iteration_1_250.pickle', 'rb') as file:
 
 	# read information from that file
 	data = pickle.load(file)

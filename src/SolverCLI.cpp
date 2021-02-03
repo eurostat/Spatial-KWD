@@ -52,12 +52,30 @@ int main(int argc, char *argv[]) {
 
       std::getline(lineStream, cell, sep);
       int x = std::stoi(cell);
+      //fprintf(stdout, "%d\n", x);
+      //fflush(stdout);
       std::getline(lineStream, cell, sep);
       int y = std::stoi(cell);
+      //fprintf(stdout, "%d\n", y);
+      //fflush(stdout);
       std::getline(lineStream, cell, sep);
-      double a = std::stof(cell);
+      double a = 0.0;
+      try {
+	      a = std::stod(cell);
+      } catch(...) {
+	     a = 0.0;
+      } 
+      //fprintf(stdout, "%g\n", a);
+      //fflush(stdout);
       std::getline(lineStream, cell, sep);
-      double b = std::stof(cell);
+      double b = 0.0;
+      try {
+	      b = std::stod(cell);
+      } catch(...) {
+	     b = 0.0;
+      } 
+      //fprintf(stdout, "%g\n", b);
+      //fflush(stdout);
 
       Xs.push_back(x);
       Ys.push_back(y);
@@ -78,7 +96,7 @@ int main(int argc, char *argv[]) {
     solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
 
     auto dist =
-        solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+        solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 5);
 
     PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
           "arcs: "

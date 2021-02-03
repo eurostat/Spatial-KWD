@@ -6,7 +6,8 @@
 #  @author stefano.gualandi@gmail.com (Stefano Gualandi)
 #
 
-from distutils.core import setup, Extension
+#from distutils.core import Extension
+from setuptools import setup, Extension, Command
 
 from Cython.Build import cythonize
 

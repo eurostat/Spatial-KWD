@@ -19,3 +19,6 @@ bin/solver
 /msvc/SKWD/.vs/SKWD/v15
 /SpatialKWD.Rcheck
 /SpatialKWD_0.1.3.tar.gz
+/wrappers/python/build/lib.linux-x86_64-3.8
+/wrappers/python/dist
+/wrappers/python/Spatial_KWD.egg-info
