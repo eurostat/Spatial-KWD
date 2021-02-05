@@ -14,7 +14,8 @@ with open('README.md', encoding="utf-8") as f:
     long_descr = f.read()
 
 extensions = Extension(
-    "KWD", ["histogram2D.pyx"],
+    name="KWD",
+    sources=["KWD_NetSimplex.h", "KWD_Histogram2D.h", "histogram2D.pyx"],
     extra_compile_args=[
         '-Wno-unused-function', '-std=c++11', '-fopenmp', '-O2', '-ffast-math',
         '-march=native', '-DNDEBUG', '-fno-wrapv'
@@ -30,9 +31,9 @@ setup(name='Spatial-KWD',
       url='https://github.com/eurostat/Spatial-KWD',
       platforms=['linux', 'macosx', 'windows'],
       download_url=
-      'https://github.com/eurostat/Spatial-KWD/archive/v0.2.0-alpha.tar.gz',
-      setup_requires=['numpy>=1.16', 'cython>=0.23'],
-      install_requires=['numpy>=1.16'],
+      'https://github.com/eurostat/Spatial-KWD/archive/v0.2.1-alpha.tar.gz',
+      setup_requires=['numpy', 'cython'],
+      install_requires=['numpy'],
       long_description=long_descr,
       long_description_content_type='text/markdown',
       ext_modules=cythonize(extensions,

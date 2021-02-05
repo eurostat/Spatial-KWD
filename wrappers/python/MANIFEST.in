@@ -1,1 +1,2 @@
-include KWD_Histogram2D.pxd
+include *.pyx
+include *.pyd
