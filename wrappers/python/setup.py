@@ -9,13 +9,15 @@
 from setuptools import setup, Extension, Command, find_packages
 
 from Cython.Build import cythonize
+import numpy as np
 
 with open('README.md', encoding="utf-8") as f:
     long_descr = f.read()
 
 extensions = Extension(
     name="KWD",
-    sources=["KWD_NetSimplex.h", "KWD_Histogram2D.h", "histogram2D.pyx"],
+    sources=["histogram2D.pyx"],
+    include_dirs=['./'],
     extra_compile_args=[
         '-Wno-unused-function', '-std=c++11', '-fopenmp', '-O2', '-ffast-math',
         '-march=native', '-DNDEBUG', '-fno-wrapv'
@@ -23,7 +25,7 @@ extensions = Extension(
     extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
 
 setup(name='Spatial-KWD',
-      version='0.2.1',
+      version='0.2.5',
       packages=find_packages(),
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
@@ -31,9 +33,10 @@ setup(name='Spatial-KWD',
       url='https://github.com/eurostat/Spatial-KWD',
       platforms=['linux', 'macosx', 'windows'],
       download_url=
-      'https://github.com/eurostat/Spatial-KWD/archive/v0.2.1-alpha.tar.gz',
+      'https://github.com/eurostat/Spatial-KWD/archive/v0.2.5-alpha.tar.gz',
       setup_requires=['numpy', 'cython'],
       install_requires=['numpy'],
+      include_dirs=np.get_include(),
       long_description=long_descr,
       long_description_content_type='text/markdown',
       ext_modules=cythonize(extensions,
