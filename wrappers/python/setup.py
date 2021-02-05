@@ -6,10 +6,12 @@
 #  @author stefano.gualandi@gmail.com (Stefano Gualandi)
 #
 
-#from distutils.core import Extension
-from setuptools import setup, Extension, Command
+from setuptools import setup, Extension, Command, find_packages
 
 from Cython.Build import cythonize
+
+with open('README.md', encoding="utf-8") as f:
+    long_descr = f.read()
 
 extensions = Extension(
     "KWD", ["histogram2D.pyx"],
@@ -19,11 +21,9 @@ extensions = Extension(
     ],
     extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
 
-with open('README.md', encoding="utf-8") as f:
-    long_descr = f.read()
-
 setup(name='Spatial-KWD',
-      version='0.2.0',
+      version='0.2.1',
+      packages=find_packages(),
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
       author_email='stefano.gualandi@gmail.com',
