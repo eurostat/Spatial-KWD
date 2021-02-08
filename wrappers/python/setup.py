@@ -11,18 +11,28 @@ from setuptools import setup, Extension, Command, find_packages
 from Cython.Build import cythonize
 import numpy as np
 
+import platform
+
 with open('README.md', encoding="utf-8") as f:
     long_descr = f.read()
 
-extensions = Extension(
-    name="KWD",
-    sources=["histogram2D.pyx"],
-    include_dirs=['./'],
-    extra_compile_args=[
-        '-Wno-unused-function', '-std=c++11', '-fopenmp', '-O2', '-ffast-math',
-        '-march=native', '-DNDEBUG', '-fno-wrapv'
-    ],
-    extra_link_args=['-fopenmp', '-O2', '-lm', '-pthread', '-fno-wrapv'])
+CC_ARGS = [
+    '-Wno-unused-function', '-std=c++11', '-fopenmp', '-O2', '-ffast-math',
+    '-march=native', '-DNDEBUG', '-fno-wrapv'
+]
+
+LD_ARGS = ['-lomp', '-O2', '-lm', '-pthread', '-fno-wrapv']
+
+if platform.system() == 'Windows': 
+    CC_ARGS = []
+    LD_ARGS = []
+    
+    
+extensions = Extension(name="KWD",
+                       sources=["histogram2D.pyx"],
+                       include_dirs=['./'],
+                       extra_compile_args=CC_ARGS,
+                       extra_link_args=LD_ARGS)
 
 setup(name='Spatial-KWD',
       version='0.2.5',

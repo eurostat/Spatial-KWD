@@ -15,10 +15,16 @@ Note that in case of non-convex maps, the algorithm builds the convex-hull of th
 
 ## Prerequisities
 
-You only need the following library:
+You only need the following two standard python libraries:
 
 * cython
 * numpy
+
+In the case you want to compile the source files, you need the `python-dev`, which on linux can be installed by>
+
+```bash
+apt install python3-dev  # Ubuntu
+```
 
 
 ## Installation

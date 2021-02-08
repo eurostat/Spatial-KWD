@@ -22,3 +22,4 @@ bin/solver
 /wrappers/python/build/lib.linux-x86_64-3.8
 /wrappers/python/dist
 /wrappers/python/Spatial_KWD.egg-info
+/wrappers/python/build
