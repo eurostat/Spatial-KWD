@@ -26,6 +26,12 @@ LD_ARGS = ['-lomp', '-O2', '-lm', '-pthread', '-fno-wrapv']
 if platform.system() == 'Windows': 
     CC_ARGS = []
     LD_ARGS = []
+
+if platform.system() == 'Darwin': 
+    CC_ARGS = [
+        '-std=c++11', '-stdlib=libc++', '-O2', '-ffast-math', '-DNDEBUG'
+    ]
+    LD_ARGS = ['-lomp', '-O2', '-lm', '-pthread', '-fno-wrapv']
     
     
 extensions = Extension(name="KWD",
