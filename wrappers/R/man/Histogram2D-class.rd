@@ -22,7 +22,6 @@ The \code{Histogram2D} class represents a single spatial 2-dimensional histogram
 See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{Solver}}.
 }
 \examples{
-\dontrun{
 # Define a simple histogram
 h <- new(SpatialKWD::Histogram2D)
 
@@ -37,12 +36,7 @@ h$add(5, 5, 1)
 h$normalize()
 
 # Print the total weight (mass) of the histogram
-print(sprintf("Histogram total weight = \%f", s$balance()))
-
-# Define a 2-dimensional histogram with n non-empty bins
-# with coordinates given by vectors Xs and Ys, and with weights Ws
-#h1 <- new(SpatialKWD::Histogram2D(n, Xs, Ys, Ws))
-}
+print(sprintf("Histogram total weight = \%f", h$balance()))
 }
 \keyword{classes}
 \section{Methods}{

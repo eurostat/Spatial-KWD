@@ -55,7 +55,7 @@ RCPP_EXPOSED_AS(KWD::Histogram2D)
 //}
 
 Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
-	int L = 3, bool recode = false,
+	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen", const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06) {
 	Rcpp::List sol;
@@ -121,7 +121,7 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 }
 
 Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
-	int L = 3, bool recode = false,
+	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06)
@@ -192,7 +192,7 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 }
 
 Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
-	int L = 3, bool recode = false,
+	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
 	double timelimit = 14400, double opt_tolerance = 1e-06)
@@ -267,19 +267,19 @@ RCPP_MODULE(SKWD) {
 	using namespace Rcpp;
 
 	function("compareOneToOne", &compareOneToOne,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare two histograms using the given search options");
 
 	function("compareOneToMany", &compareOneToMany,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare one to many histograms using the given search options");
 
 	function("compareAll", &compareAll,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = false,
+		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
 			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
 		"compare all histograms using the given search options");

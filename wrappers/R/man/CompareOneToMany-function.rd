@@ -15,7 +15,7 @@ The two lists of coordinates are passed to \code{compareOneToMany} as a matrix w
 The weights of the histograms are passed as a single matrix with \code{N} rows and \code{M} columns, where the first column is the reference histogram.
 }
 \usage{
-compareOneToMany(Coordinates, Weights, L = 3, recode = FALSE,
+compareOneToMany(Coordinates, Weights, L = 3, recode = TRUE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
            timelimit = 14400,    opt_tolerance = 1e-06)
@@ -76,12 +76,11 @@ The most important is the parameter \code{L}, which by default is equal to 3 (se
 See also \code{\link{compareOneToOne}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
-  \dontrun{
 # Define a simple example
 library(SpatialKWD)
 
 # Random coordinates
-N = 900
+N = 90
 Xs <- as.integer(runif(N, 0, 31))
 Ys <- as.integer(runif(N, 0, 31))
 coordinates <- matrix(c(Xs, Ys), ncol=2, nrow=N)
@@ -94,5 +93,4 @@ test2 <- matrix(runif((m+1)*N, 0, 1), ncol=(m+1))
 print("Compare one-to-many with approximate algorithm:")
 d <- compareOneToMany(coordinates, Weights=test2, L=3, method="approx")
 cat("L: 3, runtime:", d$runtime, " distances:", d$distance, "\n")
-}
 }

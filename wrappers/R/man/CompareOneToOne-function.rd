@@ -15,7 +15,7 @@ The two lists of coordinates are passed to \code{compareOneToOne} as a matrix wi
 The two lists of weights are passed as a matrix with \code{N} rows and two columns, a column for each histogram.
 }
 \usage{
-compareOneToOne(Coordinates, Weights, L = 3, recode = FALSE,
+compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
            timelimit = 14400,    opt_tolerance = 1e-06)
@@ -93,7 +93,7 @@ See also \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{H
 library(SpatialKWD)
 
 # Random coordinates
-N = 900
+N = 90
 Xs <- as.integer(runif(N, 0, 31))
 Ys <- as.integer(runif(N, 0, 31))
 coordinates <- matrix(c(Xs, Ys), ncol=2, nrow=N)
