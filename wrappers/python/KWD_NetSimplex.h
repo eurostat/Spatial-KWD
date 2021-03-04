@@ -404,9 +404,24 @@ namespace KWD {
 		uint64_t iterations() const { return _iterations; }
 
 		// Set basic parameters
-		void setTimelimit(double t) { _timelimit = t; }
-		void setOptTolerance(double o) { _opt_tolerance = o; }
-		void setVerbosity(std::string v) { _verbosity = v; }
+		void setTimelimit(double t) {
+			_timelimit = t;
+			PRINT("INFO: change <timelimit> to %f\n", t);
+		}
+		void setOptTolerance(double o) {
+			_opt_tolerance = o;
+			PRINT("INFO: change <opt_tolerance> to %f\n", o);
+		}
+		void setVerbosity(std::string v) {
+			_verbosity = v;
+			if (v == KWD_VAL_DEBUG)
+				N_IT_LOG = 100000;
+			if (v == KWD_VAL_INFO)
+				N_IT_LOG = 10000000;
+			if (v == KWD_VAL_SILENT)
+				N_IT_LOG = 0;
+			PRINT("INFO: change <verbosity> to %s\n", v.c_str());
+		}
 
 		// Check feasibility
 		ProblemType checkFeasibility() {
@@ -838,7 +853,7 @@ namespace KWD {
 						if (tot > _timelimit)
 							return ProblemType::TIMELIMIT;
 						if (_verbosity == KWD_VAL_DEBUG)
-							PRINT("NetSimplex it: %ld, distance: %.4f, runtime: %.4f\n",
+							PRINT("NetSIMPLEX inner loop | it: %ld, distance: %.4f, runtime: %.4f\n",
 								_iterations, totalCost(), tot);
 					}
 				}
@@ -851,7 +866,7 @@ namespace KWD {
 				1000;
 
 			if (_verbosity == KWD_VAL_DEBUG)
-				PRINT("enter: %.3f, join: %.3f, leave: %.3f, change: %.3f, tree: %.3f,"
+				PRINT("NetSIMPLEX outer loop | enter: %.3f, join: %.3f, leave: %.3f, change: %.3f, tree: %.3f,"
 					"potential: %.3f, runtime: %.3f\n",
 					t1, t2, t3, t4, t5, t6, _runtime);
 

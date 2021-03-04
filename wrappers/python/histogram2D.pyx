@@ -68,7 +68,7 @@ cdef class Solver:
         return self.m.compareExact(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0])
 
 
-    def compareApprox(self, n, X, Y, W1, W2, L):
+    def compareApprox(self, n, X, Y, W1, W2, L):        
         if not X.flags['C_CONTIGUOUS']:
             X = np.ascontiguousarray(X, dtype=np.int32)
         cdef int[::1] Xmv = X
@@ -84,7 +84,7 @@ cdef class Solver:
         if not W2.flags['C_CONTIGUOUS']:
             W2 = np.ascontiguousarray(W2, dtype=float) 
         cdef double[::1] Wmv2 = W2
-
+        
         return self.m.compareApprox(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0], L)
 
     
@@ -172,6 +172,8 @@ def setOptions(s, Options):
     model = Options.get('Model', 'mincostflow').encode('utf-8')
     algo = Options.get('Algorithm', 'colgen').encode('utf-8')
     verbosity = Options.get('Verbosity', 'info').encode('utf-8')
+    recode = Options.get('Recode', 'True').encode('utf-8')
+
     time_limit = Options.get('TimeLimit', sys.maxsize)
     opt_tolerance = Options.get('OptTolerance', 1e-06)
     
@@ -179,10 +181,12 @@ def setOptions(s, Options):
     s.setStrParam('Model'.encode('utf-8'), model)
     s.setStrParam('Algorithm'.encode('utf-8'), algo)
     s.setStrParam('Verbosity'.encode('utf-8'), verbosity)
+    s.setStrParam('Recode'.encode('utf-8'), recode)
+
     s.setDblParam('TimeLimit'.encode('utf-8'), time_limit)
     s.setDblParam('OptTolerance'.encode('utf-8'), opt_tolerance)
     
-    print('Options: {}, {}, {}, L={}'.format(method, model, algo, L))
+    print('Options | Method: {}, Model: {}, Algorithm: {}, L={}, Recode: {}'.format(method, model, algo, L, recode))
     
 def getSolution(s, d, m=0):
     sol = {}
@@ -246,7 +250,7 @@ def compareOneToOne(Coordinates, Weights, Options):
 
     d = -1
     method = Options.get('Method', 'approx').encode('utf-8')
-    if method == 'approx':
+    if method == 'approx'.encode('utf-8'):
         d = s.compareApprox(n, X, Y, W1, W2, L)
     else:
         d = s.compareExact(n, X, Y, W1, W2)
@@ -292,7 +296,7 @@ def compareOneToMany(Coordinates, Weights, Options):
     s = Solver()
     setOptions(s, Options)
     L = Options.get('L', 3)  # L=3 default value
-    
+
     n, m = Weights.shape
     m = m - 1
     X = Coordinates[:,0]
@@ -302,7 +306,7 @@ def compareOneToMany(Coordinates, Weights, Options):
 
     d = -1
     method = Options.get('Method', 'approx').encode('utf-8')
-    if method == 'approx':
+    if method == 'approx'.encode('utf-8'):
         d = s.compareApprox2(n, m, X, Y, W1, Ws, L)
     else:
         d = s.compareApprox2(n, m, X, Y, W1, Ws, n-1)
@@ -354,7 +358,7 @@ def compareAll(Coordinates, Weights, Options):
 
     d = -1
     method = Options.get('Method', 'approx').encode('utf-8')
-    if method == 'approx':
+    if method == 'approx'.encode('utf-8'):
         d = s.compareApprox3(n, m, X, Y, Ws, L)
     else:
         d = s.compareApprox3(n, m, X, Y, Ws, n-1)

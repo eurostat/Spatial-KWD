@@ -35,8 +35,8 @@ laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
 
 # Build Python wrapper
 buildpython:
-	cp include/KWD_Histogram2D.h wrappers/R/src
-	cp include/KWD_NetSimplex.h wrappers/R/src
+	cp include/KWD_Histogram2D.h wrappers/python
+	cp include/KWD_NetSimplex.h wrappers/python
 	cd wrappers/python && python3 setup.py build_ext --inplace
 
 # Build R package with the official c++ source code

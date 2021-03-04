@@ -1,5 +1,5 @@
 /**
- * @fileoverview Copyright (c) 2019-2020, Stefano Gualandi,
+ * @fileoverview Copyright (c) 2019-2021, Stefano Gualandi,
  *               via Ferrata, 1, I-27100, Pavia, Italy
  *
  * @author stefano.gualandi@gmail.com (Stefano Gualandi)
@@ -18,6 +18,9 @@ using std::array;
 
 #include <unordered_map>
 using std::unordered_map;
+
+#include <unordered_set>
+using std::unordered_set;
 
 #include <algorithm>
 #include <cmath>
@@ -44,13 +47,18 @@ int GCD(int _a, int _b) {
 }
 #endif
 
+void tolower(std::string& data) {
+	std::transform(data.begin(), data.end(), data.begin(),
+		[](unsigned char c) { return std::tolower(c); });
+}
+
 // List of solver parameters:
 //------------------------------
 
 // (exact, approx)
 constexpr auto KWD_PAR_METHOD = "Method";
-constexpr auto KWD_VAL_EXACT = "Exact";
-constexpr auto KWD_VAL_APPROX = "Approx";
+constexpr auto KWD_VAL_EXACT = "exact";
+constexpr auto KWD_VAL_APPROX = "approx";
 
 // (bipartite, mincostflow)
 constexpr auto KWD_PAR_MODEL = "Model";
@@ -70,6 +78,8 @@ constexpr auto KWD_VAL_DEBUG = "debug";
 
 constexpr auto KWD_PAR_TIMELIMIT = "TimeLimit";
 constexpr auto KWD_PAR_OPTTOLERANCE = "OptTolerance";
+
+constexpr auto KWD_PAR_RECODE = "Recode";
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
@@ -547,9 +557,8 @@ namespace KWD {
 	public:
 		// Standard c'tor
 		Solver()
-			: _status(ProblemType::INFEASIBLE), _runtime(0.0), _iterations(0),
-			_num_nodes(0), _num_arcs(0), _n_log(0), L(-1), opt_tolerance(1e-06),
-			timelimit(std::numeric_limits<double>::max()) {}
+			: _runtime(0.0), _n_log(0), L(-1), verbosity(KWD_VAL_INFO), recode(""),
+			opt_tolerance(1e-06), timelimit(std::numeric_limits<double>::max()) {}
 
 		// Setter/getter for parameters
 		std::string getStrParam(const std::string& name) const {
@@ -559,6 +568,8 @@ namespace KWD {
 				return algorithm;
 			if (name == KWD_PAR_VERBOSITY)
 				return verbosity;
+			if (name == KWD_PAR_RECODE)
+				return recode;
 			return "ERROR getStrParam: wrong parameter ->" + name;
 		}
 
@@ -570,7 +581,10 @@ namespace KWD {
 			return -1;
 		}
 
-		void setStrParam(const std::string& name, const std::string& value) {
+		void setStrParam(const std::string& name, const std::string& _value) {
+			std::string value(_value);
+			tolower(value);
+
 			if (name == KWD_PAR_METHOD)
 				method = value;
 
@@ -579,6 +593,9 @@ namespace KWD {
 
 			if (name == KWD_PAR_VERBOSITY)
 				verbosity = value;
+
+			if (name == KWD_PAR_RECODE)
+				recode = value;
 		}
 
 		void setDblParam(const std::string& name, double value) {
@@ -590,9 +607,9 @@ namespace KWD {
 		}
 
 		void dumpParam() const {
-			PRINT("%s %s %s %s %.3f %f",
-				method.c_str(), model.c_str(), algorithm.c_str(), verbosity.c_str(),
-				timelimit, opt_tolerance);
+			PRINT("Internal parameters: %s %s %s %s %.3f %f %s\n", method.c_str(),
+				model.c_str(), algorithm.c_str(), verbosity.c_str(), timelimit,
+				opt_tolerance, recode.c_str());
 		}
 
 		// Return status of the solver
@@ -703,6 +720,10 @@ namespace KWD {
 			}
 
 			// Solve the problem to compute the distance
+			if (verbosity == KWD_VAL_INFO)
+				PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+					simplex.num_nodes(), simplex.num_arcs());
+
 			_status = simplex.run();
 
 			_runtime = simplex.runtime();
@@ -785,6 +806,10 @@ namespace KWD {
 			}
 
 			// Solve the problem to compute the distance
+			if (verbosity == KWD_VAL_INFO)
+				PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+					simplex.num_nodes(), simplex.num_arcs());
+
 			_status = simplex.run();
 
 			_runtime = simplex.runtime();
@@ -974,6 +999,51 @@ namespace KWD {
 			coprimes.shrink_to_fit();
 		}
 
+		// In case of coordinates with regulare distance, recode the coordinate to
+		// conescutive integers
+		void recoding(int n, int* Xs) {
+			int xmin = Xs[0];
+			int xmax = Xs[0];
+
+			std::unordered_set<int> unique;
+
+			for (int i = 0; i < n; i++) {
+				xmin = std::min(Xs[i], xmin);
+				xmax = std::max(Xs[i], xmax);
+				unique.insert(Xs[i]);
+			}
+
+			int nx = unique.size();
+			int d = (xmax - xmin) / (nx - 1);
+
+			for (int i = 0; i < n; i++) {
+				Xs[i] = (Xs[i] - xmin) / d;
+			}
+		}
+
+		// Check if input has all consecutive coordinates
+		bool check_coding(int n, int* Xs) const {
+			int xmin = Xs[0];
+			int xmax = Xs[0];
+
+			std::unordered_set<int> unique;
+
+			for (int i = 0; i < n; i++) {
+				xmin = std::min(Xs[i], xmin);
+				xmax = std::max(Xs[i], xmax);
+				unique.insert(Xs[i]);
+			}
+
+			int nx = unique.size();
+			int d = (xmax - xmin) / (nx - 1);
+
+			if (d != 1)
+				return true;
+			else
+				return false;
+		}
+
+		// Reindex the input coordinates
 		intpair2int reindex(int n, int* Xs, int* Ys) {
 			intpair2int XY;
 
@@ -992,7 +1062,21 @@ namespace KWD {
 
 		// New interface for the solver
 		double compareExact(int _n, int* _Xs, int* _Ys, double* _W1, double* _W2) {
-			if (verbosity == KWD_VAL_DEBUG)
+			// Check for correct input
+			if (check_coding(_n, _Xs))
+				PRINT(
+					"WARNING: the Xs input coordinates are not consecutives integers.\n");
+			if (check_coding(_n, _Ys))
+				PRINT(
+					"WARNING: the Ys input coordinates are not consecutives integers.\n");
+
+			if (recode != "") {
+				PRINT("INFO: Recoding the input coordinates to consecutive integers.\n");
+				recoding(_n, _Xs);
+				recoding(_n, _Ys);
+			}
+
+			if (verbosity == KWD_VAL_INFO)
 				dumpParam();
 
 			intpair2int XY = reindex(_n, _Xs, _Ys);
@@ -1010,6 +1094,21 @@ namespace KWD {
 				Ys[idx] = _Ys[i];
 				W1[idx] += _W1[i];
 				W2[idx] += _W2[i];
+
+				if (_W1[i] < 0.0) {
+					PRINT("WARNING: weight W1[%d]=%.4f is negative. Only positive weights "
+						"are allowed.\n",
+						i, _W1[i]);
+					throw std::runtime_error(
+						"FATAL ERROR: Input histogram with negative weigths");
+				}
+				if (_W2[i] < 0.0) {
+					PRINT("WARNING: weight W2[%d]=%.4f is negative. Only positive weights "
+						"are allowed.\n",
+						i, _W2[i]);
+					throw std::runtime_error(
+						"FATAL ERROR: Input histogram with negative weigths");
+				}
 			}
 
 			// Get the largest bounding box
@@ -1062,8 +1161,9 @@ namespace KWD {
 						simplex.addArc(i, n + j, sqrt(pow(v, 2) + pow(w, 2)));
 					}
 
-				if (verbosity == KWD_VAL_DEBUG)
-					PRINT("arcs %ld\n", simplex.num_arcs());
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
 
 				// Solve the problem to compute the distance
 				_status = simplex.run();
@@ -1155,6 +1255,10 @@ namespace KWD {
 				}
 
 				// Solve the problem to compute the distance
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
+
 				_status = simplex.run();
 
 				_runtime = simplex.runtime();
@@ -1342,9 +1446,22 @@ namespace KWD {
 
 		double compareApprox(int _n, int* _Xs, int* _Ys, double* _W1, double* _W2,
 			int _L) {
-			if (verbosity == KWD_VAL_DEBUG)
-				dumpParam();
+			// Check for correct input
+			if (check_coding(_n, _Xs))
+				PRINT(
+					"WARNING: the Xs input coordinates are not consecutives integers.\n");
+			if (check_coding(_n, _Ys))
+				PRINT(
+					"WARNING: the Ys input coordinates are not consecutives integers.\n");
 
+			if (recode != "") {
+				PRINT("INFO: Recoding the input coordinates to consecutive integers.\n");
+				recoding(_n, _Xs);
+				recoding(_n, _Ys);
+			}
+
+			if (verbosity == KWD_VAL_INFO)
+				dumpParam();
 			intpair2int XY = reindex(_n, _Xs, _Ys);
 			int n = XY.size();
 
@@ -1360,6 +1477,20 @@ namespace KWD {
 				Ys[idx] = _Ys[i];
 				W1[idx] += _W1[i];
 				W2[idx] += _W2[i];
+				if (_W1[i] < 0.0) {
+					PRINT("WARNING: weight W1[%d]=%.4f is negative. Only positive weights "
+						"are allowed.\n",
+						i, _W1[i]);
+					throw std::runtime_error(
+						"FATAL ERROR: Input histogram with negative weigths");
+				}
+				if (_W2[i] < 0.0) {
+					PRINT("WARNING: weight W2[%d]=%.4f is negative. Only positive weights "
+						"are allowed.\n",
+						i, _W2[i]);
+					throw std::runtime_error(
+						"FATAL ERROR: Input histogram with negative weigths");
+				}
 			}
 
 			// Get the largest bounding box
@@ -1460,6 +1591,9 @@ namespace KWD {
 				}
 
 				// Solve the problem to compute the distance
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
 				_status = simplex.run();
 
 				_runtime = simplex.runtime();
@@ -1650,7 +1784,21 @@ namespace KWD {
 
 		vector<double> compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _W1,
 			double* _Ws, int _L) {
-			if (verbosity == KWD_VAL_DEBUG)
+			// Check for correct input
+			if (check_coding(_n, _Xs))
+				PRINT(
+					"WARNING: the Xs input coordinates are not consecutives integers.\n");
+			if (check_coding(_n, _Ys))
+				PRINT(
+					"WARNING: the Ys input coordinates are not consecutives integers.\n");
+
+			if (recode != "") {
+				PRINT("INFO: Recoding the input coordinates to consecutive integers.\n");
+				recoding(_n, _Xs);
+				recoding(_n, _Ys);
+			}
+
+			if (verbosity == KWD_VAL_INFO)
 				dumpParam();
 
 			// Get the largest bounding box
@@ -1688,10 +1836,23 @@ namespace KWD {
 
 				W1[idx] += _W1[i];
 				tot_w1 += _W1[i];
-
+				if (_W1[i] < 0.0) {
+					PRINT("WARNING: weight W1[%d]=%.4f is negative. Only positive weights "
+						"are allowed.\n",
+						i, _W1[i]);
+					throw std::runtime_error(
+						"FATAL ERROR: Input histogram with negative weigths");
+				}
 				for (int j = 0; j < _m; ++j) {
 					Ws[j * N + idx] += _Ws[j * _n + i];
 					tot_ws[j] += _Ws[j * _n + i];
+					if (_Ws[j * _n + i] < 0.0) {
+						PRINT("WARNING: weight Ws[%d,%d]=%.4f is negative. Only positive "
+							"weights are allowed.\n",
+							i, j, _Ws[j * _n + i]);
+						throw std::runtime_error(
+							"FATAL ERROR: Input histogram with negative weigths");
+					}
 				}
 			}
 
@@ -1779,6 +1940,10 @@ namespace KWD {
 				// Model attributes
 				_num_arcs = simplex.num_arcs();
 
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
+
 				for (int jj = 0; jj < _m; ++jj) {
 
 					//_runtime = 0.0;
@@ -1860,6 +2025,10 @@ namespace KWD {
 				simplex.setTimelimit(timelimit);
 				simplex.setVerbosity(verbosity);
 				simplex.setOptTolerance(opt_tolerance);
+
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
 
 				for (int jj = 0; jj < _m; ++jj) {
 					// TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
@@ -1995,9 +2164,29 @@ namespace KWD {
 			return Ds;
 		}
 
+		// Alias for python module
 		vector<double> compareApprox3(int _n, int _m, int* _Xs, int* _Ys, double* _Ws,
 			int _L) {
-			if (verbosity == KWD_VAL_DEBUG)
+			return compareApprox(_n, _m, _Xs, _Ys, _Ws, _L);
+		}
+
+		vector<double> compareApprox(int _n, int _m, int* _Xs, int* _Ys, double* _Ws,
+			int _L) {
+			// Check for correct input
+			if (check_coding(_n, _Xs))
+				PRINT(
+					"WARNING: the Xs input coordinates are not consecutives integers.\n");
+			if (check_coding(_n, _Ys))
+				PRINT(
+					"WARNING: the Ys input coordinates are not consecutives integers.\n");
+
+			if (recode != "") {
+				PRINT("INFO: Recoding the input coordinates to consecutive integers.\n");
+				recoding(_n, _Xs);
+				recoding(_n, _Ys);
+			}
+
+			if (verbosity == KWD_VAL_INFO)
 				dumpParam();
 
 			// Get the largest bounding box
@@ -2034,6 +2223,13 @@ namespace KWD {
 				for (int j = 0; j < _m; ++j) {
 					Ws[j * N + idx] += _Ws[j * _n + i];
 					tot_ws[j] += _Ws[j * _n + i];
+					if (_Ws[j * _n + i] < 0.0) {
+						PRINT("WARNING: weight Ws[%d,%d]=%.4f is negative. Only positive "
+							"weights are allowed.\n",
+							i, j, _Ws[j * _n + i]);
+						throw std::runtime_error(
+							"FATAL ERROR: Input histogram with negative weigths");
+					}
 				}
 			}
 
@@ -2123,6 +2319,10 @@ namespace KWD {
 				// Model attributes
 				_num_arcs = simplex.num_arcs();
 
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
+
 				for (int ii = 0; ii < _m; ++ii) {
 					for (int jj = ii + 1; jj < _m; ++jj) {
 						// TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
@@ -2207,6 +2407,10 @@ namespace KWD {
 				simplex.setTimelimit(timelimit);
 				simplex.setVerbosity(verbosity);
 				simplex.setOptTolerance(opt_tolerance);
+
+				if (verbosity == KWD_VAL_INFO)
+					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
+						simplex.num_nodes(), simplex.num_arcs());
 
 				for (int ii = 0; ii < _m; ++ii) {
 					for (int jj = ii + 1; jj < _m; ++jj) {
@@ -2516,6 +2720,8 @@ namespace KWD {
 		std::string algorithm;
 		// Verbosity of the log
 		std::string verbosity;
+		// Recode the coordinates as consecutive integers
+		std::string recode;
 		// Tolerance for pricing
 		double opt_tolerance;
 		// Time limit for runtime of the algorithm
