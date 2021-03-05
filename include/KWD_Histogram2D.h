@@ -1646,7 +1646,7 @@ namespace KWD {
 					distance = simplex.totalCost();
 
 				if (distance)
-					distance = distance / simplex.totalFlow();
+					distance = distance / std::max(tot_w1, tot_w2);
 
 				return distance;
 			}
@@ -1825,7 +1825,7 @@ namespace KWD {
 
 				fobj = simplex.totalCost();
 				if (unbalanced)
-					fobj = fobj / simplex.totalFlow();
+					fobj = fobj / std::max(tot_w1, tot_w2);
 
 				if (_n_log > 0)
 					PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
@@ -2045,7 +2045,7 @@ namespace KWD {
 						_status != ProblemType::TIMELIMIT) {
 						Ds[jj] = simplex.totalCost();
 						if (unbalanced)
-							Ds[jj] = Ds[jj] / simplex.totalFlow();
+							Ds[jj] = Ds[jj] / std::max(tot_w1, tot_ws[jj]);
 					}
 					else
 						PRINT("ERROR 1001: Network Simplex wrong. Error code: %d\n",
@@ -2231,7 +2231,7 @@ namespace KWD {
 
 					Ds[jj] = simplex.totalCost();
 					if (unbalanced)
-						Ds[jj] = Ds[jj] / simplex.totalFlow();
+						Ds[jj] = Ds[jj] / std::max(tot_w1, tot_ws[jj]);
 
 					if (_n_log > 0)
 						PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it,
@@ -2453,6 +2453,8 @@ namespace KWD {
 							_status != ProblemType::UNBOUNDED &&
 							_status != ProblemType::TIMELIMIT) {
 							Ds[ii * _m + jj] = simplex.totalCost();
+							if (unbalanced)
+								Ds[ii * _m + jj] = Ds[ii * _m + jj] / std::max(tot_ws[ii], tot_ws[jj]);
 							Ds[jj * _m + ii] = Ds[ii * _m + jj];
 						}
 						else
@@ -2644,7 +2646,7 @@ namespace KWD {
 
 						Ds[jj * _m + ii] = simplex.totalCost();
 						if (unbalanced)
-							Ds[jj * _m + ii] = Ds[jj * _m + ii] / simplex.totalFlow();
+							Ds[jj * _m + ii] = Ds[jj * _m + ii] / std::max(tot_ws[ii], tot_ws[jj]);
 
 						Ds[ii * _m + jj] = Ds[jj * _m + ii];
 
