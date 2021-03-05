@@ -81,6 +81,11 @@ constexpr auto KWD_PAR_OPTTOLERANCE = "OptTolerance";
 
 constexpr auto KWD_PAR_RECODE = "Recode";
 
+constexpr auto KWD_PAR_UNBALANCED = "Unbalanced";
+constexpr auto KWD_PAR_UNBALANCED_COST = "UnbalancedCost";
+
+constexpr auto KWD_VAL_TRUE = "true";
+
 // My Network Simplex
 #include "KWD_NetSimplex.h"
 
@@ -558,7 +563,8 @@ namespace KWD {
 		// Standard c'tor
 		Solver()
 			: _runtime(0.0), _n_log(0), L(-1), verbosity(KWD_VAL_INFO), recode(""),
-			opt_tolerance(1e-06), timelimit(std::numeric_limits<double>::max()) {}
+			opt_tolerance(1e-06), timelimit(std::numeric_limits<double>::max()),
+			unbalanced(false), unbal_cost(std::numeric_limits<double>::max()) {}
 
 		// Setter/getter for parameters
 		std::string getStrParam(const std::string& name) const {
@@ -570,6 +576,9 @@ namespace KWD {
 				return verbosity;
 			if (name == KWD_PAR_RECODE)
 				return recode;
+			if (name == KWD_PAR_UNBALANCED)
+				return (unbalanced ? "True" : "False");
+
 			return "ERROR getStrParam: wrong parameter ->" + name;
 		}
 
@@ -578,6 +587,8 @@ namespace KWD {
 				return timelimit;
 			if (name == KWD_PAR_OPTTOLERANCE)
 				return opt_tolerance;
+			if (name == KWD_PAR_UNBALANCED_COST)
+				return unbal_cost;
 			return -1;
 		}
 
@@ -596,6 +607,13 @@ namespace KWD {
 
 			if (name == KWD_PAR_RECODE)
 				recode = value;
+
+			if (name == KWD_PAR_UNBALANCED) {
+				if (value == KWD_VAL_TRUE)
+					unbalanced = true;
+				else
+					unbalanced = false;
+			}
 		}
 
 		void setDblParam(const std::string& name, double value) {
@@ -604,12 +622,15 @@ namespace KWD {
 
 			if (name == KWD_PAR_OPTTOLERANCE)
 				opt_tolerance = value;
+
+			if (name == KWD_PAR_UNBALANCED_COST)
+				unbal_cost = value;
 		}
 
 		void dumpParam() const {
-			PRINT("Internal parameters: %s %s %s %s %.3f %f %s\n", method.c_str(),
+			PRINT("Internal parameters: %s %s %s %s %.3f %f %s %d %.1f\n", method.c_str(),
 				model.c_str(), algorithm.c_str(), verbosity.c_str(), timelimit,
-				opt_tolerance, recode.c_str());
+				opt_tolerance, recode.c_str(), (int)unbalanced, unbal_cost);
 		}
 
 		// Return status of the solver
@@ -1512,13 +1533,16 @@ namespace KWD {
 				tot_w2 += W2[i];
 			}
 
-			for (int i = 0; i < n; ++i) {
-				W1[i] = W1[i] / tot_w1;
-				W2[i] = W2[i] / tot_w2;
+			// Rebalance the total mass only if it is not an unbalanced probelm
+			if (!unbalanced) {
+				for (int i = 0; i < n; ++i) {
+					W1[i] = W1[i] / tot_w1;
+					W2[i] = W2[i] / tot_w2;
+				}
 			}
 
 			// Second option for algorithm
-			if (algorithm == KWD_VAL_MINCOSTFLOW) {
+			if (algorithm == KWD_VAL_FULLMODEL) {
 				PointCloud2D ps = mergeHistograms(n, &Xs[0], &Ys[0], &W1[0], &W2[0]);
 
 				// Compute convex hull
@@ -1527,7 +1551,7 @@ namespace KWD {
 				PointCloud2D Rs = ch.FillHull(As);
 
 				Rs.merge(ps);
-
+				Rs.dump();
 				int n = static_cast<int>(Rs.size());
 
 				// Compute xmax, ymax for each axis
@@ -1565,7 +1589,7 @@ namespace KWD {
 
 				// Build the graph for min cost flow
 				NetSimplex<FlowType, CostType> simplex(
-					'F', n, n * static_cast<int>(coprimes.size()));
+					'F', n + int(unbalanced == true), n * static_cast<int>(coprimes.size()));
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
@@ -1590,6 +1614,19 @@ namespace KWD {
 					}
 				}
 
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					simplex.addNode(n, -Rs.balance());
+
+					for (int i = 0; i < n; ++i)
+						if (Rs.getB(i) > 0)
+							simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						if (Rs.getB(i) < 0)
+							simplex.addArc(n, i, 0);
+				}
+
 				// Solve the problem to compute the distance
 				if (verbosity == KWD_VAL_INFO)
 					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
@@ -1607,6 +1644,9 @@ namespace KWD {
 					_status != ProblemType::UNBOUNDED &&
 					_status != ProblemType::TIMELIMIT)
 					distance = simplex.totalCost();
+
+				if (distance)
+					distance = distance / simplex.totalFlow();
 
 				return distance;
 			}
@@ -1658,7 +1698,7 @@ namespace KWD {
 				typedef double CostType;
 
 				// Build the graph for min cost flow
-				NetSimplex<FlowType, CostType> simplex('E', n, 0);
+				NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true), 0);
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
@@ -1668,6 +1708,19 @@ namespace KWD {
 				// add first d source nodes
 				for (int i = 0; i < n; ++i)
 					simplex.addNode(i, Rs.getB(i));
+
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					simplex.addNode(n, -Rs.balance());
+
+					for (int i = 0; i < n; ++i)
+						if (Rs.getB(i) > 0)
+							simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						if (Rs.getB(i) < 0)
+							simplex.addArc(n, i, 0);
+				}
 
 				int it = 0;
 				int n_cuts = 0;
@@ -1771,6 +1824,8 @@ namespace KWD {
 				_num_nodes = simplex.num_nodes();
 
 				fobj = simplex.totalCost();
+				if (unbalanced)
+					fobj = fobj / simplex.totalFlow();
 
 				if (_n_log > 0)
 					PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
@@ -1857,10 +1912,12 @@ namespace KWD {
 			}
 
 			// Rescale all integers coordinates to (0,0)
-			for (int i = 0; i < N; ++i) {
-				W1[i] = W1[i] / tot_w1;
-				for (int j = 0; j < _m; ++j)
-					Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
+			if (!unbalanced) {
+				for (int i = 0; i < N; ++i) {
+					W1[i] = W1[i] / tot_w1;
+					for (int j = 0; j < _m; ++j)
+						Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
+				}
 			}
 
 			// Set the coprimes set
@@ -1915,7 +1972,7 @@ namespace KWD {
 				typedef double CostType;
 				// Build the graph for min cost flow
 				NetSimplex<FlowType, CostType> simplex(
-					'F', n, n * static_cast<int>(coprimes.size()));
+					'F', n + int(unbalanced == true), n * static_cast<int>(coprimes.size()));
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
@@ -1935,6 +1992,15 @@ namespace KWD {
 							simplex.addArc(h, ff, p.c_vw);
 						}
 					}
+				}
+
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(n, i, 0);
 				}
 
 				// Model attributes
@@ -1961,6 +2027,9 @@ namespace KWD {
 							simplex.addNode(p.second, 0.0);
 					}
 
+					if (unbalanced)
+						simplex.addNode(n, -tot_w1 + tot_ws[jj]);
+
 					_num_nodes = simplex.num_nodes();
 
 					// Solve the problem to compute the distance
@@ -1973,8 +2042,11 @@ namespace KWD {
 
 					if (_status != ProblemType::INFEASIBLE &&
 						_status != ProblemType::UNBOUNDED &&
-						_status != ProblemType::TIMELIMIT)
+						_status != ProblemType::TIMELIMIT) {
 						Ds[jj] = simplex.totalCost();
+						if (unbalanced)
+							Ds[jj] = Ds[jj] / simplex.totalFlow();
+					}
 					else
 						PRINT("ERROR 1001: Network Simplex wrong. Error code: %d\n",
 							(int)_status);
@@ -2019,7 +2091,16 @@ namespace KWD {
 				typedef double CostType;
 
 				// Build the graph for min cost flow
-				NetSimplex<FlowType, CostType> simplex('E', n, 0);
+				NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true), 0);
+
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(n, i, 0);
+				}
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
@@ -2042,6 +2123,9 @@ namespace KWD {
 						else
 							simplex.addNode(p.second, 0.0);
 					}
+
+					if (unbalanced)
+						simplex.addNode(n, -tot_w1 + tot_ws[jj]);
 
 					_num_nodes = simplex.num_nodes();
 
@@ -2146,6 +2230,8 @@ namespace KWD {
 						1000000000;
 
 					Ds[jj] = simplex.totalCost();
+					if (unbalanced)
+						Ds[jj] = Ds[jj] / simplex.totalFlow();
 
 					if (_n_log > 0)
 						PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it,
@@ -2234,9 +2320,11 @@ namespace KWD {
 			}
 
 			// Rescale all integers coordinates to (0,0)
-			for (int i = 0; i < N; ++i)
-				for (int j = 0; j < _m; ++j)
-					Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
+			if (!unbalanced) {
+				for (int i = 0; i < N; ++i)
+					for (int j = 0; j < _m; ++j)
+						Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
+			}
 
 			// Set the coprimes set
 			if (_L != L) {
@@ -2294,7 +2382,7 @@ namespace KWD {
 				typedef double CostType;
 				// Build the graph for min cost flow
 				NetSimplex<FlowType, CostType> simplex(
-					'F', n, n * static_cast<int>(coprimes.size()));
+					'F', n + int(unbalanced == true), n * static_cast<int>(coprimes.size()));
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
@@ -2314,6 +2402,15 @@ namespace KWD {
 							simplex.addArc(h, ff, p.c_vw);
 						}
 					}
+				}
+
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(n, i, 0);
 				}
 
 				// Model attributes
@@ -2337,6 +2434,9 @@ namespace KWD {
 							else
 								simplex.addNode(p.second, 0.0);
 						}
+
+						if (unbalanced)
+							simplex.addNode(n, -tot_ws[ii] + tot_ws[jj]);
 
 						_num_nodes = simplex.num_nodes();
 
@@ -2401,12 +2501,21 @@ namespace KWD {
 				typedef double CostType;
 
 				// Build the graph for min cost flow
-				NetSimplex<FlowType, CostType> simplex('E', n, 0);
+				NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true), 0);
 
 				// Set the parameters
 				simplex.setTimelimit(timelimit);
 				simplex.setVerbosity(verbosity);
 				simplex.setOptTolerance(opt_tolerance);
+
+				// Add noded for unbalanced transport, if parater is set
+				if (unbalanced) {
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(i, n, unbal_cost);
+
+					for (int i = 0; i < n; ++i)
+						simplex.addArc(n, i, 0);
+				}
 
 				if (verbosity == KWD_VAL_INFO)
 					PRINT("INFO: running NetSimplex with V=%ld and E=%ld\n",
@@ -2426,6 +2535,9 @@ namespace KWD {
 							else
 								simplex.addNode(p.second, 0.0);
 						}
+
+						if (unbalanced)
+							simplex.addNode(n, -tot_ws[ii] + tot_ws[jj]);
 
 						_num_nodes = simplex.num_nodes();
 
@@ -2531,6 +2643,9 @@ namespace KWD {
 							1000000000;
 
 						Ds[jj * _m + ii] = simplex.totalCost();
+						if (unbalanced)
+							Ds[jj * _m + ii] = Ds[jj * _m + ii] / simplex.totalFlow();
+
 						Ds[ii * _m + jj] = Ds[jj * _m + ii];
 
 						if (_n_log > 0)
@@ -2726,6 +2841,10 @@ namespace KWD {
 		double opt_tolerance;
 		// Time limit for runtime of the algorithm
 		double timelimit;
+		// If the problem must be considered unbalanced
+		bool unbalanced;
+		// Cost for the unbalanced connection
+		double unbal_cost;
 
 	}; // namespace KWD
 

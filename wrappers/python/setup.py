@@ -40,7 +40,7 @@ extensions = Extension(name="KWD",
                        extra_link_args=LD_ARGS)
 
 setup(name='Spatial-KWD',
-      version='0.2.5',
+      version='0.2.6',
       packages=find_packages(),
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',

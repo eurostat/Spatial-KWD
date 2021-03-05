@@ -99,6 +99,10 @@ int main(int argc, char* argv[]) {
 		solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
 		solver.setStrParam(KWD_PAR_RECODE, "True");
 
+		solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
+		solver.setDblParam(KWD_PAR_UNBALANCED_COST, 3);
+		solver.dumpParam();
+
 		auto dist =
 			solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
 
