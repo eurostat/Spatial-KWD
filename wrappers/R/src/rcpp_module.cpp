@@ -26,38 +26,11 @@
 
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
-//double distanceDF(const Rcpp::DataFrame& DF, int L) {
-//	Rcpp::IntegerVector X = DF["x"];
-//	Rcpp::IntegerVector Y = DF["y"];
-//	Rcpp::NumericVector H1 = DF["h1"];
-//	Rcpp::NumericVector H2 = DF["h2"];
-//
-//	KWD::Histogram2D a;
-//	KWD::Histogram2D b;
-//
-//	for (int i = 0, i_max = X.size(); i < i_max; ++i) {
-//		a.add(X[i], Y[i], H1[i]);
-//		b.add(X[i], Y[i], H2[i]);
-//	}
-//
-//	a.normalize();
-//	b.normalize();
-//
-//	KWD::Solver s;
-//
-//	try {
-//		return s.column_generation(a, b, L);
-//	}
-//	catch (...) {
-//		throw(Rcpp::exception("Error 13:", "KWD_NetSimplex", 13));
-//		return 0.0;
-//	}
-//}
-
 Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Weigths,
 	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen", const std::string& model = "mincostflow", const std::string& verbosity = "silent",
-	double timelimit = 14400, double opt_tolerance = 1e-06) {
+	double timelimit = 14400, double opt_tolerance = 1e-06,
+	bool unbalanced = false, double unbal_cost = 1e+09, bool convex = true) {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
 		throw(Rcpp::exception("The Coordinates matrix must contain two columns for Xs and Ys."));
@@ -95,7 +68,15 @@ Rcpp::List compareOneToOne(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 	if (recode)
-		s.setStrParam(KWD_PAR_RECODE, "true");
+		s.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
+
+	if (unbalanced) {
+		s.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
+		s.setDblParam(KWD_PAR_UNBALANCED_COST, unbal_cost);
+	}
+
+	if (convex)
+		s.setStrParam(KWD_PAR_CONVEXHULL, KWD_VAL_TRUE);
 
 	try {
 		double d = -1;
@@ -124,7 +105,8 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
-	double timelimit = 14400, double opt_tolerance = 1e-06)
+	double timelimit = 14400, double opt_tolerance = 1e-06,
+	bool unbalanced = false, double unbal_cost = 1e+09, bool convex = true)
 {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
@@ -161,7 +143,15 @@ Rcpp::List compareOneToMany(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatri
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 	if (recode)
-		s.setStrParam(KWD_PAR_RECODE, "true");
+		s.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
+
+	if (unbalanced) {
+		s.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
+		s.setDblParam(KWD_PAR_UNBALANCED_COST, unbal_cost);
+	}
+
+	if (convex)
+		s.setStrParam(KWD_PAR_CONVEXHULL, KWD_VAL_TRUE);
 
 	try {
 		Rcpp::NumericVector ds;
@@ -195,7 +185,8 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 	int L = 3, bool recode = true,
 	const std::string& method = "approx", const std::string& algorithm = "colgen",
 	const std::string& model = "mincostflow", const std::string& verbosity = "silent",
-	double timelimit = 14400, double opt_tolerance = 1e-06)
+	double timelimit = 14400, double opt_tolerance = 1e-06,
+	bool unbalanced = false, double unbal_cost = 1e+09, bool convex = true)
 {
 	Rcpp::List sol;
 	if (Coordinates.ncol() != 2)
@@ -231,7 +222,15 @@ Rcpp::List compareAll(Rcpp::NumericMatrix& Coordinates, Rcpp::NumericMatrix& Wei
 	s.setDblParam(KWD_PAR_OPTTOLERANCE, opt_tolerance);
 	s.setDblParam(KWD_PAR_TIMELIMIT, timelimit);
 	if (recode)
-		s.setStrParam(KWD_PAR_RECODE, "true");
+		s.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
+
+	if (unbalanced) {
+		s.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
+		s.setDblParam(KWD_PAR_UNBALANCED_COST, unbal_cost);
+	}
+
+	if (convex)
+		s.setStrParam(KWD_PAR_CONVEXHULL, KWD_VAL_TRUE);
 
 	try {
 		Rcpp::NumericMatrix ds;
@@ -269,19 +268,22 @@ RCPP_MODULE(SKWD) {
 	function("compareOneToOne", &compareOneToOne,
 		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
-			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06,
+			_["unbalanced"] = false, _["unbal_cost"] = 1e+09, _["convex"] = true),
 		"compare two histograms using the given search options");
 
 	function("compareOneToMany", &compareOneToMany,
 		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
-			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06,
+			_["unbalanced"] = false, _["unbal_cost"] = 1e+09, _["convex"] = true),
 		"compare one to many histograms using the given search options");
 
 	function("compareAll", &compareAll,
 		List::create(_["Coordinates"], _["Weights"], _["L"] = 3, _["recode"] = true,
 			_["method"] = "approx", _["algorithm"] = "colgen", _["model"] = "mincostflow", _["verbosity"] = "silent",
-			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06),
+			_["timelimit"] = 14400, _["opt_tolerance"] = 1e-06,
+			_["unbalanced"] = false, _["unbal_cost"] = 1e+09, _["convex"] = true),
 		"compare all histograms using the given search options");
 
 	class_<KWD::Histogram2D>("Histogram2D")

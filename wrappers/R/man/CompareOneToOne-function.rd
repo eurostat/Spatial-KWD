@@ -18,7 +18,8 @@ The two lists of weights are passed as a matrix with \code{N} rows and two colum
 compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
-           timelimit = 14400,    opt_tolerance = 1e-06)
+           timelimit = 14400,    opt_tolerance = 1e-06,
+           unbalanced = FALSE, unbal_cost = 1e+09, convex = TRUE)
 }
 \arguments{
   \item{Coordinates}{A \code{Matrix} with \code{N} rows and two columns:
@@ -51,6 +52,12 @@ compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
   \item{timelimit}{Time limit in second for running the solver.}
 
   \item{opt_tolerance}{Numerical tolerance on the negative reduce cost for the optimal solution.}
+
+  \item{unbalanced}{If equal to \code{True}, solve the problem with unbalanced masses.}
+
+  \item{unbal_cost}{Cost for the arcs going from each point to the extra artificial bin.}
+
+  \item{convex}{If equal to \code{True}, compute the convex hull of the input points.}
 }
 
 \details{

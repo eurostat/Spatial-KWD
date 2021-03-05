@@ -83,8 +83,10 @@ constexpr auto KWD_PAR_RECODE = "Recode";
 
 constexpr auto KWD_PAR_UNBALANCED = "Unbalanced";
 constexpr auto KWD_PAR_UNBALANCED_COST = "UnbalancedCost";
+constexpr auto KWD_PAR_CONVEXHULL = "ConvexHull";
 
 constexpr auto KWD_VAL_TRUE = "true";
+constexpr auto KWD_VAL_FALSE = "false";
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
@@ -577,7 +579,9 @@ namespace KWD {
 			if (name == KWD_PAR_RECODE)
 				return recode;
 			if (name == KWD_PAR_UNBALANCED)
-				return (unbalanced ? "True" : "False");
+				return (unbalanced ? KWD_VAL_TRUE : KWD_VAL_FALSE);
+			if (name == KWD_PAR_CONVEXHULL)
+				return (convex_hull ? KWD_VAL_TRUE : KWD_VAL_FALSE);
 
 			return "ERROR getStrParam: wrong parameter ->" + name;
 		}
@@ -608,12 +612,11 @@ namespace KWD {
 			if (name == KWD_PAR_RECODE)
 				recode = value;
 
-			if (name == KWD_PAR_UNBALANCED) {
-				if (value == KWD_VAL_TRUE)
-					unbalanced = true;
-				else
-					unbalanced = false;
-			}
+			if (name == KWD_PAR_UNBALANCED)
+				unbalanced = (value == KWD_VAL_TRUE ? true : false);
+
+			if (name == KWD_PAR_CONVEXHULL)
+				convex_hull = (value == KWD_VAL_TRUE ? true : false);
 		}
 
 		void setDblParam(const std::string& name, double value) {
@@ -628,9 +631,9 @@ namespace KWD {
 		}
 
 		void dumpParam() const {
-			PRINT("Internal parameters: %s %s %s %s %.3f %f %s %d %.1f\n", method.c_str(),
+			PRINT("Internal parameters: %s %s %s %s %.3f %f %s %d %.1f, %d\n", method.c_str(),
 				model.c_str(), algorithm.c_str(), verbosity.c_str(), timelimit,
-				opt_tolerance, recode.c_str(), (int)unbalanced, unbal_cost);
+				opt_tolerance, recode.c_str(), (int)unbalanced, unbal_cost, (int)convex_hull);
 		}
 
 		// Return status of the solver
@@ -769,8 +772,14 @@ namespace KWD {
 
 			// Compute convex hull
 			ConvexHull ch;
-			PointCloud2D As = ch.find(ps);
-			PointCloud2D Rs = ch.FillHull(As);
+			PointCloud2D As, Rs;
+			if (convex_hull) {
+				As = ch.find(ps);
+				Rs = ch.FillHull(As);
+			}
+			else {
+				Rs = ch.FillHull(ps);
+			}
 
 			Rs.merge(ps);
 
@@ -858,9 +867,15 @@ namespace KWD {
 
 			// Compute convex hull
 			ConvexHull ch;
-			PointCloud2D As = ch.find(ps);
+			PointCloud2D As, Rs;
+			if (convex_hull) {
+				As = ch.find(ps);
+				Rs = ch.FillHull(As);
+			}
+			else {
+				Rs = ch.FillHull(ps);
+			}
 
-			PointCloud2D Rs = ch.FillHull(As);
 
 			Rs.merge(ps);
 
@@ -1210,8 +1225,14 @@ namespace KWD {
 
 				// Compute convex hull
 				ConvexHull ch;
-				PointCloud2D As = ch.find(ps);
-				PointCloud2D Rs = ch.FillHull(As);
+				PointCloud2D As, Rs;
+				if (convex_hull) {
+					As = ch.find(ps);
+					Rs = ch.FillHull(As);
+				}
+				else {
+					Rs = ch.FillHull(ps);
+				}
 
 				Rs.merge(ps);
 
@@ -1306,8 +1327,15 @@ namespace KWD {
 
 				// Compute convex hull
 				ConvexHull ch;
-				PointCloud2D As = ch.find(ps);
-				PointCloud2D Rs = ch.FillHull(As);
+				PointCloud2D As, Rs;
+				if (convex_hull) {
+					As = ch.find(ps);
+					Rs = ch.FillHull(As);
+				}
+				else {
+					Rs = ch.FillHull(ps);
+				}
+
 
 				Rs.merge(ps);
 
@@ -1547,8 +1575,14 @@ namespace KWD {
 
 				// Compute convex hull
 				ConvexHull ch;
-				PointCloud2D As = ch.find(ps);
-				PointCloud2D Rs = ch.FillHull(As);
+				PointCloud2D As, Rs;
+				if (convex_hull) {
+					As = ch.find(ps);
+					Rs = ch.FillHull(As);
+				}
+				else {
+					Rs = ch.FillHull(ps);
+				}
 
 				Rs.merge(ps);
 				Rs.dump();
@@ -1645,7 +1679,7 @@ namespace KWD {
 					_status != ProblemType::TIMELIMIT)
 					distance = simplex.totalCost();
 
-				if (distance)
+				if (unbalanced)
 					distance = distance / std::max(tot_w1, tot_w2);
 
 				return distance;
@@ -1660,8 +1694,14 @@ namespace KWD {
 
 				// Compute convex hull
 				ConvexHull ch;
-				PointCloud2D As = ch.find(ps);
-				PointCloud2D Rs = ch.FillHull(As);
+				PointCloud2D As, Rs;
+				if (convex_hull) {
+					As = ch.find(ps);
+					Rs = ch.FillHull(As);
+				}
+				else {
+					Rs = ch.FillHull(ps);
+				}
 
 				Rs.merge(ps);
 
@@ -1933,8 +1973,15 @@ namespace KWD {
 
 			// Compute convex hull
 			ConvexHull ch;
-			PointCloud2D As = ch.find(ps);
-			PointCloud2D Rs = ch.FillHull(As);
+
+			PointCloud2D As, Rs;
+			if (convex_hull) {
+				As = ch.find(ps);
+				Rs = ch.FillHull(As);
+			}
+			else {
+				Rs = ch.FillHull(ps);
+			}
 
 			int n = static_cast<int>(Rs.size());
 
@@ -2342,8 +2389,15 @@ namespace KWD {
 
 			// Compute convex hull
 			ConvexHull ch;
-			PointCloud2D As = ch.find(ps);
-			PointCloud2D Rs = ch.FillHull(As);
+			PointCloud2D As, Rs;
+			if (convex_hull) {
+				As = ch.find(ps);
+				Rs = ch.FillHull(As);
+			}
+			else {
+				Rs = ch.FillHull(ps);
+			}
+
 
 			int n = static_cast<int>(Rs.size());
 
@@ -2847,6 +2901,8 @@ namespace KWD {
 		bool unbalanced;
 		// Cost for the unbalanced connection
 		double unbal_cost;
+		// Whether to compute the convex hull
+		bool convex_hull;
 
 	}; // namespace KWD
 

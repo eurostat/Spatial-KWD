@@ -40,7 +40,7 @@ extensions = Extension(name="KWD",
                        extra_link_args=LD_ARGS)
 
 setup(name='Spatial-KWD',
-      version='0.2.6',
+      version='0.3.0',
       packages=find_packages(),
       description='Spatial KWD for Large Spatial Maps',
       author='Stefano Gualandi',
@@ -48,7 +48,7 @@ setup(name='Spatial-KWD',
       url='https://github.com/eurostat/Spatial-KWD',
       platforms=['linux', 'macosx', 'windows'],
       download_url=
-      'https://github.com/eurostat/Spatial-KWD/archive/v0.2.5-alpha.tar.gz',
+      'https://github.com/eurostat/Spatial-KWD/archive/v0.3.0-alpha.tar.gz',
       setup_requires=['numpy', 'cython'],
       install_requires=['numpy'],
       include_dirs=np.get_include(),
