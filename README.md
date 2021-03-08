@@ -24,7 +24,7 @@ The simplest way to test this library is to run one of the following notebooks o
 
 | Data | Notebook | Link |
 |:-|:-|:-|
-|**[2021/02/20]**|*Tutorial 1: Using Spatial-KWD v0.1.5-alpha with Python*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
+|**[2021/02/20]**|*Tutorial 1: Using Spatial-KWD with Python*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_Tutorial_1.ipynb)|
 |**[2020/11/22]**|*Tutorial 2: Using Spatial-KWD with R*|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eurostat/Spatial-KWD/blob/main/notebooks/Spatial_KWD_with_R_Tutorial_2.ipynb)|
 
 
@@ -58,13 +58,13 @@ Once you have done with the installation of the python wrapper, you can test it 
 
 ## <a name="R-wrapper"></a>R Wrapper
 
-The wrapper for R is contained in the [SpatialKWD_0.2.5.tar.gz](https://github.com/eurostat/Spatial-KWD/releases/download/v0.2.5-alpha/SpatialKWD_0.2.5.tar.gz) package, and all the source code are freely available on this site under the directory [wrappers/R](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R).
+The wrapper for R is contained in the [SpatialKWD_0.3.0.tar.gz](https://github.com/eurostat/Spatial-KWD/releases/download/v0.3.0-alpha/SpatialKWD_0.3.0.tar.gz) package, and all the source code are freely available on this site under the directory [wrappers/R](https://github.com/eurostat/Spatial-KWD/tree/main/wrappers/R).
 
 For compiling the wrapper, you need a recent version of [R](https://www.r-project.org/) and the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package (we test it with Rcpp v.1.0.5, but it should work also with older versions).
 
 Windows users can download a pre-compiled binary package at the following link:
 
-* [SpatialKWD_0.2.0.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.2.5-alpha/SpatialKWD_0.2.5.zip)
+* [SpatialKWD_0.3.0.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.3.0-alpha/SpatialKWD_0.3.0.zip)
 
 
 Once you have installed the Spatial-KWD package, you can test it running one of the following scripts:
