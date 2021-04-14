@@ -1,5 +1,5 @@
 /**
- * @fileoverview Copyright (c) 2019-2020, Stefano Gualandi,
+ * @fileoverview Copyright (c) 2019-2021, Stefano Gualandi,
  *               via Ferrata, 1, I-27100, Pavia, Italy
  *
  * @author stefano.gualandi@gmail.com (Stefano Gualandi)
@@ -318,12 +318,12 @@ public:
 
   size_t addArc(int a, int b, Cost c) {
     size_t idx = _source.size();
-    _source.emplace_back(a);
-    _target.emplace_back(b);
-    _cost.emplace_back(c);
+    _source.push_back(a);
+    _target.push_back(b);
+    _cost.push_back(c);
 
-    _flow.emplace_back(0);
-    _state.emplace_back(STATE_LOWER);
+    _flow.push_back(0);
+    _state.push_back(STATE_LOWER);
 
     _arc_num++;
     return idx;
@@ -607,15 +607,21 @@ private:
     if (delta > 0) {
       _flow[in_arc] += delta;
 
+#ifdef _OPENMP
 #pragma omp parallel sections num_threads(2)
       {
 #pragma omp section
+#else
+      {
+#endif
         {
           for (int u = _source[in_arc]; u != join; u = _parent[u]) {
             _flow[_pred[u]] -= _pred_dir[u] * delta;
           }
         }
+#ifdef _OPENMP
 #pragma omp section
+#endif
         {
           for (int u = _target[in_arc]; u != join; u = _parent[u]) {
             _flow[_pred[u]] += _pred_dir[u] * delta;

@@ -8,7 +8,9 @@
 
 #pragma once
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include <vector>
 using std::vector;
@@ -1399,9 +1401,13 @@ public:
 
         // Solve separation problem:
         auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
         {
 #pragma omp for schedule(dynamic, 1)
+#else
+        {
+#endif
           for (int h = 0; h < n; ++h) {
             int a = Rs.getX(h);
             int b = Rs.getY(h);
@@ -1783,9 +1789,13 @@ public:
 
         // Solve separation problem:
         auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
         {
 #pragma omp for schedule(dynamic, 1)
+#else
+        {
+#endif
           for (int h = 0; h < n; ++h) {
             int a = Rs.getX(h);
             int b = Rs.getY(h);
@@ -2220,9 +2230,13 @@ public:
 
           // Solve separation problem:
           auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
           {
 #pragma omp for schedule(dynamic, 1)
+#else
+          {
+#endif
             for (int h = 0; h < n; ++h) {
               int a = Rs.getX(h);
               int b = Rs.getY(h);
