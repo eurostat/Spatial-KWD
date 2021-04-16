@@ -89,22 +89,23 @@ int main(int argc, char* argv[]) {
 
 		PRINT("start solver\n");
 		KWD::Solver solver;
-		//solver.recoding(n, &Xs[0]);
-		//solver.recoding(n, &Ys[0]);
-		fprintf(stdout, "n: %d\n", n);
+
 		// ----------------------------------------------------------------------------
 		solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
-		solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_COLGEN);
+		solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_FULLMODEL);
 		solver.setStrParam(KWD_PAR_MODEL, KWD_VAL_MINCOSTFLOW);
 		solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
-		solver.setStrParam(KWD_PAR_RECODE, "True");
+		solver.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
 
 		solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
-		solver.setDblParam(KWD_PAR_UNBALANCED_COST, 3);
+		solver.setDblParam(KWD_PAR_UNBALANCED_COST, 4); // TO BE SET
+
+		solver.setStrParam(KWD_PAR_CONVEXHULL, KWD_VAL_TRUE);
+
 		solver.dumpParam();
 
 		auto dist =
-			solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+			solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 1);
 
 		PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %ld, "
 			"arcs: "
