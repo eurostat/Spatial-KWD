@@ -1,14 +1,14 @@
 Package: SpatialKWD
 Type: Package
 Title: Spatial KWD for Large Spatial Maps
-Version: 0.3.0
-Date: 2021-02-12
+Version: 0.3.1
+Date: 2021-04-14
 Author: Stefano Gualandi [aut, cre]
 Authors@R: c(person("Stefano", "Gualandi", role = c("aut", "cre"),
                      email = "stefano.gualandi@gmail.com")
               )
 Maintainer: Stefano Gualandi <stefano.gualandi@gmail.com>
-Description: Contains fficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wasserstein distances between pairs of large spatial maps (Bassetti, Gualandi, Veneroni (2020), <doi:10.1137/19M1261195>). All the algorithms are based on an ad-hoc implementation of the Network Simplex algorithm. The package has three main helper functions: "compareOneToOne" (to compare two spatial maps), "compareOneToMany" (to compare a reference maps with a list of other maps), and "compareAll" (to compute a matrix of distances between a list of maps). In case of non-convex maps, the helper functions first build the convex-hull of the input bins and pads the weights with zeros.
+Description: Contains efficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wasserstein distances between pairs of large spatial maps (Bassetti, Gualandi, Veneroni (2020), <doi:10.1137/19M1261195>). All the algorithms are based on an ad-hoc implementation of the Network Simplex algorithm. The package has three main helper functions: compareOneToOne() (to compare two spatial maps), compareOneToMany() (to compare a reference maps with a list of other maps), and compareAll() (to compute a matrix of distances between a list of maps). In case of non-convex maps, the helper functions first build the convex-hull of the input bins and pads the weights with zeros.
 License: EUPL (>= 1.2)
 Imports: methods, Rcpp
 SystemRequirements: C++11
