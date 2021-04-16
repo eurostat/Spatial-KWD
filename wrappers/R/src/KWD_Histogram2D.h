@@ -8,7 +8,9 @@
 
 #pragma once
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include <vector>
 using std::vector;
@@ -325,8 +327,8 @@ public:
       cx = anchor_x;
       cy = anchor_y;
     }
-    int x_span = ax - cx;
-    int y_span = ay - cy;
+    double x_span = ax - cx;
+    double y_span = ay - cy;
     return atan2(y_span, x_span);
   }
 
@@ -731,11 +733,11 @@ public:
         // fprintf(stdout, "%d %d %d %d %.4f\n",
         //        Ha[ID(p.first.first - xmin, p.first.second - ymin)],
         //        Hb[ID(q.first.first - xmin, q.first.second - ymin)], v, w,
-        //        sqrt(pow(v, 2) + pow(w, 2)));
+        //        sqrt(v*v + w*w));
 
         simplex.addArc(Ha[ID(p.first.first - xmin, p.first.second - ymin)],
                        Hb[ID(q.first.first - xmin, q.first.second - ymin)],
-                       sqrt(pow(v, 2) + pow(w, 2)));
+                       sqrt(double(v * v + w * w)));
       }
     }
 
@@ -760,9 +762,9 @@ public:
   }
 
   // Compute KWD distance between A and B
-  double distance(const Histogram2D &A, const Histogram2D &B, int _L = 3) {
-    if (L != _L)
-      init_coprimes(_L);
+  double distance(const Histogram2D &A, const Histogram2D &B, int LL) {
+    if (L != LL)
+      init_coprimes(LL);
 
     PointCloud2D ps = mergeHistograms(A, B);
 
@@ -851,12 +853,12 @@ public:
   }
 
   // Compute Kantorovich-Wasserstein distance between two measures
-  double column_generation(const Histogram2D &A, const Histogram2D &B, int _L) {
+  double column_generation(const Histogram2D &A, const Histogram2D &B, int LL) {
     auto start_t = std::chrono::steady_clock::now();
     double _all_p = 0.0;
 
-    if (L != _L)
-      init_coprimes(_L);
+    if (L != LL)
+      init_coprimes(LL);
 
     PointCloud2D ps = mergeHistograms(A, B);
 
@@ -1024,7 +1026,7 @@ public:
     for (int v = -L; v <= L; ++v)
       for (int w = -L; w <= L; ++w)
         if (!(v == 0 && w == 0) && GCD(v, w) == 1)
-          coprimes.emplace_back(v, w, sqrt(pow(v, 2) + pow(w, 2)));
+          coprimes.emplace_back(v, w, sqrt(double(v * v + w * w)));
     coprimes.shrink_to_fit();
   }
 
@@ -1185,9 +1187,9 @@ public:
           int w = Ys[i] - Ys[j];
 
           // fprintf(stdout, "%d %d %d %d %.4f\n", i, j, v, w,
-          //        sqrt(pow(v, 2) + pow(w, 2)));
+          //        sqrt(v*v + w*w));
 
-          simplex.addArc(i, n + j, sqrt(pow(v, 2) + pow(w, 2)));
+          simplex.addArc(i, n + j, sqrt(double(v * v + w * w)));
         }
 
       if (verbosity == KWD_VAL_INFO)
@@ -1399,9 +1401,13 @@ public:
 
         // Solve separation problem:
         auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
         {
 #pragma omp for schedule(dynamic, 1)
+#else
+        {
+#endif
           for (int h = 0; h < n; ++h) {
             int a = Rs.getX(h);
             int b = Rs.getY(h);
@@ -1484,7 +1490,7 @@ public:
   }
 
   double compareApprox(int _n, int *_Xs, int *_Ys, double *_W1, double *_W2,
-                       int _L) {
+                       int LL) {
     // Check for correct input
     if (check_coding(_n, _Xs))
       PRINT(
@@ -1591,9 +1597,9 @@ public:
       xmax++;
       ymax++;
 
-      if (_L != L) {
-        L = _L;
-        init_coprimes(_L); // TODO: make it parallel
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
       }
 
       // Binary vector for positions
@@ -1708,9 +1714,9 @@ public:
       xmax++;
       ymax++;
 
-      if (_L != L) {
-        L = _L;
-        init_coprimes(_L); // TODO: make it parallel
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
       }
 
       // Binary vector for positions
@@ -1783,9 +1789,13 @@ public:
 
         // Solve separation problem:
         auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
         {
 #pragma omp for schedule(dynamic, 1)
+#else
+        {
+#endif
           for (int h = 0; h < n; ++h) {
             int a = Rs.getX(h);
             int b = Rs.getY(h);
@@ -1870,7 +1880,7 @@ public:
   }
 
   vector<double> compareApprox(int _n, int _m, int *_Xs, int *_Ys, double *_W1,
-                               double *_Ws, int _L) {
+                               double *_Ws, int LL) {
     // Check for correct input
     if (check_coding(_n, _Xs))
       PRINT(
@@ -1953,9 +1963,9 @@ public:
     }
 
     // Set the coprimes set
-    if (_L != L) {
-      L = _L;
-      init_coprimes(_L); // TODO: make it parallel
+    if (LL != L) {
+      L = LL;
+      init_coprimes(LL); // TODO: make it parallel
     }
 
     // Return value
@@ -2121,9 +2131,9 @@ public:
       xmax++;
       ymax++;
 
-      if (_L != L) {
-        L = _L;
-        init_coprimes(_L); // TODO: make it parallel
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
       }
 
       // Binary vector for positions
@@ -2220,9 +2230,13 @@ public:
 
           // Solve separation problem:
           auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
 #pragma omp parallel
           {
 #pragma omp for schedule(dynamic, 1)
+#else
+          {
+#endif
             for (int h = 0; h < n; ++h) {
               int a = Rs.getX(h);
               int b = Rs.getY(h);
@@ -2314,12 +2328,12 @@ public:
 
   // Alias for python module
   vector<double> compareApprox3(int _n, int _m, int *_Xs, int *_Ys, double *_Ws,
-                                int _L) {
-    return compareApprox(_n, _m, _Xs, _Ys, _Ws, _L);
+                                int LL) {
+    return compareApprox(_n, _m, _Xs, _Ys, _Ws, LL);
   }
 
   vector<double> compareApprox(int _n, int _m, int *_Xs, int *_Ys, double *_Ws,
-                               int _L) {
+                               int LL) {
     // Check for correct input
     if (check_coding(_n, _Xs))
       PRINT(
@@ -2389,9 +2403,9 @@ public:
     }
 
     // Set the coprimes set
-    if (_L != L) {
-      L = _L;
-      init_coprimes(_L); // TODO: make it parallel
+    if (LL != L) {
+      L = LL;
+      init_coprimes(LL); // TODO: make it parallel
     }
 
     // Return value
@@ -2563,9 +2577,9 @@ public:
       xmax++;
       ymax++;
 
-      if (_L != L) {
-        L = _L;
-        init_coprimes(_L); // TODO: make it parallel
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
       }
 
       // Binary vector for positions
