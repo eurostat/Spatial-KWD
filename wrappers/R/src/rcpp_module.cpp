@@ -336,7 +336,7 @@ RCPP_MODULE(SKWD) {
               "get the number of arcs in the Network model")
 
       .method("num_nodes", &KWD::Solver::num_nodes,
-              "get the number of arcs in the Network model")
+              "get the number of nodes in the Network model")
 
       .method("status", &KWD::Solver::status,
               "get the status of Network Simplex solver")
