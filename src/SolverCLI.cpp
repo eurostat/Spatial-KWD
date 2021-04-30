@@ -24,12 +24,15 @@ int main(int argc, char* argv[]) {
 	std::uniform_real_distribution<> Uniform01(0, 1);
 	std::uniform_int_distribution<> Uniform0N(0, n);
 
-	// Test from command line
-	if (true) {
-		std::string filename = "";
-		if (argc > 2)
-			filename = std::string(argv[2]);
-
+  // Test from command line
+  if (true) {
+    std::string filename = "";
+    if (argc > 2)
+      filename = std::string(argv[2]);
+	 else {
+		 fprintf(stdout, "Usage: %s <path_to_data_file>\n", argv[0]);
+		 return 1;
+	 }
 		fprintf(stdout, "%s\n", filename.c_str());
 
 		std::ifstream in_file(filename);
