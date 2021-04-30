@@ -23,3 +23,7 @@ bin/solver
 /wrappers/python/dist
 /wrappers/python/Spatial_KWD.egg-info
 /wrappers/python/build
+*.gz
+/msvc/SKWD/SKWD/Debug
+/msvc/SKWD/SKWD/Release
+/msvc/SKWD/x64
