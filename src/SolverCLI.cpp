@@ -29,6 +29,10 @@ int main(int argc, char *argv[]) {
     std::string filename;
     if (argc > 2)
       filename = std::string(argv[2]);
+    else {
+      fprintf(stdout, "Usage: %s <path_to_data_file>\n", argv[0]);
+      return 1;
+    }
 
     fprintf(stdout, "%s\n", filename.c_str());
 
