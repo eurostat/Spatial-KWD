@@ -5,9 +5,82 @@
 
 using namespace Rcpp;
 
+// compareOneToOne
+Rcpp::List compareOneToOne(Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int L, bool recode, const std::string& method, const std::string& algorithm, const std::string& model, const std::string& verbosity, double timelimit, double opt_tolerance, bool unbalanced, double unbal_cost, bool convex);
+RcppExport SEXP _SpatialKWD_compareOneToOne(SEXP CoordinatesSEXP, SEXP WeightsSEXP, SEXP LSEXP, SEXP recodeSEXP, SEXP methodSEXP, SEXP algorithmSEXP, SEXP modelSEXP, SEXP verbositySEXP, SEXP timelimitSEXP, SEXP opt_toleranceSEXP, SEXP unbalancedSEXP, SEXP unbal_costSEXP, SEXP convexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Coordinates(CoordinatesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Weights(WeightsSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< bool >::type recode(recodeSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type algorithm(algorithmSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type verbosity(verbositySEXP);
+    Rcpp::traits::input_parameter< double >::type timelimit(timelimitSEXP);
+    Rcpp::traits::input_parameter< double >::type opt_tolerance(opt_toleranceSEXP);
+    Rcpp::traits::input_parameter< bool >::type unbalanced(unbalancedSEXP);
+    Rcpp::traits::input_parameter< double >::type unbal_cost(unbal_costSEXP);
+    Rcpp::traits::input_parameter< bool >::type convex(convexSEXP);
+    rcpp_result_gen = Rcpp::wrap(compareOneToOne(Coordinates, Weights, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance, unbalanced, unbal_cost, convex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compareOneToMany
+Rcpp::List compareOneToMany(Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int L, bool recode, const std::string& method, const std::string& algorithm, const std::string& model, const std::string& verbosity, double timelimit, double opt_tolerance, bool unbalanced, double unbal_cost, bool convex);
+RcppExport SEXP _SpatialKWD_compareOneToMany(SEXP CoordinatesSEXP, SEXP WeightsSEXP, SEXP LSEXP, SEXP recodeSEXP, SEXP methodSEXP, SEXP algorithmSEXP, SEXP modelSEXP, SEXP verbositySEXP, SEXP timelimitSEXP, SEXP opt_toleranceSEXP, SEXP unbalancedSEXP, SEXP unbal_costSEXP, SEXP convexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Coordinates(CoordinatesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Weights(WeightsSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< bool >::type recode(recodeSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type algorithm(algorithmSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type verbosity(verbositySEXP);
+    Rcpp::traits::input_parameter< double >::type timelimit(timelimitSEXP);
+    Rcpp::traits::input_parameter< double >::type opt_tolerance(opt_toleranceSEXP);
+    Rcpp::traits::input_parameter< bool >::type unbalanced(unbalancedSEXP);
+    Rcpp::traits::input_parameter< double >::type unbal_cost(unbal_costSEXP);
+    Rcpp::traits::input_parameter< bool >::type convex(convexSEXP);
+    rcpp_result_gen = Rcpp::wrap(compareOneToMany(Coordinates, Weights, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance, unbalanced, unbal_cost, convex));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compareAll
+Rcpp::List compareAll(Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int L, bool recode, const std::string& method, const std::string& algorithm, const std::string& model, const std::string& verbosity, double timelimit, double opt_tolerance, bool unbalanced, double unbal_cost, bool convex);
+RcppExport SEXP _SpatialKWD_compareAll(SEXP CoordinatesSEXP, SEXP WeightsSEXP, SEXP LSEXP, SEXP recodeSEXP, SEXP methodSEXP, SEXP algorithmSEXP, SEXP modelSEXP, SEXP verbositySEXP, SEXP timelimitSEXP, SEXP opt_toleranceSEXP, SEXP unbalancedSEXP, SEXP unbal_costSEXP, SEXP convexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Coordinates(CoordinatesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Weights(WeightsSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< bool >::type recode(recodeSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type algorithm(algorithmSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type verbosity(verbositySEXP);
+    Rcpp::traits::input_parameter< double >::type timelimit(timelimitSEXP);
+    Rcpp::traits::input_parameter< double >::type opt_tolerance(opt_toleranceSEXP);
+    Rcpp::traits::input_parameter< bool >::type unbalanced(unbalancedSEXP);
+    Rcpp::traits::input_parameter< double >::type unbal_cost(unbal_costSEXP);
+    Rcpp::traits::input_parameter< bool >::type convex(convexSEXP);
+    rcpp_result_gen = Rcpp::wrap(compareAll(Coordinates, Weights, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance, unbalanced, unbal_cost, convex));
+    return rcpp_result_gen;
+END_RCPP
+}
+
 RcppExport SEXP _rcpp_module_boot_SKWD();
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_SpatialKWD_compareOneToOne", (DL_FUNC) &_SpatialKWD_compareOneToOne, 13},
+    {"_SpatialKWD_compareOneToMany", (DL_FUNC) &_SpatialKWD_compareOneToMany, 13},
+    {"_SpatialKWD_compareAll", (DL_FUNC) &_SpatialKWD_compareAll, 13},
     {"_rcpp_module_boot_SKWD", (DL_FUNC) &_rcpp_module_boot_SKWD, 0},
     {NULL, NULL, 0}
 };

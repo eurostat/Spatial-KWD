@@ -27,3 +27,4 @@ bin/solver
 /msvc/SKWD/SKWD/Debug
 /msvc/SKWD/SKWD/Release
 /msvc/SKWD/x64
+/wrappers/R/SpatialKWD.Rcheck

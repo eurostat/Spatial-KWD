@@ -22,8 +22,10 @@ The \code{Histogram2D} class represents a single spatial 2-dimensional histogram
 See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{Solver}}.
 }
 \examples{
+library(SpatialKWD)
+
 # Define a simple histogram
-h <- new(SpatialKWD::Histogram2D)
+h <- new(Histogram2D)
 
 # Add half unit of mass at positions (1,0) and (0,1)
 h$add(1, 0, 0.5)

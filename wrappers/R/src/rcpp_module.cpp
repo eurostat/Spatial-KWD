@@ -30,6 +30,69 @@
 
 RCPP_EXPOSED_AS(KWD::Histogram2D)
 
+RCPP_MODULE(SKWD) {
+	Rcpp::class_<KWD::Histogram2D>("Histogram2D")
+		// expose the default constructor
+		.constructor()
+		//.constructor<int, int*, int*, double*>()
+
+		.method("add", &KWD::Histogram2D::add, "add an non empty support point")
+		.method("update", &KWD::Histogram2D::update,
+			"update an non empty support point")
+		.method("size", &KWD::Histogram2D::size,
+			"return the number of nonempty points")
+		.method("balance", &KWD::Histogram2D::balance,
+			"return the total sum of all the weights")
+		.method("normalize", &KWD::Histogram2D::normalize,
+			"normalize the weights to sum them up to one");
+
+	Rcpp::class_<KWD::Solver>("Solver")
+		// expose the default constructor
+		.constructor()
+
+		// Solution methods
+		.method("distance", &KWD::Solver::distance,
+			"compute the distance between a pair of histograms with given L")
+
+		.method("column_generation", &KWD::Solver::column_generation,
+			"compute the distance between a pair of histograms with given L "
+			"using column generation")
+
+		.method("dense", &KWD::Solver::dense,
+			"compute the distance between a pair of histograms with given L "
+			"using a bipartite graph (slow on large instances)")
+
+		// Paramaters and attributes
+		.method("runtime", &KWD::Solver::runtime,
+			"get the runtime in seconds of Network Simplex algorithm")
+
+		.method("iterations", &KWD::Solver::iterations,
+			"get the number of iterations of Network Simplex algorithm")
+
+		.method("num_arcs", &KWD::Solver::num_arcs,
+			"get the number of arcs in the Network model")
+
+		.method("num_nodes", &KWD::Solver::num_nodes,
+			"get the number of nodes in the Network model")
+
+		.method("status", &KWD::Solver::status,
+			"get the status of Network Simplex solver")
+
+		.method("setDblParam", &KWD::Solver::setDblParam,
+			"set a double parameter of the Network Simplex solver")
+
+		.method("getDblParam", &KWD::Solver::getDblParam,
+			"get a double parameter of the Network Simplex solver")
+
+		.method("setStrParam", &KWD::Solver::setStrParam,
+			"set a string parameter of the Network Simplex solver")
+
+		.method("getStrParam", &KWD::Solver::getStrParam,
+			"get a string parameter of the Network Simplex solver");
+}
+
+
+// [[Rcpp::export(compareOneToOne)]]
 Rcpp::List compareOneToOne(
 	Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int L = 3,
 	bool recode = true, const std::string& method = "approx",
@@ -110,6 +173,7 @@ Rcpp::List compareOneToOne(
 	return sol;
 }
 
+// [[Rcpp::export(compareOneToMany)]]
 Rcpp::List compareOneToMany(
 	Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int L = 3,
 	bool recode = true, const std::string& method = "approx",
@@ -192,6 +256,8 @@ Rcpp::List compareOneToMany(
 	return sol;
 }
 
+
+// [[Rcpp::export(compareAll)]]
 Rcpp::List compareAll(Rcpp::NumericMatrix Coordinates,
 	Rcpp::NumericMatrix Weights, int L = 3,
 	bool recode = true, const std::string& method = "approx",
@@ -272,97 +338,4 @@ Rcpp::List compareAll(Rcpp::NumericMatrix Coordinates,
 		forward_exception_to_r(e);
 	}
 	return sol;
-}
-
-RCPP_MODULE(SKWD) {
-	using namespace Rcpp;
-
-	class_<KWD::Histogram2D>("Histogram2D")
-		// expose the default constructor
-		.constructor()
-		//.constructor<int, int*, int*, double*>()
-
-		.method("add", &KWD::Histogram2D::add, "add an non empty support point")
-		.method("update", &KWD::Histogram2D::update,
-			"update an non empty support point")
-		.method("size", &KWD::Histogram2D::size,
-			"return the number of nonempty points")
-		.method("balance", &KWD::Histogram2D::balance,
-			"return the total sum of all the weights")
-		.method("normalize", &KWD::Histogram2D::normalize,
-			"normalize the weights to sum them up to one");
-
-	class_<KWD::Solver>("Solver")
-		// expose the default constructor
-		.constructor()
-
-		// Solution methods
-		.method("distance", &KWD::Solver::distance,
-			"compute the distance between a pair of histograms with given L")
-
-		.method("column_generation", &KWD::Solver::column_generation,
-			"compute the distance between a pair of histograms with given L "
-			"using column generation")
-
-		.method("dense", &KWD::Solver::dense,
-			"compute the distance between a pair of histograms with given L "
-			"using a bipartite graph (slow on large instances)")
-
-		// Paramaters and attributes
-		.method("runtime", &KWD::Solver::runtime,
-			"get the runtime in seconds of Network Simplex algorithm")
-
-		.method("iterations", &KWD::Solver::iterations,
-			"get the number of iterations of Network Simplex algorithm")
-
-		.method("num_arcs", &KWD::Solver::num_arcs,
-			"get the number of arcs in the Network model")
-
-		.method("num_nodes", &KWD::Solver::num_nodes,
-			"get the number of nodes in the Network model")
-
-		.method("status", &KWD::Solver::status,
-			"get the status of Network Simplex solver")
-
-		.method("setDblParam", &KWD::Solver::setDblParam,
-			"set a double parameter of the Network Simplex solver")
-
-		.method("getDblParam", &KWD::Solver::getDblParam,
-			"get a double parameter of the Network Simplex solver")
-
-		.method("setStrParam", &KWD::Solver::setStrParam,
-			"set a string parameter of the Network Simplex solver")
-
-		.method("getStrParam", &KWD::Solver::getStrParam,
-			"get a string parameter of the Network Simplex solver");
-
-
-	function("compareOneToOne", &compareOneToOne,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
-			_["recode"] = true, _["method"] = "approx",
-			_["algorithm"] = "colgen", _["model"] = "mincostflow",
-			_["verbosity"] = "silent", _["timelimit"] = 14400,
-			_["opt_tolerance"] = 1e-06, _["unbalanced"] = false,
-			_["unbal_cost"] = 1e+09, _["convex"] = true),
-		"compare two histograms using the given search options");
-
-
-	function("compareOneToMany", &compareOneToMany,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
-			_["recode"] = true, _["method"] = "approx",
-			_["algorithm"] = "colgen", _["model"] = "mincostflow",
-			_["verbosity"] = "silent", _["timelimit"] = 14400,
-			_["opt_tolerance"] = 1e-06, _["unbalanced"] = false,
-			_["unbal_cost"] = 1e+09, _["convex"] = true),
-		"compare one to many histograms using the given search options");
-
-
-	function("compareAll", &compareAll,
-		List::create(_["Coordinates"], _["Weights"], _["L"] = 3,
-			_["recode"] = true, _["method"] = "approx",
-			_["algorithm"] = "colgen", _["model"] = "mincostflow",
-			_["verbosity"] = "silent", _["timelimit"] = 14400,
-			_["opt_tolerance"] = 1e-06, _["unbalanced"] = false,
-			_["unbal_cost"] = 1e+09, _["convex"] = true),
-		"compare all histograms using the given search options");
 }
