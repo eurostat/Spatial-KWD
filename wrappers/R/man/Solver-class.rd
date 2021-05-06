@@ -8,8 +8,8 @@
 }
 \description{
 The \code{Solver} class is the main wrapper to the core algorithms implemented in the Spatial KWD package.
-It has a number of methods that permit to compare two, or more, objects of type \code{Histogram2D}.
-If you use the helper functions described at the begging of this document, you can avoid to use directly this class.
+It has several methods that permit to compare two, or more, objects of type \code{Histogram2D}.
+If you use the helper functions described at the begging of this document, you can avoid using this class directly
 }
 \details{
     The public methods of this class are:
@@ -29,27 +29,27 @@ If you use the helper functions described at the begging of this document, you c
   \itemize{
     \item \code{Method}: set which method to use for computing the exact distance between a pair of histograms. The options for this parameter are:
       \itemize{
-      \item \code{exact}: Compute the exact KW distance. This method is only useful for small and sparse spatial maps.
+      \item \code{exact}: Compute the exact KW distance. This method is only helpful for small and sparse spatial maps.
 
       \item \code{approx}: Compute an approximation KW distance which depends on the parameter \emph{L}. This is the default value.
       }
 
 \item \code{Model}: set which network model to use for computing the exact distance between a pair of histograms. The options for this parameter are:
       \itemize{
-      \item \code{bipartite}: Build a complete bipartite graph. This method is only useful for small and sparse spatial maps.
+      \item \code{bipartite}: Build a complete bipartite graph. This method is only helpful for small and sparse spatial maps.
 
-      \item \code{mincostflow}: Build an uncapacitated network flow. This is in general smaller than the \code{bipartite} model, except for very sparse histograms.
+      \item \code{mincostflow}: Build an uncapacitated network flow. This is, in general, smaller than the \code{bipartite} model, except for very sparse histograms.
       }
 
     \item \code{Algorithm}: set which algorithm to use to compute an approximate distance between a pair of histograms, which depends on the parameter \emph{L}. The options for this parameter are:
       \itemize{
       \item \code{fullmodel}: Build a complete network model and solve the corresponding problem.
 
-      \item \code{colgen}: Build incrementally the network model while computing the KW distance. It is the recommended method for very large dense spatial maps. On medium and small spatial maps the fullmodel could be faster.
+      \item \code{colgen}: Build the network model incrementally while computing the KW distance. It is the recommended method for very large dense spatial maps. On medium and small spatial maps, the fullmodel could be faster.
     }
       The default value is set to \code{colgen}.
 
-    \item \code{Verbosity}: set the level of verbosity of the logs. Possible values are \code{silent}, \code{info}, \code{debug}. The last is clearly more verbose than the other two.
+    \item \code{Verbosity}: set the level of verbosity of the logs. Possible values are \code{silent}, \code{info}, \code{debug}. The last is more verbose than the other two.
       The default value is set to \code{info}.
 
     \item \code{TimeLimit}: set the time limit for computing the distance between a pair of spatial maps. Min values: \code{INTMAX}.
@@ -61,33 +61,34 @@ If you use the helper functions described at the begging of this document, you c
     }
 }
 \seealso{
-See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{Histogram2D}}.
+See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{focusArea}}, and \code{\link{Histogram2D}}.
 }
 \keyword{classes}
 \section{Methods}{
   \describe{
     \item{\code{compareExact(Xs, Ys, W1, W2)}:}{compute the exact distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
     The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
+    This method returns a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
 
     \item{\code{compareExact(Xs, Ys, W1, Ws)}:}{compute the exact distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
     The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).
-    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
+    This method returns a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
 
     \item{\code{compareExact(Xs, Ys, Ws)}:}{compute a symmetric matrix of pairwise exact distances between all the possible pairs of the vector listed in \code{Ws}.
     The algorithm used by the solver is controlled by the parameter \code{ExactMethod} (see below).}
 
     \item{\code{compareApprox(Xs, Ys, W1, W2, L)}:}{compute the approximate distance between the two vector of weights \code{W1} and \code{W2}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
-    This method return a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
+    The parameter \code{ApproxMethod} (see below) controls the algorithm used by the solver.
+    This method returns a single value (double), which is the KW-distance between \code{W1} and \code{W2}.}
 
     \item{\code{compareApprox(Xs, Ys, W1, Ws, L)}:}{compute the approximate distances between the vector of weights \code{W1} and each of the vector of weights in \code{Ws}, on the convex hull of the points defined by the two vectors \code{Xs} and \code{Ys}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).
-    This method return a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
+    The parameter \code{ApproxMethod} (see below) controls the algorithm used by the solver.
+    This method returns a vector of double of the same size of \code{Ws}, representing the distance of \code{W1} to every element of \code{Ws}.}
 
-    \item{\code{compareApprox(Xs, Ys, Ws, L)}:}{compute a symmetric matrix of pairwise approximate distances (which quality depends on the value of \emph{L}) between all the possible pairs of the vector listed in \code{Ws}.
-    The algorithm used by the solver is controlled by the parameter \code{ApproxMethod} (see below).}
-
+    \item{\code{compareApprox(Xs, Ys, Ws, L)}:}{compute a symmetric matrix of pairwise approximate distances (which depends on the value of \emph{L}) between all the possible pairs of the vector listed in \code{Ws}.
+    The parameter \code{ApproxMethod} (see below) controls the algorithm used by the solver.
+    }
+    
     \item{\code{runtime()}:}{return the runtime in seconds to the last call to one of the \emph{compare} methods. It reports the runtime of the execution of the Network Simplex algorithm.}
 
     \item{\code{preprocesstime()}:}{return the preprocessing time in seconds to the last call to one of the \emph{compare} methods. It reports the execution time to set up the main data structures and to compute the convex hull of all the input histograms.}
@@ -102,7 +103,7 @@ See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\l
   \item{n}{Number of bins in the histograms \code{Xs, Yw, W1, W2, Ws}.}
   \item{H1}{First object of type \code{Histogram2D}.}
   \item{H2}{Second object of type \code{Histogram2D}.}
-  \item{L}{Approximation parameter. Higher values of \emph{L} gives more accurate solution, but require longer running time.
+  \item{L}{Approximation parameter. Higher values of \emph{L} give a more accurate solution, but they require a longer running time.
   Table X gives the guarantee approximation bound as a function of \emph{L}. Type: positive integer.}
   \item{Xs}{Vector of horizontal coordinates the bins. Type: vector of integers.}
   \item{Ys}{Vector of vertical coordinates the bins. Type: vector of integers.}

@@ -7,26 +7,26 @@
   Kantorovich-Wasserstein Distances for Large Spatial Maps
 }
 \description{
-The Spatial-KWD package contains efficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wasserstein distances [1], which are customized for large spatial maps.
+The Spatial-KWD package contains efficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wasserstein distances [1], customized for large spatial maps.
 All the algorithms are based on an ad-hoc implementation of the Network Simplex algorithm [2].
-Each implemented algorithm builds a different network, exploiting the special structure of spatial maps.
+Each implemented algorithm builds a different network, exploiting the particular structure of spatial maps.
 }
 \details{
-This library contains three helper functions and two main classes [4].
+This library contains four helper functions and two classes [4].
 
-The three helper functions are \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, and \code{\link{compareAll}}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different parameters.
+The four helper functions are \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, and \code{\link{focusArea}}. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different parameters.
 
 The helper functions are built on top of two main classes: \code{\link{Histogram2D}} and \code{\link{Solver}}.
 
-Note that in case of non-convex maps, the algorithm builds the convex-hull of the input bins and pads the weights with zeros.
+Note that in non-convex maps, the algorithm builds the convex-hull of the input bins and pads the weights with zeros.
 
-In case of spatial histograms with weights which do not sum up to 1, all the weights are automatically rescaled in such a way the overall sum of the weight of each single histogram is equal to 1.0: \eqn{w_i \gets \frac{w_i}{\sum_{i=1,\dots,n} w_i}}.
-This way the spatial histograms have a natural interpretation as discrete probability measures.
+In the case of spatial histograms with weights that do not sum up to 1, all the weights can optionally be rescaled in such a way the overall sum of the weights of every single histogram is equal to 1.0: \eqn{w_i \gets \frac{w_i}{\sum_{i=1,\dots,n} w_i}}.
+This way, the spatial histograms have a natural interpretation as discrete probability measures.
 
 For a detailed introduction on Computational Optimal Transport, we refer the reader to [3].
 }
 \seealso{
-See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
+See also \code{\link{compareOneToOne}}, \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{focusArea}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
 library(SpatialKWD)

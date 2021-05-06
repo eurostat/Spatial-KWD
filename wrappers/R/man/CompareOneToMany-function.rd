@@ -37,7 +37,7 @@ compareOneToMany(Coordinates, Weights, L = 3, recode = TRUE,
   }
 
   \item{L}{Approximation parameter.
-    Higher values of \emph{L} gives more accurate solution, but requires longer running time. Data type: positive integer.}
+    Higher values of \emph{L} give a more accurate solution, but they require a longer running time. Data type: positive integer.}
 
   \item{recode}{If equal to \code{True}, recode the input coordinates as consecutive integers.}
 
@@ -47,11 +47,11 @@ compareOneToMany(Coordinates, Weights, L = 3, recode = TRUE,
 
   \item{model}{Model for building the underlying network: \code{bipartite} or \code{mincostflow}.}
 
-  \item{verbosity}{Level of verbosity of the log: \code{silent}, \code{info} or \code{debug}.}
+  \item{verbosity}{Level of verbosity of the log: \code{silent}, \code{info}, or \code{debug}.}
 
   \item{timelimit}{Time limit in second for running the solver.}
 
-  \item{opt_tolerance}{Numerical tolerance on the negative reduce cost for the optimal solution.}
+  \item{opt_tolerance}{Numerical tolerance on the negative reduced cost for the optimal solution.}
 
   \item{unbalanced}{If equal to \code{True}, solve the problem with unbalanced masses.}
 
@@ -80,7 +80,7 @@ The most important is the parameter \code{L}, which by default is equal to 3 (se
   }
 }
 \seealso{
-See also \code{\link{compareOneToOne}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
+See also \code{\link{compareOneToOne}}, \code{\link{compareAll}}, \code{\link{focusArea}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
 # Define a simple example

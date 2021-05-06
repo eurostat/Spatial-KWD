@@ -94,7 +94,7 @@ constexpr auto KWD_VAL_FALSE = "false";
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
-//#include "KWD_NetSimplexCapacity.h"
+#include "KWD_NetSimplexCapacity.h"
 
 struct coprimes_t {
 public:
@@ -1493,6 +1493,417 @@ public:
       _num_nodes = simplex.num_nodes();
 
       fobj = simplex.totalCost();
+
+      if (_n_log > 0)
+        PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
+              _all, _runtime, _all_p);
+
+      return fobj;
+    }
+
+    return -1;
+  }
+
+  double focusArea(int _n, int *_Xs, int *_Ys, double *_W1, double *_W2, int x,
+                   int y, int radius, int LL) {
+    // Check for correct input
+    if (check_coding(_n, _Xs))
+      PRINT(
+          "WARNING: the Xs input coordinates are not consecutives integers.\n");
+    if (check_coding(_n, _Ys))
+      PRINT(
+          "WARNING: the Ys input coordinates are not consecutives integers.\n");
+
+    if (recode != "") {
+      PRINT("INFO: Recoding the input coordinates to consecutive integers.\n");
+      recoding(_n, _Xs);
+      recoding(_n, _Ys);
+    }
+
+    if (verbosity == KWD_VAL_INFO)
+      dumpParam();
+    intpair2int XY = reindex(_n, _Xs, _Ys);
+
+    int n = XY.size();
+
+    vector<int> Xs, Ys;
+    vector<double> W1, W2;
+    Xs.resize(n, 0);
+    Ys.resize(n, 0);
+    W1.resize(n, 0);
+    W2.resize(n, 0);
+    for (int i = 0; i < _n; i++) {
+      int idx = XY[int_pair(_Xs[i], _Ys[i])];
+      Xs[idx] = _Xs[i];
+      Ys[idx] = _Ys[i];
+      W1[idx] += _W1[i];
+      W2[idx] += _W2[i];
+      if (_W1[i] < 0.0) {
+        PRINT("WARNING: weight W1[%d]=%.4f is negative. Only positive weights "
+              "are allowed.\n",
+              i, _W1[i]);
+        throw std::runtime_error(
+            "FATAL ERROR: Input histogram with negative weigths");
+      }
+      if (_W2[i] < 0.0) {
+        PRINT("WARNING: weight W2[%d]=%.4f is negative. Only positive weights "
+              "are allowed.\n",
+              i, _W2[i]);
+        throw std::runtime_error(
+            "FATAL ERROR: Input histogram with negative weigths");
+      }
+    }
+
+    // Get the largest bounding box
+    auto xy = getMinMax(n, &Xs[0], &Ys[0]);
+
+    int xmin = xy[0];
+    int ymin = xy[1];
+    // int xmax = xy[2];
+    // int ymax = xy[3];
+
+    // Rescale all integers coordinates to (0,0)
+    double tot_w1 = 0.0;
+    double tot_w2 = 0.0;
+    double t1 = 0.0;
+    double t2 = 0.0;
+    vector<int> F2; // out of focus area
+    F2.reserve(4 * radius * radius);
+    for (int i = 0; i < n; ++i) {
+      Xs[i] = Xs[i] - xmin;
+      Ys[i] = Ys[i] - ymin;
+
+      t1 += W1[i];
+      t2 += W2[i];
+
+      int distance =
+          static_cast<int>(std::max(fabs(Xs[i] - x), fabs(Ys[i] - y)));
+      // static_cast<int>(sqrt((double)pow(Xs[i] - x, 2) + pow(Ys[i] - y, 2)));
+      if (distance <= radius) {
+        tot_w1 += W1[i];
+        tot_w2 += W2[i];
+      } else
+        F2.push_back(i);
+    }
+
+    // First measure is the largest for total mass
+    if (tot_w2 > tot_w1) {
+      std::swap(W1, W2);
+      std::swap(t1, t2);
+      std::swap(tot_w1, tot_w2);
+    }
+
+    // Second option for algorithm
+    if (algorithm == KWD_VAL_FULLMODEL) {
+      PointCloud2D ps = mergeFocusedHistograms(n, &Xs[0], &Ys[0], &W1[0],
+                                               &W2[0], x, y, radius);
+
+      // Compute convex hull
+      ConvexHull ch;
+      PointCloud2D Rs;
+      if (convex_hull) {
+        PointCloud2D As(ch.find(ps));
+        Rs = ch.FillHull(As);
+      } else {
+        Rs = ch.FillHull(ps);
+      }
+
+      Rs.merge(ps);
+
+      int n = static_cast<int>(Rs.size());
+
+      // Compute xmax, ymax for each axis
+      int xmin = std::numeric_limits<int>::max();
+      int ymin = std::numeric_limits<int>::max();
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmin = std::min(xmin, Rs.getX(i));
+        ymin = std::min(ymin, Rs.getY(i));
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      xmax++;
+      ymax++;
+
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
+      }
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      typedef double FlowType;
+      typedef double CostType;
+
+      // Build the graph for min cost flow
+      // One dummy node; a node for each point of the convex hull
+      NetSimplexCapacity<FlowType, CostType> simplex(
+          'F', n + 1, n + n * static_cast<int>(coprimes.size()));
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      // NOTE: node balance already considered in mergeFocusedHistograms
+      for (int i = 0; i < n; ++i) {
+        simplex.addNode(i, Rs.getB(i));
+        fprintf(stdout, "%d %f\n", i, Rs.getB(i));
+      }
+
+      // Dummy node, external to everything else
+      simplex.addNode(n, tot_w1 - tot_w2);
+      fprintf(stdout, "%d %f\n", n, tot_w1 - tot_w2);
+
+      for (int h = 0; h < n; ++h) {
+        int i = Rs.getX(h);
+        int j = Rs.getY(h);
+        for (const auto &p : coprimes) {
+          int v = p.v;
+          int w = p.w;
+          if (i + v >= xmin && i + v < xmax && j + w >= ymin && j + w < ymax &&
+              M[ID(i + v, j + w)]) {
+            int ff = H[ID(i + v, j + w)];
+            // Usual approximate network, but with arc with capacity (t1+t2)
+            fprintf(stdout, "%d %d %f %f\n", h, ff, p.c_vw, t1 + t2);
+            simplex.addArc(h, ff, p.c_vw, t1 + t2);
+          }
+        }
+      }
+
+      for (int i : F2) {
+        int v = Xs[i];
+        int w = Ys[i];
+        int ff = H[ID(v, w)];
+        if (W1[i] > 0) {
+          simplex.addArc(n, ff, 0.0, W1[i]);
+          fprintf(stdout, "%d %d 0.0 %f\n", n, ff, W1[i]);
+        }
+        if (W2[i] > 0) {
+          simplex.addArc(ff, n, 0.0, W2[i]);
+          fprintf(stdout, "%d %d 0.0 %f\n", ff, n, W2[i]);
+        }
+      }
+
+      // Solve the problem to compute the distance
+      if (verbosity == KWD_VAL_INFO)
+        PRINT("INFO: running NetCapSimplex with V=%d and E=%d\n",
+              simplex.num_nodes(), simplex.num_arcs());
+
+      //_status = simplex.run();
+
+      _runtime = simplex.runtime();
+      _iterations = simplex.iterations();
+      _num_arcs = simplex.num_arcs();
+      _num_nodes = simplex.num_nodes();
+
+      double distance = std::numeric_limits<CostType>::max();
+
+      // if (_status != ProblemType::INFEASIBLE &&
+      //    _status != ProblemType::UNBOUNDED &&
+      //    _status != ProblemType::TIMELIMIT)
+      //  distance = simplex.totalCost();
+
+      return distance;
+    }
+
+    // Second option for algorithm
+    if (algorithm == KWD_VAL_COLGEN) {
+      auto start_t = std::chrono::steady_clock::now();
+      double _all_p = 0.0;
+
+      PointCloud2D ps = mergeFocusedHistograms(n, &Xs[0], &Ys[0], &W1[0],
+                                               &W2[0], x, y, radius);
+
+      // Compute convex hull
+      ConvexHull ch;
+      PointCloud2D As, Rs;
+      if (convex_hull) {
+        As = ch.find(ps);
+        Rs = ch.FillHull(As);
+      } else {
+        Rs = ch.FillHull(ps);
+      }
+
+      Rs.merge(ps);
+
+      int n = Rs.size();
+
+      // Compute xmax, ymax for each axis
+      int xmax = std::numeric_limits<int>::min();
+      int ymax = std::numeric_limits<int>::min();
+      for (int i = 0; i < n; ++i) {
+        xmax = std::max(xmax, Rs.getX(i));
+        ymax = std::max(ymax, Rs.getY(i));
+      }
+      // The size is xmax+1, and ymax+1
+      xmax++;
+      ymax++;
+
+      if (LL != L) {
+        L = LL;
+        init_coprimes(LL); // TODO: make it parallel
+      }
+
+      // Binary vector for positions
+      auto ID = [&ymax](int x, int y) { return x * ymax + y; };
+
+      std::vector<bool> M(size_t(xmax) * size_t(ymax), false);
+      for (int i = 0; i < n; ++i)
+        M[ID(Rs.getX(i), Rs.getY(i))] = true;
+
+      std::vector<int> H(size_t(xmax) * size_t(ymax), 0);
+      for (int i = 0; i < n; ++i)
+        H[ID(Rs.getX(i), Rs.getY(i))] = i;
+
+      typedef double FlowType;
+      typedef double CostType;
+
+      // Build the graph for min cost flow
+      NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true),
+                                             0);
+
+      // Set the parameters
+      simplex.setTimelimit(timelimit);
+      simplex.setVerbosity(verbosity);
+      simplex.setOptTolerance(opt_tolerance);
+
+      // add first d source nodes
+      for (int i = 0; i < n; ++i)
+        simplex.addNode(i, Rs.getB(i));
+
+      // Add noded for unbalanced transport, if parater is set
+      if (unbalanced) {
+        double bb = -Rs.balance();
+        double c1 = (bb < 0 ? unbal_cost : 0);
+        double c2 = (bb < 0 ? 0 : unbal_cost);
+        simplex.addNode(n, bb);
+
+        for (int i = 0; i < n; ++i)
+          simplex.addArc(i, n, c1);
+
+        for (int i = 0; i < n; ++i)
+          simplex.addArc(n, i, c2);
+      }
+
+      int it = 0;
+      int n_cuts = 0;
+      CostType fobj = 0;
+      double negeps = std::nextafter(-opt_tolerance, -0.0);
+
+      vector<double> pi(n, 0);
+
+      Vars vars(n);
+      for (int i = 0; i < n; ++i)
+        vars[i].a = i;
+
+      Vars vnew;
+      vnew.reserve(n);
+
+      // Init the simplex
+      simplex.run();
+
+      // Start separation
+      while (true) {
+        _status = simplex.reRun();
+        if (_status == ProblemType::TIMELIMIT)
+          break;
+
+        // Take the dual values
+        for (int j = 0; j < n; ++j)
+          pi[j] = -simplex.potential(j);
+
+        // Solve separation problem:
+        auto start_tt = std::chrono::steady_clock::now();
+#ifdef _OPENMP
+#pragma omp parallel
+        {
+#pragma omp for schedule(dynamic, 1)
+#else
+        {
+#endif
+          for (int h = 0; h < n; ++h) {
+            int a = Rs.getX(h);
+            int b = Rs.getY(h);
+
+            double best_v = negeps;
+            double best_c = -1;
+            int best_j = 0;
+
+            for (const auto &p : coprimes) {
+              int v = p.v;
+              int w = p.w;
+              double c_ij = p.c_vw;
+              if (a + v >= 0 && a + v < xmax && b + w >= 0 && b + w < ymax &&
+                  M[ID(a + v, b + w)]) {
+                int j = H[ID(a + v, b + w)];
+
+                double violation = c_ij - pi[h] + pi[j];
+                if (violation < best_v) {
+                  best_v = violation;
+                  best_c = c_ij;
+                  best_j = j;
+                }
+              }
+            }
+            // Store most violated cuts for element i
+            vars[h].b = best_j;
+            vars[h].c = best_c;
+          }
+        }
+
+        // Take all negative reduced cost variables
+        vnew.clear();
+        for (auto &v : vars) {
+          if (v.c > -1)
+            vnew.push_back(v);
+          v.c = -1;
+        }
+
+        auto end_tt = std::chrono::steady_clock::now();
+        _all_p += double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                             end_tt - start_tt)
+                             .count()) /
+                  1000;
+
+        if (vnew.empty())
+          break;
+
+        std::sort(vnew.begin(), vnew.end(),
+                  [](const Var &v, const Var &w) { return v.c > w.c; });
+
+        // Replace old constraints with new ones
+        int new_arcs = simplex.updateArcs(vnew);
+
+        n_cuts += new_arcs;
+
+        ++it;
+      }
+
+      auto end_t = std::chrono::steady_clock::now();
+      auto _all = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                             end_t - start_t)
+                             .count()) /
+                  1000;
+
+      _runtime = _all;
+      _iterations = simplex.iterations();
+      _num_arcs = simplex.num_arcs();
+      _num_nodes = simplex.num_nodes();
+
+      fobj = simplex.totalCost();
+      if (unbalanced)
+        fobj = fobj / std::max(tot_w1, tot_w2);
 
       if (_n_log > 0)
         PRINT("it: %d, fobj: %f, all: %f, simplex: %f, all_p: %f\n", it, fobj,
@@ -2908,6 +3319,40 @@ private:
     // Read first line
     for (size_t i = 0; i < n; ++i)
       Rs.update(Xs[i] - xmin, Ys[i] - ymin, W1[i] - W2[i]);
+
+    // Use as few memory as possible
+    Rs.shrink_to_fit();
+
+    return Rs;
+  }
+
+  // Modify Merge Histrograms for fusing focus area
+  // W1 has total mass larger than W2
+  PointCloud2D mergeFocusedHistograms(size_t n, int *Xs, int *Ys, double *W1,
+                                      double *W2, int x, int y, int radius) {
+    int xmin = std::numeric_limits<int>::max();
+    int ymin = std::numeric_limits<int>::max();
+    for (size_t i = 0; i < n; ++i) {
+      xmin = std::min(xmin, Xs[i]);
+      ymin = std::min(ymin, Ys[i]);
+    }
+
+    PointCloud2D Rs;
+    Rs.reserve(n);
+
+    // Read first line
+    for (size_t i = 0; i < n; ++i) {
+      int distance =
+          static_cast<int>(std::max(fabs(Xs[i] - x), fabs(Ys[i] - y)));
+      // static_cast<int>(sqrt((double)pow(Xs[i] - x, 2) + pow(Ys[i] - y, 2)));
+      if (distance <= radius) {
+        Rs.update(Xs[i] - xmin, Ys[i] - ymin, W2[i] - W1[i]);
+        fprintf(stdout, "%d %d %f\n", Xs[i], Ys[i], W2[i] - W1[i]);
+      } else {
+        Rs.update(Xs[i] - xmin, Ys[i] - ymin, 0.0);
+        fprintf(stdout, "%d %d\n", Xs[i], Ys[i]);
+      }
+    }
 
     // Use as few memory as possible
     Rs.shrink_to_fit();

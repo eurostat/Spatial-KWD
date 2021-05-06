@@ -10,6 +10,52 @@
 
 #include "KWD_Histogram2D.h"
 
+// Basic test for focus area
+bool TEST_1_FOCUS_AREA() {
+  vector<vector<int>> A = {
+      {0, 0, 0, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 1, 1, 0}};
+
+  vector<vector<int>> B = {
+      {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 1}};
+
+  size_t n = 4;
+  vector<int> Xs(n * n, 0);
+  vector<int> Ys(n * n, 0);
+  vector<double> W1(n * n, 0.0);
+  vector<double> W2(n * n, 0.0);
+
+  for (size_t i = 0; i < n; ++i)
+    for (size_t j = 0; j < n; ++j) {
+      Xs[i * n + j] = i;
+      Ys[i * n + j] = j;
+      W1[i * n + j] = A[i][j];
+      W2[i * n + j] = B[i][j];
+    }
+
+  PRINT("Start TEST_1_FOCUS AREA\n");
+  KWD::Solver solver;
+  solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
+  solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_FULLMODEL);
+  solver.setStrParam(KWD_PAR_MODEL, KWD_VAL_MINCOSTFLOW);
+  solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
+  solver.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
+
+  solver.dumpParam();
+
+  double d =
+      solver.focusArea(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 1, 1, 1, 1);
+
+  double r = solver.runtime();
+  auto s = solver.status();
+  int its = solver.iterations();
+
+  PRINT("Dense => %d: fobj: %.6f, time: %.2f, status: %s, iter: %d, arcs: "
+        "%d, nodes: %d\n",
+        (int)n, d, r, s.c_str(), its, solver.num_arcs(), solver.num_nodes());
+
+  return true;
+}
+
 int main(int argc, char *argv[]) {
   int n = 32;
 
@@ -23,6 +69,10 @@ int main(int argc, char *argv[]) {
   std::mt19937 gen(seed); // Standard mersenne_twister_engine seeded with rd()
   std::uniform_real_distribution<> Uniform01(0, 1);
   std::uniform_int_distribution<> Uniform0N(0, n);
+
+  // Test focus area
+  if (true)
+    TEST_1_FOCUS_AREA();
 
   // Test from command line
   if (false) {

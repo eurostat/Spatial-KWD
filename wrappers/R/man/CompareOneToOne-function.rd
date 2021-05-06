@@ -9,7 +9,7 @@ Compare a pair of spatial histograms
 This function computes the Kantorovich-Wasserstein between a pair of spatial histograms defined over the same grid map.
 
 The grid map is described by the two lists of \code{N} coordinates \code{Xs} and \code{Ys}, which specify the coordinates of the centroid of each tile of the map.
-For each tile \code{i} with coordinates \code{Xs[i], Ys[i]}, we have the two lists of weights, one for the first histograms, and the other for the second histogram.
+For each tile \code{i} with coordinates \code{Xs[i], Ys[i]}, we have the two lists of weights, one for the first histograms and the other for the second histogram.
 
 The two lists of coordinates are passed to \code{compareOneToOne} as a matrix with \code{N} rows and two columns.
 The two lists of weights are passed as a matrix with \code{N} rows and two columns, a column for each histogram.
@@ -37,7 +37,7 @@ compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
   }
 
   \item{L}{Approximation parameter.
-    Higher values of \emph{L} gives more accurate solution, but requires longer running time. Data type: positive integer.}
+    Higher values of \emph{L} give a more accurate solution, but they require a longer running time. Data type: positive integer.}
 
   \item{recode}{If equal to \code{True}, recode the input coordinates as consecutive integers.}
 
@@ -47,11 +47,11 @@ compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
 
   \item{model}{Model for building the underlying network: \code{bipartite} or \code{mincostflow}.}
 
-  \item{verbosity}{Level of verbosity of the log: \code{silent}, \code{info} or \code{debug}.}
+  \item{verbosity}{Level of verbosity of the log: \code{silent}, \code{info}, or \code{debug}.}
 
   \item{timelimit}{Time limit in second for running the solver.}
 
-  \item{opt_tolerance}{Numerical tolerance on the negative reduce cost for the optimal solution.}
+  \item{opt_tolerance}{Numerical tolerance on the negative reduced cost for the optimal solution.}
 
   \item{unbalanced}{If equal to \code{True}, solve the problem with unbalanced masses.}
 
@@ -61,17 +61,19 @@ compareOneToOne(Coordinates, Weights, L = 3, recode = TRUE,
 }
 
 \details{
-The function \code{compareOneToOne(Coordinates, Weights, ...)} computes the distance between the two histograms specified by the weights given in the two columns of matrix \code{Weights}, where the support points (i.e., centroids of each tile of the map) are defined by the coordinates given in \code{Xs} and \code{Ys} in the two columns of matrix \code{Coordinates}. The algorithm used to compute such distance depends on the parameters specified as optional arguments of the function.
+The function \code{compareOneToOne(Coordinates, Weights, ...)} computes the distance between the two histograms specified by the weights given in the two columns of matrix \code{Weights}. 
+The support points (i.e., centroids of each tile of the map) are defined by the coordinates given in \code{Xs} and \code{Ys} in the two columns of matrix \code{Coordinates}. 
+The algorithm used to compute such distance depends on the parameters specified as optional arguments of the function.
 
-The most important is the parameter \code{L}, which by default is equal to 3. The next table shows the worst-case approximation ratio as a function of the value assigned to \code{L}.
-The table reports also the number of arcs in the network flow model as a function of the number of bins \emph{n} contained in the convex hull of the support points of the histograms given in input with matrix \code{Coordinates}.
+The most important is the parameter \code{L}, which by default is equal to 3. The following table shows the worst-case approximation ratio as a function of the value assigned to \code{L}.
+The table also reports the number of arcs in the network flow model as a function of the number of bins \emph{n} contained in the convex hull of the support points of the histograms given in input with matrix \code{Coordinates}.
     \tabular{lllllll}{
     \bold{L} \tab \bold{1} \tab \bold{2} \tab \bold{3} \tab \bold{5} \tab \bold{10}\tab \bold{15} \cr
     \code{Worst-case error}  \tab 7.61\% \tab  2.68\% \tab  1.29\% \tab 0.49\%  \tab 0.12\%  \tab   0.06\%  \cr
     \code{Number of arcs} \tab \emph{O(8n)} \tab \emph{O(16n)} \tab \emph{O(32n)}  \tab \emph{O(80n)} \tab \emph{O(256n)} \tab \emph{O(576n)} \cr
     }
 
-  The next two figures show the network build on a grid with 8x8 nodes and using \emph{L=2} and \emph{L=3}.
+  The following two figures show the network build on a grid with 8x8 nodes and using \emph{L=2} and \emph{L=3}.
 
   \if{html}{\figure{figL2.png}{options: width="35\%" alt="L=2"}}
 
@@ -93,7 +95,7 @@ The table reports also the number of arcs in the network flow model as a functio
   }
 }
 \seealso{
-See also \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
+See also \code{\link{compareOneToMany}}, \code{\link{compareAll}}, \code{\link{focusArea}}, \code{\link{Histogram2D}}, and \code{\link{Solver}}.
 }
 \examples{
 # Define a simple example

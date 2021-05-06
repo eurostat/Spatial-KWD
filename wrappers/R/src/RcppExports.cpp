@@ -74,6 +74,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// focusArea
+Rcpp::List focusArea(Rcpp::NumericMatrix Coordinates, Rcpp::NumericMatrix Weights, int x, int y, int radius, int L, bool recode, const std::string& method, const std::string& algorithm, const std::string& model, const std::string& verbosity, double timelimit, double opt_tolerance);
+RcppExport SEXP _SpatialKWD_focusArea(SEXP CoordinatesSEXP, SEXP WeightsSEXP, SEXP xSEXP, SEXP ySEXP, SEXP radiusSEXP, SEXP LSEXP, SEXP recodeSEXP, SEXP methodSEXP, SEXP algorithmSEXP, SEXP modelSEXP, SEXP verbositySEXP, SEXP timelimitSEXP, SEXP opt_toleranceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Coordinates(CoordinatesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Weights(WeightsSEXP);
+    Rcpp::traits::input_parameter< int >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type radius(radiusSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< bool >::type recode(recodeSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type algorithm(algorithmSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type verbosity(verbositySEXP);
+    Rcpp::traits::input_parameter< double >::type timelimit(timelimitSEXP);
+    Rcpp::traits::input_parameter< double >::type opt_tolerance(opt_toleranceSEXP);
+    rcpp_result_gen = Rcpp::wrap(focusArea(Coordinates, Weights, x, y, radius, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP _rcpp_module_boot_SKWD();
 
@@ -81,6 +104,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SpatialKWD_compareOneToOne", (DL_FUNC) &_SpatialKWD_compareOneToOne, 13},
     {"_SpatialKWD_compareOneToMany", (DL_FUNC) &_SpatialKWD_compareOneToMany, 13},
     {"_SpatialKWD_compareAll", (DL_FUNC) &_SpatialKWD_compareAll, 13},
+    {"_SpatialKWD_focusArea", (DL_FUNC) &_SpatialKWD_focusArea, 13},
     {"_rcpp_module_boot_SKWD", (DL_FUNC) &_rcpp_module_boot_SKWD, 0},
     {NULL, NULL, 0}
 };

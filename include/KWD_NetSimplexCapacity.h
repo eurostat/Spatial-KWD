@@ -154,10 +154,10 @@ public:
           negeps(std::nextafter(-ns._opt_tolerance, -0.0)) {
       // The main parameters of the pivot rule
       const double BLOCK_SIZE_FACTOR = 1.0;
-      const int MIN_BLOCK_SIZE = 10;
+      const int MIN_BLOCK_SIZE = 20;
 
       _block_size =
-          std::max(int(BLOCK_SIZE_FACTOR * std::sqrt(double(_search_arc_num))),
+          std::max(int(BLOCK_SIZE_FACTOR * std::sqrt(double(_dummy_arc))),
                    MIN_BLOCK_SIZE);
     }
 
@@ -166,7 +166,7 @@ public:
       Cost c, min = negeps;
       int cnt = _block_size;
       int e;
-      for (e = _next_arc; e != _search_arc_num; ++e) {
+      for (e = _next_arc; e != _arc_num; ++e) {
         c = _state[e] * (_cost[e] + _pi[_source[e]] - _pi[_target[e]]);
         if (c < min) {
           min = c;
@@ -178,7 +178,7 @@ public:
           cnt = _block_size;
         }
       }
-      for (e = 0; e != _next_arc; ++e) {
+      for (e = _dummy_arc; e != _next_arc; ++e) {
         c = _state[e] * (_cost[e] + _pi[_source[e]] - _pi[_target[e]]);
         if (c < min) {
           min = c;
@@ -194,7 +194,7 @@ public:
         return false;
 
     search_end:
-      _next_arc = e;
+      _next_arc = _in_arc;
       return true;
     }
 
@@ -822,7 +822,7 @@ private:
           if (tot > _timelimit)
             return ProblemType::TIMELIMIT;
           if (_verbosity == KWD_VAL_DEBUG)
-            PRINT("NetSIMPLEX inner loop | it: %d, distance: %.4f, runtime: "
+            PRINT("NetCapSIMPLEX inner loop | it: %d, distance: %.4f, runtime: "
                   "%.4f\n",
                   _iterations, totalCost(), tot);
         }
@@ -835,7 +835,7 @@ private:
                 1000;
 
     if (_verbosity == KWD_VAL_DEBUG)
-      PRINT("NetSIMPLEX outer loop | enter: %.3f, join: %.3f, leave: %.3f, "
+      PRINT("NetCapSIMPLEX outer loop | enter: %.3f, join: %.3f, leave: %.3f, "
             "change: %.3f, tree: %.3f, "
             "potential: %.3f, runtime: %.3f\n",
             t1, t2, t3, t4, t5, t6, _runtime);
