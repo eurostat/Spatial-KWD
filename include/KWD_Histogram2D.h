@@ -1622,9 +1622,9 @@ namespace KWD {
 
 				int distance = 0;
 				if (ball)
-					distance = static_cast<int>(sqrt((double)pow(Xs[i] - x, 2) + pow(Ys[i] - y, 2)));
+					distance = static_cast<int>(sqrt((double)pow((double)Xs[i] - x, 2) + pow((double)Ys[i] - y, 2)));
 				else
-					distance = static_cast<int>(std::max(fabs(Xs[i] - x), fabs(Ys[i] - y)));
+					distance = static_cast<int>(std::max(fabs((double)Xs[i] - x), fabs((double)Ys[i] - y)));
 
 				if (distance <= radius) {
 					tot_w1 += W1[i];
@@ -3395,9 +3395,9 @@ namespace KWD {
 			for (size_t i = 0; i < n; ++i) {
 				int distance = 0;
 				if (ball)
-					distance = static_cast<int>(sqrt((double)pow(Xs[i] - x, 2) + pow(Ys[i] - y, 2)));
+					distance = static_cast<int>(sqrt((double)pow((double)Xs[i] - x, 2) + pow((double)Ys[i] - y, 2)));
 				else
-					distance = static_cast<int>(std::max(fabs(Xs[i] - x), fabs(Ys[i] - y)));
+					distance = static_cast<int>(std::max(fabs((double)Xs[i] - x), fabs((double)Ys[i] - y)));
 
 				if (distance <= radius)
 					Rs.update(Xs[i] - xmin, Ys[i] - ymin, W2[i] - W1[i]);

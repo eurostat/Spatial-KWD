@@ -19,8 +19,8 @@ The focus area is specified by three parameters: the coordinates \code{x} and \c
 The pair of coordinates (\code{x,y}) must correspond to a pair of coordinates contained in the vectors \code{Xs,Ys}.
 Every tile whose distance is less or equal to the \code{radius} will be included in the focus area.
 
-The focus area by default is circular, that is, the area is based on a $\ell_2$ norm. By setting the parameter \code{area} to the value \code{linf} it is possible to obtain
-a squared focus area, induced by the norm $\ell_\infty$.
+The focus area by default is circular, that is, the area is based on a \emph{L_2} norm. By setting the parameter \code{area} to the value \code{linf} it is possible to obtain
+a squared focus area, induced by the norm \emph{L_infinity}.
 }
 \usage{
 focusArea(Coordinates, Weights, x, y, radius,
