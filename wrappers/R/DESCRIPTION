@@ -1,8 +1,8 @@
 Package: SpatialKWD
 Type: Package
 Title: Spatial KWD for Large Spatial Maps
-Version: 0.3.3
-Date: 2021-05-04
+Version: 0.4.0
+Date: 2021-05-06
 Author: Stefano Gualandi [aut, cre]
 Authors@R: c(person("Stefano", "Gualandi", role = c("aut", "cre"),
                      email = "stefano.gualandi@gmail.com")

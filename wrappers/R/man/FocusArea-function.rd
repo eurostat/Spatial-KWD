@@ -6,7 +6,7 @@
 Compute the KWD tranport distance within a given focus area
 }
 \description{
-This function computes the Kantorovich-Wasserstein distance within a given focus area embedded into a large region described as a grid map. 
+This function computes the Kantorovich-Wasserstein distance within a given focus area embedded into a large region described as a grid map.
 Both the focus and the embedding areas are are described by spatial histograms, similarly to the input data of the other functions of this package.
 
 The grid map is described by the two lists \code{Xs} and \code{Ys} of \code{N} coordinates, which specify the coordinates of the centroid of every single tile.
@@ -15,14 +15,20 @@ For each tile \code{i} with coordinates \code{Xs[i], Ys[i]}, we have an entry in
 The two lists of coordinates \code{Xs} and \code{Ys} are passed to the \code{focusArea} function as a matrix with \code{N} rows and two columns.
 The two lists of weights \code{W1} and \code{W2} are passed as a matrix with \code{N} rows and two columns, a column for each histogram.
 
-The focus area is specified by three parameters: the coordinates \code{x} and \code{y} of the center of the focus area, and the (circular) \code{radius} of the focus area. 
+The focus area is specified by three parameters: the coordinates \code{x} and \code{y} of the center of the focus area, and the (circular) \code{radius} of the focus area.
+The pair of coordinates (\code{x,y}) must correspond to a pair of coordinates contained in the vectors \code{Xs,Ys}.
+Every tile whose distance is less or equal to the \code{radius} will be included in the focus area.
+
+The focus area by default is circular, that is, the area is based on a $\ell_2$ norm. By setting the parameter \code{area} to the value \code{linf} it is possible to obtain
+a squared focus area, induced by the norm $\ell_\infty$.
 }
 \usage{
 focusArea(Coordinates, Weights, x, y, radius,
            L = 3, recode = TRUE,
            method = "approx",    algorithm = "colgen",
            model="mincostflow",  verbosity = "silent",
-           timelimit = 14400,    opt_tolerance = 1e-06)
+           timelimit = 14400,    opt_tolerance = 1e-06,
+           area = "l2")
 }
 \arguments{
   \item{Coordinates}{A \code{Matrix} with \code{N} rows and two columns:
@@ -61,6 +67,8 @@ focusArea(Coordinates, Weights, x, y, radius,
   \item{timelimit}{Time limit in second for running the solver.}
 
   \item{opt_tolerance}{Numerical tolerance on the negative reduced cost for the optimal solution.}
+
+  \item{area}{Type of norm for delimiting the focus area: \code{l2} denotes a circular area of radius, \code{linf} denotes a squared area.}
 }
 
 \details{
@@ -97,7 +105,7 @@ test1 <- matrix(runif(2*N, 0, 1), ncol=2, nrow=N)
 
 # Compute distance
 print("Compare one-to-one with exact algorithm:")
-d <- focusArea(coordinates, Weights=test1, 
+d <- focusArea(coordinates, Weights=test1,
                 x=15, y=15, radius=5,
                 method="exact", recode=TRUE, verbosity = "info")
 cat("runtime:", d$runtime, " distance:", d$distance,

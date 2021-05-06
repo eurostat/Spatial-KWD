@@ -13,7 +13,7 @@ compareAll <- function(Coordinates, Weights, L = 3L, recode = TRUE, method = "ap
     .Call(`_SpatialKWD_compareAll`, Coordinates, Weights, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance, unbalanced, unbal_cost, convex)
 }
 
-focusArea <- function(Coordinates, Weights, x, y, radius, L = 3L, recode = TRUE, method = "approx", algorithm = "colgen", model = "mincostflow", verbosity = "silent", timelimit = 14400, opt_tolerance = 1e-06) {
-    .Call(`_SpatialKWD_focusArea`, Coordinates, Weights, x, y, radius, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance)
+focusArea <- function(Coordinates, Weights, x, y, radius, L = 3L, recode = TRUE, method = "approx", algorithm = "colgen", model = "mincostflow", verbosity = "silent", timelimit = 14400, opt_tolerance = 1e-06, area = "l2") {
+    .Call(`_SpatialKWD_focusArea`, Coordinates, Weights, x, y, radius, L, recode, method, algorithm, model, verbosity, timelimit, opt_tolerance, area)
 }
 
