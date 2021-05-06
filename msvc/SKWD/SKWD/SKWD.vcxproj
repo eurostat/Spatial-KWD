@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\KWD_Histogram2D.h" />
     <ClInclude Include="..\..\..\include\KWD_NetSimplex.h" />
+    <ClInclude Include="..\..\..\include\KWD_NetSimplexCapacity.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,5 +22,8 @@
     <ClInclude Include="..\..\..\include\KWD_NetSimplex.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\KWD_NetSimplexCapacity.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

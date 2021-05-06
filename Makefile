@@ -16,11 +16,12 @@ SRC             = ${MYHOME}/src
 OPTFLAG = -O2 -ffast-math -march=native -DNDEBUG -Wall -mavx2 -std=c++11 -fopenmp -DLINUX -Wall
 LDFLAGS = -O2 -DNDEBUG -lm -pthread -std=c++11 -fopenmp
 
+COMPILER    = g++ ${OPTFLAG}
+LINKER      = g++ ${LDFLAGS}
+
 #COMPILER    = g++-10 ${OPTFLAG}
 #LINKER      = g++-10 ${LDFLAGS}
 
-COMPILER    = g++ ${OPTFLAG}
-LINKER      = g++ ${LDFLAGS}
 
 # Directory for output files
 OUT_DIR=bin lib
@@ -37,20 +38,23 @@ laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
 buildpython:
 	cp include/KWD_Histogram2D.h wrappers/python
 	cp include/KWD_NetSimplex.h wrappers/python
+	cp include/KWD_NetSimplexCapacity.h wrappers/python
 	cd wrappers/python && python3 setup.py build_ext --inplace
 
 # Build R package with the official c++ source code
 crancheck:
 	cp include/KWD_Histogram2D.h wrappers/R/src
 	cp include/KWD_NetSimplex.h wrappers/R/src
+	cp include/KWD_NetSimplexCapacity.h wrappers/R/src
 	R CMD build wrappers/R
-	R CMD check --as-cran SpatialKWD_0.3.1.tar.gz
+	R CMD check --as-cran SpatialKWD_0.3.3.tar.gz
 
 checkR:
 	cp include/KWD_Histogram2D.h wrappers/R/src
 	cp include/KWD_NetSimplex.h wrappers/R/src
+	cp include/KWD_NetSimplexCapacity.h wrappers/R/src
 	R CMD build wrappers/R
-	R CMD check SpatialKWD_0.3.1.tar.gz
+	R CMD check SpatialKWD_0.3.3.tar.gz
 
 # Create subdirectory for output files (bin,lib)
 MKDIR_P = mkdir -p
