@@ -376,8 +376,9 @@ namespace KWD {
 			PointCloud2D smaller, equal, larger;
 
 			double pivot_ang = PolarAngle(Ls.getX(0), Ls.getY(0));
+			equal.add(Ls.getX(0), Ls.getY(0));
 
-			for (size_t i = 0, i_max = Ls.size(); i < i_max; ++i) {
+			for (size_t i = 1, i_max = Ls.size(); i < i_max; ++i) {
 				double p_ang = PolarAngle(Ls.getX(i), Ls.getY(i));
 				if (p_ang < pivot_ang) {
 					smaller.add(Ls.getX(i), Ls.getY(i));
