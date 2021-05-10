@@ -80,6 +80,34 @@ Windows users can download a pre-compiled binary package at the following link:
 If you need an interface for a different R data structure, please, drop us an email.
 
 
+## <a name="Cpp-CLI"></a>Cpp Command Line Tool
+
+By compiling the Cpp source code, it is possible to use the **SpatialKWD** directly from the command line.
+The compilation is ruled by a simple Makefile, and is executed by the command:
+
+```
+make laptop
+```
+
+This build an executable named `solver` in the `bin` folder, which can be tested with the following command, which use a synthetic data from the whole Belgium region:
+
+```
+./bin/solver data/L_1000_100.csv
+```
+
+The output shold be as follows:
+
+```
+data/L_1000_100.csv
+start solver
+WARNING: the Xs input coordinates are not consecutives integers.
+WARNING: the Ys input coordinates are not consecutives integers.
+INFO: Recoding the input coordinates to consecutive integers.
+INFO: change <verbosity> to info
+INFO: change <opt_tolerance> to 0.000001
+Approx => 32140: fobj: 0.689998, time: 2.1860, status: Optimal, iter: 167063, arcs: 58987, nodes: 39302
+```
+
 ### <a name="About"></a>About
 
 <table align="center">
