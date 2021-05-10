@@ -17,7 +17,8 @@ cdef extern from "KWD_Histogram2D.h" namespace "KWD":
         double compareExact(int, int*, int*, double*, double*)
         double compareApprox(int, int*, int*, double*, double*, int)
         vector[double] compareApprox(int, int, int*, int*, double*, double*, int)
-        vector[double] compareApprox3(int, int, int*, int*, double*, int)        
+        vector[double] compareApprox3(int, int, int*, int*, double*, int)
+        double focusArea(int , int*, int*, double*, double*, int, int, int, int)
         double distance(const Histogram2D& A, const Histogram2D& B, int L)
         double column_generation(const Histogram2D& A, const Histogram2D& B, int L)
         double dense(const Histogram2D& A, const Histogram2D& B)
@@ -30,4 +31,3 @@ cdef extern from "KWD_Histogram2D.h" namespace "KWD":
         void setDblParam(string param, float value)
         void getStrParam(string param)
         void getDblParam(string param)
-        

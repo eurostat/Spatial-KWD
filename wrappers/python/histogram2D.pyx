@@ -47,7 +47,7 @@ cdef class Solver:
 
     def __cinit__(self):
         self.m = PySolver()  # TODO: change the log frequency
-        
+
     def compareExact(self, n, X, Y, W1, W2):
         if not X.flags['C_CONTIGUOUS']:
             X = np.ascontiguousarray(X, dtype=np.int32) # Makes a contiguous copy of the numpy array.
@@ -68,26 +68,26 @@ cdef class Solver:
         return self.m.compareExact(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0])
 
 
-    def compareApprox(self, n, X, Y, W1, W2, L):        
+    def compareApprox(self, n, X, Y, W1, W2, L):
         if not X.flags['C_CONTIGUOUS']:
             X = np.ascontiguousarray(X, dtype=np.int32)
         cdef int[::1] Xmv = X
 
         if not Y.flags['C_CONTIGUOUS']:
-            Y = np.ascontiguousarray(Y, dtype=np.int32) 
+            Y = np.ascontiguousarray(Y, dtype=np.int32)
         cdef int[::1] Ymv = Y
 
         if not W1.flags['C_CONTIGUOUS']:
-            W1 = np.ascontiguousarray(W1, dtype=float) 
+            W1 = np.ascontiguousarray(W1, dtype=float)
         cdef double[::1] Wmv1 = W1
 
         if not W2.flags['C_CONTIGUOUS']:
-            W2 = np.ascontiguousarray(W2, dtype=float) 
+            W2 = np.ascontiguousarray(W2, dtype=float)
         cdef double[::1] Wmv2 = W2
-        
+
         return self.m.compareApprox(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0], L)
 
-    
+
     def compareApprox2(self, n, m, X, Y, W1, Ws, L):
         if not X.flags['C_CONTIGUOUS']:
             X = np.ascontiguousarray(X, dtype=np.int32)
@@ -102,7 +102,7 @@ cdef class Solver:
         cdef double[::1] Wmv1 = W1
 
         if not Ws.flags['C_CONTIGUOUS']:
-            Ws = np.ascontiguousarray(Ws.flatten(), dtype=float) 
+            Ws = np.ascontiguousarray(Ws.flatten(), dtype=float)
         cdef double[::1] Wmvs = Ws.flatten()
 
         return self.m.compareApprox(n, m, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmvs[0], L)
@@ -122,7 +122,28 @@ cdef class Solver:
         cdef double[::1] Wmvs = Ws.flatten()
 
         return self.m.compareApprox3(n, m, &Xmv[0], &Ymv[0], &Wmvs[0], L)
-    
+
+
+    def focusArea(self, n, Xs, Ys, W1, W2, x, y, radius, L):
+        if not Xs.flags['C_CONTIGUOUS']:
+            Xs = np.ascontiguousarray(Xs, dtype=np.int32)
+        cdef int[::1] Xmv = Xs
+
+        if not Ys.flags['C_CONTIGUOUS']:
+            Ys = np.ascontiguousarray(Ys, dtype=np.int32)
+        cdef int[::1] Ymv = Ys
+
+        if not W1.flags['C_CONTIGUOUS']:
+            W1 = np.ascontiguousarray(W1, dtype=float)
+        cdef double[::1] Wmv1 = W1
+
+        if not W2.flags['C_CONTIGUOUS']:
+            W2 = np.ascontiguousarray(W2, dtype=float)
+        cdef double[::1] Wmv2 = W2
+
+        return self.m.focusArea(n, &Xmv[0], &Ymv[0], &Wmv1[0], &Wmv2[0], x, y, radius, L)
+
+
     def distance(self, Histogram2D A, Histogram2D B, L):
         return self.m.distance(A.mu, B.mu, L)
 
@@ -134,7 +155,7 @@ cdef class Solver:
 
     def runtime(self):
         return self.m.runtime()
-    
+
     def iterations(self):
         return self.m.iterations()
 
@@ -146,7 +167,7 @@ cdef class Solver:
 
     def status(self):
         return self.m.status()
-    
+
     def setStrParam(self, param, value):
         return self.m.setStrParam(param, value)
 
@@ -164,8 +185,9 @@ import signal
 def signal_handler(sig, frame):
     print('STOP EXECUTION: You pressed Ctrl+C!')
     sys.exit(0)
+
 signal.signal(signal.SIGINT, signal_handler)
-    
+
 def setOptions(s, Options):
     L = Options.get('L', 3)  # L=3 default value
     method = Options.get('Method', 'approx').encode('utf-8')
@@ -173,21 +195,31 @@ def setOptions(s, Options):
     algo = Options.get('Algorithm', 'colgen').encode('utf-8')
     verbosity = Options.get('Verbosity', 'info').encode('utf-8')
     recode = Options.get('Recode', 'True').encode('utf-8')
+    unbalanced = Options.get('Unbalanced', 'False').encode('utf-8')
+    convexhull = Options.get('ConvexHull', 'True').encode('utf-8')
+    area = Options.get('Area', 'l2').encode('utf-8')
 
     time_limit = Options.get('TimeLimit', sys.maxsize)
     opt_tolerance = Options.get('OptTolerance', 1e-06)
-    
+    unbal_cost = Options.get('UnbalancedCost', sys.maxsize)
+
     s.setStrParam('Method'.encode('utf-8'), method)
     s.setStrParam('Model'.encode('utf-8'), model)
     s.setStrParam('Algorithm'.encode('utf-8'), algo)
     s.setStrParam('Verbosity'.encode('utf-8'), verbosity)
     s.setStrParam('Recode'.encode('utf-8'), recode)
+    s.setStrParam('ConvexHull'.encode('utf-8'), convexhull)
+    s.setStrParam('Ball'.encode('utf-8'), area)
 
     s.setDblParam('TimeLimit'.encode('utf-8'), time_limit)
     s.setDblParam('OptTolerance'.encode('utf-8'), opt_tolerance)
-    
+
+    s.setStrParam('Unbalanced'.encode('utf-8'), unbalanced)
+    if unbalanced == 'True':
+        s.setDblParam('UnbalancedCost'.encode('utf-8'), unbal_cost)
+
     print('Options | Method: {}, Model: {}, Algorithm: {}, L={}, Recode: {}'.format(method, model, algo, L, recode))
-    
+
 def getSolution(s, d, m=0):
     sol = {}
     if m == 0:
@@ -199,10 +231,10 @@ def getSolution(s, d, m=0):
     sol['nodes'] = s.num_nodes()
     sol['arcs'] = s.num_arcs()
     sol['status'] = s.status()
-    
+
     return sol
 
-    
+
 def compareOneToOne(Coordinates, Weights, Options):
     """
     Compute the KW distance between a pair of histograms, given in the two
@@ -224,7 +256,7 @@ def compareOneToOne(Coordinates, Weights, Options):
             'algorithm': for the KW distances: 'fullmodel' or 'colgen'
             'verbosity': options 'silent', 'info', 'debug'
             'timelimit': time limit in second for running the solver
-            'opt_tolerance': numerical optimality tolerance        
+            'opt_tolerance': numerical optimality tolerance
 
     Returns
     -------
@@ -233,15 +265,15 @@ def compareOneToOne(Coordinates, Weights, Options):
           'distance': array with the KW-distances betweeen the input histograms
           'status': status of the solver used to compute the distances
           'runtime': overall runtime in seconds to compute all the distances
-          'iterations': overall number of iterations of Network Simplex 
+          'iterations': overall number of iterations of Network Simplex
           'nodes': number of nodes in the network model
-          'arcs': number of arcs in the network model 
+          'arcs': number of arcs in the network model
     """
     # Create solver
     s = Solver()
     setOptions(s, Options)
     L = Options.get('L', 3)  # L=3 default value
-    
+
     n, m = Weights.shape
     X = Coordinates[:,0]
     Y = Coordinates[:,1]
@@ -254,7 +286,7 @@ def compareOneToOne(Coordinates, Weights, Options):
         d = s.compareApprox(n, X, Y, W1, W2, L)
     else:
         d = s.compareExact(n, X, Y, W1, W2)
-        
+
     return getSolution(s, d)
 
 
@@ -262,14 +294,14 @@ def compareOneToMany(Coordinates, Weights, Options):
     """
     Compute the KW distance between a reference histogram (first column in
     Weights) and a set of other histograms (remaining columns of Weights)
-    
+
     Parameters
     ----------
     Coordinates : np.array(dtype=np.int32)
         Matrix of the integer coordinates Xs and Ys with N rows and 2 columns
     Weights : np.array(dtype=float)
-        Matrix of the weights Ws with N rows and M columns. The first column 
-        gives the weight of the reference histogram, the remaing column the 
+        Matrix of the weights Ws with N rows and M columns. The first column
+        gives the weight of the reference histogram, the remaing column the
         weights of the histograms to compare with
     Options : dict
         Dictionary of options:
@@ -279,7 +311,7 @@ def compareOneToMany(Coordinates, Weights, Options):
             'algorithm': for the KW distances: 'fullmodel' or 'colgen'
             'verbosity': options 'silent', 'info', 'debug'
             'timelimit': time limit in second for running the solver
-            'opt_tolerance': numerical optimality tolerance        
+            'opt_tolerance': numerical optimality tolerance
 
     Returns
     -------
@@ -288,9 +320,9 @@ def compareOneToMany(Coordinates, Weights, Options):
           'distance': array with the KW-distances betweeen the input histograms
           'status': status of the solver used to compute the distances
           'runtime': overall runtime in seconds to compute all the distances
-          'iterations': overall number of iterations of Network Simplex 
+          'iterations': overall number of iterations of Network Simplex
           'nodes': number of nodes in the network model
-          'arcs': number of arcs in the network model 
+          'arcs': number of arcs in the network model
     """
     # Create solver
     s = Solver()
@@ -310,14 +342,14 @@ def compareOneToMany(Coordinates, Weights, Options):
         d = s.compareApprox2(n, m, X, Y, W1, Ws, L)
     else:
         d = s.compareApprox2(n, m, X, Y, W1, Ws, n-1)
-    
+
     return getSolution(s, d)
 
 
 def compareAll(Coordinates, Weights, Options):
     """
     Compute the KW distance between all histograms in Weights
-    
+
     Parameters
     ----------
     Coordinates : np.array(dtype=np.int32)
@@ -332,7 +364,7 @@ def compareAll(Coordinates, Weights, Options):
             'algorithm': for the KW distances: 'fullmodel' or 'colgen'
             'verbosity': options 'silent', 'info', 'debug'
             'timelimit': time limit in second for running the solver
-            'opt_tolerance': numerical optimality tolerance        
+            'opt_tolerance': numerical optimality tolerance
 
     Returns
     -------
@@ -341,16 +373,16 @@ def compareAll(Coordinates, Weights, Options):
           'distance': array with the KW-distances betweeen the input histograms
           'status': status of the solver used to compute the distances
           'runtime': overall runtime in seconds to compute all the distances
-          'iterations': overall number of iterations of Network Simplex 
+          'iterations': overall number of iterations of Network Simplex
           'nodes': number of nodes in the network model
-          'arcs': number of arcs in the network model 
+          'arcs': number of arcs in the network model
     """
 
     # Create solver
     s = Solver()
     setOptions(s, Options)
     L = Options.get('L', 3)  # L=3 default value
-            
+
     n, m = Weights.shape
     X = Coordinates[:,0]
     Y = Coordinates[:,1]
@@ -362,5 +394,61 @@ def compareAll(Coordinates, Weights, Options):
         d = s.compareApprox3(n, m, X, Y, Ws, L)
     else:
         d = s.compareApprox3(n, m, X, Y, Ws, n-1)
-    
+
     return getSolution(s, d, m)
+
+
+def focusArea(Coordinates, Weights, x, y, radius, Options):
+    """
+    Compute the KW distance between a pair of histograms, given in the two
+    columns of matrix Weights
+
+    Parameters
+    ----------
+    Coordinates : np.array(dtype=np.int32)
+        Matrix of the integer coordinates Xs and Ys with N rows and 2 columns
+    Weights : np.array(dtype=float)
+        Matrix of the weights Ws with N rows and 2 columns. The first column
+        gives the weight of the first histogram, the second column for the
+        second histogram
+    x : int
+        Horizontal coordinate of the focus area centroid
+    y : int
+        Vertical coordinate of the focus area centroid
+    radius : int
+        Radius of the focus areaa
+    Options : dict
+        Dictionary of options:
+            'L': approximation parameter. Data type: positive integer
+            'method': for computing the KW distances: 'exact' or 'approx'
+            'model': network model: 'bipartite' or 'mincostflow'
+            'algorithm': for the KW distances: 'fullmodel' or 'colgen'
+            'verbosity': options 'silent', 'info', 'debug'
+            'timelimit': time limit in second for running the solver
+            'opt_tolerance': numerical optimality tolerance
+
+    Returns
+    -------
+    dict
+        Dictionary with the following keys:
+          'distance': array with the KW-distances betweeen the input histograms
+          'status': status of the solver used to compute the distances
+          'runtime': overall runtime in seconds to compute all the distances
+          'iterations': overall number of iterations of Network Simplex
+          'nodes': number of nodes in the network model
+          'arcs': number of arcs in the network model
+    """
+    # Create solver
+    s = Solver()
+    setOptions(s, Options)
+    L = Options.get('L', 3)  # L=3 default value
+
+    n, m = Weights.shape
+    Xs = Coordinates[:,0]
+    Ys = Coordinates[:,1]
+    W1 = Weights[:,0]
+    W2 = Weights[:,1]
+
+    d = s.focusArea(n, Xs, Ys, W1, W2, x, y, radius, L)
+
+    return getSolution(s, d)

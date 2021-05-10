@@ -1,5 +1,5 @@
 /**
- * @fileoverview Copyright (c) 2019-2020, Stefano Gualandi,
+ * @fileoverview Copyright (c) 2019-2021, Stefano Gualandi,
  *               via Ferrata, 1, I-27100, Pavia, Italy
  *
  * @author stefano.gualandi@gmail.com (Stefano Gualandi)
@@ -61,7 +61,8 @@ enum class ProblemType {
   INFEASIBLE = 0,
   OPTIMAL = 1,
   UNBOUNDED = 2,
-  TIMELIMIT = 3
+  TIMELIMIT = 3,
+  UNINIT = 4
 };
 
 enum class PivotRule { BLOCK_SEARCH = 0 };
@@ -137,7 +138,7 @@ private:
 
   int N_IT_LOG;
 
-  uint64_t _iterations;
+  int _iterations;
 
   double t1, t2, t3, t4, t5, t6;
 
@@ -290,8 +291,7 @@ public:
     t1 = 0.0, t2 = 0.0, t3 = 0.0, t4 = 0.0, t5 = 0.0, t6 = 0.0;
   }
 
-  ProblemType run(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
-    // shuffle();
+  ProblemType run() {
     _runtime = 0.0;
     _iterations = 0;
 
@@ -303,27 +303,25 @@ public:
 
     if (!init())
       return ProblemType::INFEASIBLE;
-    return start(pivot_rule);
+    return start();
   }
 
-  ProblemType reRun(PivotRule pivot_rule = PivotRule::BLOCK_SEARCH) {
-    return start(pivot_rule);
-  }
+  ProblemType reRun() { return start(); }
 
-  uint64_t num_arcs() const { return uint64_t(_source.size()) - _dummy_arc; }
+  int num_arcs() const { return int(_source.size()) - _dummy_arc; }
 
-  uint64_t num_nodes() const { return _node_num; }
+  int num_nodes() const { return _node_num; }
 
   void addNode(int i, Value b) { _supply[i] = b; }
 
   size_t addArc(int a, int b, Cost c) {
     size_t idx = _source.size();
-    _source.emplace_back(a);
-    _target.emplace_back(b);
-    _cost.emplace_back(c);
+    _source.push_back(a);
+    _target.push_back(b);
+    _cost.push_back(c);
 
-    _flow.emplace_back(0);
-    _state.emplace_back(STATE_LOWER);
+    _flow.push_back(0);
+    _state.push_back(STATE_LOWER);
 
     _arc_num++;
     return idx;
@@ -406,17 +404,19 @@ public:
   double runtime() const { return _runtime; }
 
   // Number of iterations of simplex algorithms
-  uint64_t iterations() const { return _iterations; }
+  int iterations() const { return _iterations; }
 
   // Set basic parameters
   void setTimelimit(double t) {
     _timelimit = t;
     PRINT("INFO: change <timelimit> to %f\n", t);
   }
+
   void setOptTolerance(double o) {
     _opt_tolerance = o;
     PRINT("INFO: change <opt_tolerance> to %f\n", o);
   }
+
   void setVerbosity(std::string v) {
     _verbosity = v;
     if (v == KWD_VAL_DEBUG)
@@ -468,9 +468,8 @@ private:
 
     // Check the sum of supply values
     _sum_supply = 0;
-    for (int i = 0; i != _node_num; ++i) {
+    for (int i = 0; i != _node_num; ++i)
       _sum_supply += _supply[i];
-    }
 
     if (fabs(_sum_supply) > 0.00001) {
       // TODO: deal with this case
@@ -607,19 +606,23 @@ private:
     if (delta > 0) {
       _flow[in_arc] += delta;
 
+#ifdef _OPENMP
 #pragma omp parallel sections num_threads(2)
       {
 #pragma omp section
+#else
+      {
+#endif
         {
-          for (int u = _source[in_arc]; u != join; u = _parent[u]) {
+          for (int u = _source[in_arc]; u != join; u = _parent[u])
             _flow[_pred[u]] -= _pred_dir[u] * delta;
-          }
         }
+#ifdef _OPENMP
 #pragma omp section
+#endif
         {
-          for (int u = _target[in_arc]; u != join; u = _parent[u]) {
+          for (int u = _target[in_arc]; u != join; u = _parent[u])
             _flow[_pred[u]] += _pred_dir[u] * delta;
-          }
         }
       }
     }
@@ -765,18 +768,18 @@ private:
   }
 
   // Execute the algorithm
-  ProblemType start(PivotRule pivot_rule) {
-    // Select the pivot rule implementation
-    switch (pivot_rule) {
-    case PivotRule::BLOCK_SEARCH:
-      return start<BlockSearchPivotRule>();
-    }
-    return ProblemType::INFEASIBLE; // avoid warning
-  }
+  // ProblemType start(PivotRule pivot_rule) {
+  //  // Select the pivot rule implementation
+  //  switch (pivot_rule) {
+  //  case PivotRule::BLOCK_SEARCH:
+  //    return start<BlockSearchPivotRule>();
+  //  }
+  //  return ProblemType::INFEASIBLE; // avoid warning
+  //}
 
-  template <typename PivotRuleImpl> ProblemType start() {
+  ProblemType start(void) {
     auto start_tt = std::chrono::steady_clock::now();
-    PivotRuleImpl pivot(*this);
+    BlockSearchPivotRule pivot(*this);
 
     // Benchmarking
 
@@ -852,7 +855,7 @@ private:
           if (tot > _timelimit)
             return ProblemType::TIMELIMIT;
           if (_verbosity == KWD_VAL_DEBUG)
-            PRINT("NetSIMPLEX inner loop | it: %ld, distance: %.4f, runtime: "
+            PRINT("NetSIMPLEX inner loop | it: %d, distance: %.4f, runtime: "
                   "%.4f\n",
                   _iterations, totalCost(), tot);
         }

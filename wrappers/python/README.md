@@ -2,16 +2,16 @@
 
 The Spatial-KWD package contains efficient implementations of Discrete Optimal Transport algorithms for the computation of Kantorovich-Wasserstein distances [1], which are customized for large spatial maps.
 All the algorithms are based on an ad-hoc implementation of the Network Simplex algorithm [1,2].
-Each implemented algorithm builds a different network, exploiting the special structure of spatial maps.
+Each implemented algorithm builds a different network, exploiting the particular structure of spatial maps.
 
 ## Details
 This library contains three helper functions and two main classes.
 
-The three helper functions are `compareOneToOne`, `compareOneToMany`, and `compareAll`. All the functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver, so that it uses different algorithms with different parameters.
+The three helper functions are `compareOneToOne()`, `compareOneToMany()`, `compareAll()`, and  `focusArea()`. These functions take in input the data and an options list. Using the options is possible to configure the Kantorivich-Wasserstein solver so that it uses different algorithms with different parameters.
 
 The helper functions are built on top of two main classes: `Histogram2D` and `Solver`.
 
-Note that in case of non-convex maps, the algorithm builds the convex-hull of the input bins and pads the weights with zeros.
+Note that in non-convex maps, the algorithm builds the convex-hull of the input bins and pads the weights with zeros.
 
 ## Prerequisities
 
@@ -20,7 +20,7 @@ You only need the following two standard python libraries:
 * cython
 * numpy
 
-In the case you want to compile the source files, you need the `python-dev`, which on linux can be installed by>
+In the case you want to compile the source files, you need the `python-dev`, which on Linux can be installed by>
 
 ```bash
 apt install python3-dev  # Ubuntu
@@ -45,12 +45,12 @@ For testing the library you can run the following command:
 python3 test_matrix.py
 ```
 
-The test program is the following
+The test program is the following.
 
 ```python
 import numpy as np
 
-from KWD import compareOneToOne, compareOneToMany, compareAll
+from KWD import compareOneToOne, compareOneToMany, compareAll, focusArea
 
 
 np.random.seed(13)

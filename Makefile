@@ -31,7 +31,7 @@ MKL_INC = -DMKL_ILP64 -m64 -I${MKLROOT}/include #-DUSE_MKL
 MKL_LIB = -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -ldl
 
 laptop: ${OUT_DIR} ${SRC}/SolverCLI.cpp
-	${COMPILER} -c -g -pg ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
+	${COMPILER} -c ${SRC}/SolverCLI.cpp -o ${LIB}/SolverCLI.o -I${INCLUDE} -I./externs
 	${LINKER} -o ${BIN}/solver ${LIB}/SolverCLI.o
 
 # Build Python wrapper
@@ -55,6 +55,10 @@ checkR:
 	cp include/KWD_NetSimplexCapacity.h wrappers/R/src
 	R CMD build wrappers/R
 	R CMD check SpatialKWD_0.4.0.tar.gz
+
+# Test command line tool
+test_cli:
+	${BIN}/solver data/L_1000_100.csv
 
 # Create subdirectory for output files (bin,lib)
 MKDIR_P = mkdir -p

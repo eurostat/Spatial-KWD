@@ -206,10 +206,6 @@ bool TEST_3_FOCUS_AREA() {
 // Main function
 int main(int argc, char* argv[]) {
 	int n = 32;
-
-	if (argc > 1)
-		n = atoi(argv[1]);
-
 	int seed = 13;
 
 	std::random_device
@@ -219,20 +215,17 @@ int main(int argc, char* argv[]) {
 	std::uniform_int_distribution<> Uniform0N(0, n);
 
 	// Test focus area
-	if (true)
+	if (false) {
 		TEST_1_FOCUS_AREA();
-
-	if (true)
 		TEST_2_FOCUS_AREA();
-
-	if (true)
 		TEST_3_FOCUS_AREA();
+	}
 
 	// Test from command line
-	if (false) {
+	if (true) {
 		std::string filename = "";
-		if (argc > 2)
-			filename = std::string(argv[2]);
+		if (argc > 1)
+			filename = std::string(argv[1]);
 		else {
 			fprintf(stdout, "Usage: %s <path_to_data_file>\n", argv[0]);
 			return 1;
@@ -243,7 +236,7 @@ int main(int argc, char* argv[]) {
 
 		if (!in_file) {
 			fprintf(stdout, "FATAL ERROR: Cannot open file\n");
-			return -1;
+			return 1;
 		}
 
 		vector<int> Xs;
@@ -300,26 +293,46 @@ int main(int argc, char* argv[]) {
 
 		// ----------------------------------------------------------------------------
 		solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
-		solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_FULLMODEL);
+		solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_COLGEN);
 		solver.setStrParam(KWD_PAR_MODEL, KWD_VAL_MINCOSTFLOW);
 		solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_DEBUG);
 		solver.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
 
-		solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
-		solver.setDblParam(KWD_PAR_UNBALANCED_COST, 4); // TO BE SET
+		solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_FALSE);
+		//solver.setDblParam(KWD_PAR_UNBALANCED_COST, 4); // TO BE SET
 
 		solver.setStrParam(KWD_PAR_CONVEXHULL, KWD_VAL_TRUE);
 
 		solver.dumpParam();
 
-		auto dist =
-			solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
+		if (false) {
+			auto dist =
+				solver.compareApprox(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], 3);
 
-		PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %d, "
-			"arcs: "
-			"%d, nodes: %d\n",
-			n, dist, solver.runtime(), solver.status().c_str(),
-			solver.iterations(), solver.num_arcs(), solver.num_nodes());
+			PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %d, "
+				"arcs: "
+				"%d, nodes: %d\n",
+				n, dist, solver.runtime(), solver.status().c_str(),
+				solver.iterations(), solver.num_arcs(), solver.num_nodes());
+		}
+
+		int x = (int)Xs.size() / 2;
+		int y = (int)Ys.size() / 2;
+		int radius = 70;
+
+		if (true) {
+			solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
+			solver.setDblParam(KWD_PAR_UNBALANCED_COST, 2 * radius * radius); // TO BE SET
+
+			auto dist =
+				solver.focusArea(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0], Xs[x], Ys[y], radius, 3);
+
+			PRINT("focusArea => %d: fobj: %.6f, time: %.4f, status: %s, iter: %d, "
+				"arcs: "
+				"%d, nodes: %d\n",
+				n, dist, solver.runtime(), solver.status().c_str(),
+				solver.iterations(), solver.num_arcs(), solver.num_nodes());
+		}
 	}
 
 	if (false) {
