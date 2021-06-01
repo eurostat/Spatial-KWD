@@ -9,7 +9,7 @@ This software library contains efficient implementations of Discrete Optimal Tra
 The core library is written in standard ANSI-C++11, but it has two wrappers:
 
 1. A [Python wrapper](https://pypi.org/project/Spatial-KWD/) available from PyPI
-2. An [R wrapper](https://cran.r-project.org/web/packages/SpatialKWD/index.html) available from CRAN
+2. An [R wrapper](https://CRAN.R-project.org/package=SpatialKWD) available from CRAN
 
 If you need a wrapper in another language, please let us know by posting a request on GitHub.
 
