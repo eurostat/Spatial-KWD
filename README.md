@@ -1,6 +1,8 @@
 # Spatial-KWD
 
-Download from CRAN: ![](http://cranlogs.r-pkg.org/badges/grand-total/SpatialKWD) ![](http://cranlogs.r-pkg.org/badges/last-week/SpatialKWD)
+Downloads from CRAN: 
+
+![](http://cranlogs.r-pkg.org/badges/grand-total/SpatialKWD) ![](http://cranlogs.r-pkg.org/badges/last-week/SpatialKWD)
 
 ## <a name="Description"></a>Computing Kantorovich-Wasserstein distances for large spatial maps
 
