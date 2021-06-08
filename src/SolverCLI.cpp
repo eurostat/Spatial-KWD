@@ -289,9 +289,9 @@ int main(int argc, char *argv[]) {
 
       PRINT("Approx => %d: fobj: %.6f, time: %.4f, status: %s, iter: %d, "
             "arcs: "
-            "%d, nodes: %d\n",
+            "%d, nodes: %d, L: %d\n",
             n, dist, solver.runtime(), solver.status().c_str(),
-            solver.iterations(), solver.num_arcs(), solver.num_nodes());
+            solver.iterations(), solver.num_arcs(), solver.num_nodes(), L);
     }
 
     int x = (int)Xs.size() / 2;
