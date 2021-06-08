@@ -98,7 +98,7 @@ const std::string KWD_VAL_TRUE = "true";
 const std::string KWD_VAL_FALSE = "false";
 
 // Value for parameter L
-const std::string KWD_PAR_TIMELIMIT = "CoprimeIndex";
+// const std::string KWD_PAR_COPRIMEINDEX = "CoprimeIndex";
 
 // My Network Simplex
 #include "KWD_NetSimplex.h"
