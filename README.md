@@ -1,12 +1,15 @@
 # Spatial-KWD
 
+GitHub actions: <a class="reference external" href="https://github.com/eurostat/Spatial-KWD/actions"><img alt="Build Status" src="https://github.com/eurostat/Spatial-KWD/workflows/build/badge.svg?branch=master&amp;event=push"></a> 
+
+Downloads of the Python wrapper from PyPI:
+
+<a class="reference external" href="https://badge.fury.io/py/Spatial-KWD"><img alt="PyPI version" src="https://badge.fury.io/py/Spatial-KWD.svg"></a> [![Downloads](https://pepy.tech/badge/spatial-kwd)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/month)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/week)](https://pepy.tech/project/spatial-kwd)
+
 Downloads of the R package from CRAN: 
 
 ![](http://cranlogs.r-pkg.org/badges/grand-total/SpatialKWD) ![](http://cranlogs.r-pkg.org/badges/last-week/SpatialKWD)
 
-Downloads of the Python wrapper from PyPI:
-
-[![Downloads](https://pepy.tech/badge/spatial-kwd)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/month)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/week)](https://pepy.tech/project/spatial-kwd)
 
 ## <a name="Description"></a>Computing Kantorovich-Wasserstein distances for large spatial maps
 
