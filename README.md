@@ -1,6 +1,6 @@
 # Spatial-KWD
 
-GitHub actions: <a class="reference external" href="https://github.com/eurostat/Spatial-KWD/actions"><img alt="Build Status" src="https://github.com/eurostat/Spatial-KWD/workflows/build/badge.svg?branch=master&amp;event=push"></a> 
+GitHub actions: [![c-cpp.yml Actions Status](https://github.com/eurostat/Spatial-KWD/workflows/c-cpp.yml/badge.svg)](https://github.com/eurostat/Spatial-KWD/actions) 
 
 Downloads of the Python wrapper from PyPI:
 
