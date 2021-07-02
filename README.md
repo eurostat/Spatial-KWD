@@ -1,8 +1,17 @@
 # Spatial-KWD
 
-Downloads from CRAN: 
+GitHub actions: 
+
+[![build-update Actions Status](https://github.com/eurostat/Spatial-KWD/workflows/build-update/badge.svg)](https://github.com/eurostat/Spatial-KWD/actions) 
+
+Downloads of the Python wrapper from PyPI:
+
+<a class="reference external" href="https://badge.fury.io/py/Spatial-KWD"><img alt="PyPI version" src="https://badge.fury.io/py/Spatial-KWD.svg"></a> [![Downloads](https://pepy.tech/badge/spatial-kwd)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/month)](https://pepy.tech/project/spatial-kwd) [![Downloads](https://pepy.tech/badge/spatial-kwd/week)](https://pepy.tech/project/spatial-kwd)
+
+Downloads of the R package from CRAN: 
 
 ![](http://cranlogs.r-pkg.org/badges/grand-total/SpatialKWD) ![](http://cranlogs.r-pkg.org/badges/last-week/SpatialKWD)
+
 
 ## <a name="Description"></a>Computing Kantorovich-Wasserstein distances for large spatial maps
 
