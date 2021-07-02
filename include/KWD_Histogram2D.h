@@ -97,6 +97,10 @@ const std::string KWD_PAR_CONVEXHULL = "ConvexHull";
 const std::string KWD_VAL_TRUE = "true";
 const std::string KWD_VAL_FALSE = "false";
 
+const std::string KWD_VAL_ALLBIN = "allbin";
+const std::string KWD_VAL_BORDERBIN = "borderbin";
+const std::string KWD_VAL_CUSTOMBIN = "custombin";
+
 // Value for parameter L
 // const std::string KWD_PAR_COPRIMEINDEX = "CoprimeIndex";
 
@@ -323,6 +327,52 @@ public:
     Y.clear();
     M.clear();
     B.clear();
+  }
+
+  unordered_set<int> computeBorderBins(void) const {
+    size_t n = X.size();
+
+    int x_max = std::numeric_limits<int>::min();
+    for (size_t i = 0; i < n; ++i)
+      x_max = std::max(x_max, getX(i));
+
+    std::vector<int> Xmin(1 + x_max, std::numeric_limits<int>::max());
+    std::vector<int> Xmax(1 + x_max, std::numeric_limits<int>::min());
+
+    std::unordered_set<int> Imin;
+    std::unordered_set<int> Imax;
+
+    for (size_t i = 0; i < n; ++i) {
+      int x = getX(i);
+      if (getY(i) < Xmin[x]) {
+        Xmin[x] = getY(i);
+        Imin.insert(i);
+      }
+      if (getY(i) > Xmax[x]) {
+        Xmax[x] = getY(i);
+        Imax.insert(i);
+      }
+    }
+
+    // Other direction
+    int y_max = std::numeric_limits<int>::min();
+    for (size_t i = 0; i < n; ++i)
+      y_max = std::max(y_max, getY(i));
+
+    std::vector<int> Ymin(1 + y_max, std::numeric_limits<int>::max());
+    std::vector<int> Ymax(1 + y_max, std::numeric_limits<int>::min());
+
+    for (size_t i = 0; i < n; ++i) {
+      int y = getY(i);
+      if (getX(i) < Ymin[y]) {
+        Xmin[y] = getX(i);
+        Imin.insert(i);
+      }
+      if (getX(i) > Ymax[y]) {
+        Xmax[y] = getX(i);
+        Imax.insert(i);
+      }
+    }
   }
 
 private:
@@ -586,7 +636,8 @@ public:
       : _status(KWD::ProblemType::UNINIT), _runtime(0.0), _iterations(0),
         _num_nodes(0), _num_arcs(0), _n_log(0), L(-1), verbosity(KWD_VAL_INFO),
         recode(""), opt_tolerance(1e-06),
-        timelimit(std::numeric_limits<double>::max()), unbalanced(false),
+        timelimit(std::numeric_limits<double>::max()),
+        unbalanced(KWD_VAL_FALSE),
         unbal_cost(std::numeric_limits<double>::max()), convex_hull(true) {}
 
   // Setter/getter for parameters
@@ -600,7 +651,7 @@ public:
     if (name == KWD_PAR_RECODE)
       return recode;
     if (name == KWD_PAR_UNBALANCED)
-      return (unbalanced ? KWD_VAL_TRUE : KWD_VAL_FALSE);
+      return unbalanced;
     if (name == KWD_PAR_CONVEXHULL)
       return (convex_hull ? KWD_VAL_TRUE : KWD_VAL_FALSE);
 
@@ -637,7 +688,7 @@ public:
       recode = value;
 
     if (name == KWD_PAR_UNBALANCED)
-      unbalanced = (value == KWD_VAL_TRUE ? true : false);
+      unbalanced = value;
 
     if (name == KWD_PAR_CONVEXHULL)
       convex_hull = (value == KWD_VAL_TRUE ? true : false);
@@ -660,8 +711,8 @@ public:
   void dumpParam() const {
     PRINT("Internal parameters: %s %s %s %s %.3f %f %s %d %.1f, %d\n",
           method.c_str(), model.c_str(), algorithm.c_str(), verbosity.c_str(),
-          timelimit, opt_tolerance, recode.c_str(), (int)unbalanced, unbal_cost,
-          (int)convex_hull);
+          timelimit, opt_tolerance, recode.c_str(),
+          (int)(unbalanced != KWD_VAL_FALSE), unbal_cost, (int)convex_hull);
   }
 
   // Return status of the solver
@@ -1597,6 +1648,10 @@ public:
 
     int xmin = xy[0];
     int ymin = xy[1];
+
+    x = x - xmin;
+    y = y - ymin;
+
     // int xmax = xy[2];
     // int ymax = xy[3];
 
@@ -2019,7 +2074,7 @@ public:
     }
 
     // Rebalance the total mass only if it is not an unbalanced probelm
-    if (!unbalanced) {
+    if (unbalanced == KWD_VAL_FALSE) {
       for (int i = 0; i < n; ++i) {
         W1[i] = W1[i] / tot_w1;
         W2[i] = W2[i] / tot_w2;
@@ -2079,7 +2134,7 @@ public:
 
       // Build the graph for min cost flow
       NetSimplex<FlowType, CostType> simplex(
-          'F', n + int(unbalanced == true),
+          'F', n + int(unbalanced != KWD_VAL_FALSE),
           n *static_cast<int>(coprimes.size()));
 
       // Set the parameters
@@ -2105,18 +2160,39 @@ public:
         }
       }
 
-      // Add noded for unbalanced transport, if parater is set
-      if (unbalanced) {
+      // Add noded for unbalanced transport, if parameter is set to true
+      if (unbalanced != KWD_VAL_FALSE) {
         double bb = -Rs.balance();
         double c1 = (bb < 0 ? unbal_cost : 0);
         double c2 = (bb < 0 ? 0 : unbal_cost);
         simplex.addNode(n, bb);
 
-        for (int i = 0; i < n; ++i)
-          simplex.addArc(i, n, c1);
+        // TODO: Support for configurable option of linked to dummy node, with a
+        // Boolean parameter, like, e.g., Rs.isDummy(h) ?
+        if (unbalanced == KWD_VAL_ALLBIN) {
+          for (int i = 0; i < n; ++i)
+            simplex.addArc(i, n, c1);
 
-        for (int i = 0; i < n; ++i)
-          simplex.addArc(n, i, c2);
+          for (int i = 0; i < n; ++i)
+            simplex.addArc(n, i, c2);
+        }
+        if (unbalanced == KWD_VAL_BORDERBIN) {
+          unordered_set<int> bins = Rs.computeBorderBins();
+          for (int i : bins)
+            simplex.addArc(i, n, c1);
+
+          for (int i : bins)
+            simplex.addArc(n, i, c2);
+        }
+        if (unbalanced == KWD_VAL_CUSTOMBIN) {
+          for (int i = 0; i < n; ++i)
+            if (Rs.getB(i) < 0)
+              simplex.addArc(i, n, c1);
+
+          for (int i = 0; i < n; ++i)
+            if (Rs.getB(i) < 0)
+              simplex.addArc(n, i, c2);
+        }
       }
 
       // Solve the problem to compute the distance
@@ -2137,7 +2213,7 @@ public:
           _status != ProblemType::TIMELIMIT)
         distance = simplex.totalCost();
 
-      if (unbalanced)
+      if (unbalanced != KWD_VAL_FALSE)
         distance = distance / std::max(tot_w1, tot_w2);
 
       return distance;
@@ -2195,8 +2271,8 @@ public:
       typedef double CostType;
 
       // Build the graph for min cost flow
-      NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true),
-                                             0);
+      NetSimplex<FlowType, CostType> simplex(
+          'E', n + int(unbalanced != KWD_VAL_FALSE), 0);
 
       // Set the parameters
       simplex.setTimelimit(timelimit);
@@ -2208,17 +2284,36 @@ public:
         simplex.addNode(i, Rs.getB(i));
 
       // Add noded for unbalanced transport, if parater is set
-      if (unbalanced) {
+      if (unbalanced != KWD_VAL_FALSE) {
         double bb = -Rs.balance();
         double c1 = (bb < 0 ? unbal_cost : 0);
         double c2 = (bb < 0 ? 0 : unbal_cost);
         simplex.addNode(n, bb);
 
-        for (int i = 0; i < n; ++i)
-          simplex.addArc(i, n, c1);
+        if (unbalanced == KWD_VAL_ALLBIN) {
+          for (int i = 0; i < n; ++i)
+            simplex.addArc(i, n, c1);
 
-        for (int i = 0; i < n; ++i)
-          simplex.addArc(n, i, c2);
+          for (int i = 0; i < n; ++i)
+            simplex.addArc(n, i, c2);
+        }
+        if (unbalanced == KWD_VAL_BORDERBIN) {
+          unordered_set<int> bins = Rs.computeBorderBins();
+          for (int i : bins)
+            simplex.addArc(i, n, c1);
+
+          for (int i : bins)
+            simplex.addArc(n, i, c2);
+        }
+        if (unbalanced == KWD_VAL_CUSTOMBIN) {
+          for (int i = 0; i < n; ++i)
+            if (Rs.getB(i) < 0)
+              simplex.addArc(i, n, c1);
+
+          for (int i = 0; i < n; ++i)
+            if (Rs.getB(i) < 0)
+              simplex.addArc(n, i, c2);
+        }
       }
 
       int it = 0;
@@ -2327,7 +2422,7 @@ public:
       _num_nodes = simplex.num_nodes();
 
       fobj = simplex.totalCost();
-      if (unbalanced)
+      if (unbalanced != KWD_VAL_FALSE)
         fobj = fobj / std::max(tot_w1, tot_w2);
 
       if (_n_log > 0)
@@ -2415,7 +2510,7 @@ public:
     }
 
     // Rescale all integers coordinates to (0,0)
-    if (!unbalanced) {
+    if (unbalanced == KWD_VAL_FALSE) {
       for (int i = 0; i < N; ++i) {
         W1[i] = W1[i] / tot_w1;
         for (int j = 0; j < _m; ++j)
@@ -2481,7 +2576,7 @@ public:
       typedef double CostType;
       // Build the graph for min cost flow
       NetSimplex<FlowType, CostType> simplex(
-          'F', n + int(unbalanced == true),
+          'F', n + int(unbalanced != KWD_VAL_FALSE),
           n *static_cast<int>(coprimes.size()));
 
       // Set the parameters
@@ -2504,10 +2599,10 @@ public:
         }
       }
 
-      // Add noded for unbalanced transport, if parater is set
+      // Add noded for unbalanced transport, if parameter is set
       vector<size_t> lhs_arcs(n, 0);
       vector<size_t> rhs_arcs(n, 0);
-      if (unbalanced) {
+      if (unbalanced != KWD_VAL_FALSE) {
         for (int i = 0; i < n; ++i)
           lhs_arcs[i] = simplex.addArc(i, n, 0);
 
@@ -2538,7 +2633,7 @@ public:
             simplex.addNode(p.second, 0.0);
         }
 
-        if (unbalanced) {
+        if (unbalanced != KWD_VAL_FALSE) {
           double bb = -tot_w1 + tot_ws[jj];
           simplex.addNode(n, bb); // Set the node value, it is not a true add
 
@@ -2566,7 +2661,7 @@ public:
             _status != ProblemType::UNBOUNDED &&
             _status != ProblemType::TIMELIMIT) {
           Ds[jj] = simplex.totalCost();
-          if (unbalanced)
+          if (unbalanced != KWD_VAL_FALSE)
             Ds[jj] = Ds[jj] / std::max(tot_w1, tot_ws[jj]);
         } else
           PRINT("ERROR 1001: Network Simplex wrong. Error code: %d\n",
@@ -2612,12 +2707,12 @@ public:
       typedef double CostType;
 
       // Build the graph for min cost flow
-      NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true),
-                                             0);
+      NetSimplex<FlowType, CostType> simplex(
+          'E', n + int(unbalanced != KWD_VAL_FALSE), 0);
       // Add noded for unbalanced transport, if parater is set
       vector<size_t> lhs_arcs(n, 0);
       vector<size_t> rhs_arcs(n, 0);
-      if (unbalanced) {
+      if (unbalanced != KWD_VAL_FALSE) {
         for (int i = 0; i < n; ++i)
           lhs_arcs[i] = simplex.addArc(i, n, 0);
 
@@ -2646,7 +2741,7 @@ public:
             simplex.addNode(p.second, 0.0);
         }
 
-        if (unbalanced) {
+        if (unbalanced != KWD_VAL_FALSE) {
           double bb = -tot_w1 + tot_ws[jj];
           simplex.addNode(n, bb); // Set the node value, it is not a true add
 
@@ -2767,7 +2862,7 @@ public:
                     1000000000;
 
         Ds[jj] = simplex.totalCost();
-        if (unbalanced)
+        if (unbalanced != KWD_VAL_FALSE)
           Ds[jj] = Ds[jj] / std::max(tot_w1, tot_ws[jj]);
 
         if (_n_log > 0)
@@ -2857,7 +2952,7 @@ public:
     }
 
     // Rescale all integers coordinates to (0,0)
-    if (!unbalanced) {
+    if (unbalanced == KWD_VAL_FALSE) {
       for (int i = 0; i < N; ++i)
         for (int j = 0; j < _m; ++j)
           Ws[j * N + i] = Ws[j * N + i] / tot_ws[j];
@@ -2924,7 +3019,7 @@ public:
       typedef double CostType;
       // Build the graph for min cost flow
       NetSimplex<FlowType, CostType> simplex(
-          'F', n + int(unbalanced == true),
+          'F', n + int(unbalanced != KWD_VAL_FALSE),
           n *static_cast<int>(coprimes.size()));
 
       // Set the parameters
@@ -2947,10 +3042,10 @@ public:
         }
       }
 
-      // Add noded for unbalanced transport, if parater is set
+      // Add noded for unbalanced transport, if parameter is set
       vector<size_t> lhs_arcs(n, 0);
       vector<size_t> rhs_arcs(n, 0);
-      if (unbalanced) {
+      if (unbalanced != KWD_VAL_FALSE) {
         for (int i = 0; i < n; ++i)
           lhs_arcs[i] = simplex.addArc(i, n, 0);
 
@@ -2979,7 +3074,7 @@ public:
               simplex.addNode(p.second, 0.0);
           }
 
-          if (unbalanced) {
+          if (unbalanced != KWD_VAL_FALSE) {
             double bb = -tot_ws[ii] + tot_ws[jj];
             simplex.addNode(n, bb); // Set the node value, it is not a true add
 
@@ -3008,7 +3103,7 @@ public:
               _status != ProblemType::UNBOUNDED &&
               _status != ProblemType::TIMELIMIT) {
             Ds[ii * _m + jj] = simplex.totalCost();
-            if (unbalanced)
+            if (unbalanced != KWD_VAL_FALSE)
               Ds[ii * _m + jj] =
                   Ds[ii * _m + jj] / std::max(tot_ws[ii], tot_ws[jj]);
             Ds[jj * _m + ii] = Ds[ii * _m + jj];
@@ -3058,8 +3153,8 @@ public:
       typedef double CostType;
 
       // Build the graph for min cost flow
-      NetSimplex<FlowType, CostType> simplex('E', n + int(unbalanced == true),
-                                             0);
+      NetSimplex<FlowType, CostType> simplex(
+          'E', n + int(unbalanced != KWD_VAL_FALSE), 0);
 
       // Set the parameters
       simplex.setTimelimit(timelimit);
@@ -3069,7 +3164,7 @@ public:
       // Add noded for unbalanced transport, if parater is set
       vector<size_t> lhs_arcs(n, 0);
       vector<size_t> rhs_arcs(n, 0);
-      if (unbalanced) {
+      if (unbalanced != KWD_VAL_FALSE) {
         for (int i = 0; i < n; ++i)
           lhs_arcs[i] = simplex.addArc(i, n, 0);
 
@@ -3095,7 +3190,7 @@ public:
               simplex.addNode(p.second, 0.0);
           }
 
-          if (unbalanced) {
+          if (unbalanced != KWD_VAL_FALSE) {
             double bb = -tot_ws[ii] + tot_ws[jj];
             simplex.addNode(n, bb); // Set the node value, it is not a true add
 
@@ -3213,7 +3308,7 @@ public:
               1000000000;
 
           Ds[jj * _m + ii] = simplex.totalCost();
-          if (unbalanced)
+          if (unbalanced != KWD_VAL_FALSE)
             Ds[jj * _m + ii] =
                 Ds[jj * _m + ii] / std::max(tot_ws[ii], tot_ws[jj]);
 
@@ -3449,7 +3544,7 @@ private:
   // Time limit for runtime of the algorithm
   double timelimit;
   // If the problem must be considered unbalanced
-  bool unbalanced;
+  std::string unbalanced;
   // Cost for the unbalanced connection
   double unbal_cost;
   // Whether to compute the convex hull

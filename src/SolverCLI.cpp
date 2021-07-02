@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
     solver.setStrParam(KWD_PAR_METHOD, KWD_VAL_APPROX);
     solver.setStrParam(KWD_PAR_ALGORITHM, KWD_VAL_COLGEN);
     solver.setStrParam(KWD_PAR_MODEL, KWD_VAL_MINCOSTFLOW);
-    solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_INFO);
+    solver.setStrParam(KWD_PAR_VERBOSITY, KWD_VAL_SILENT);
     solver.setStrParam(KWD_PAR_RECODE, KWD_VAL_TRUE);
 
     solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_FALSE);
@@ -294,17 +294,24 @@ int main(int argc, char *argv[]) {
             solver.iterations(), solver.num_arcs(), solver.num_nodes(), L);
     }
 
-    int x = (int)Xs.size() / 2;
-    int y = (int)Ys.size() / 2;
-    int radius = 70;
+    int radius = 50;
+    if (argc > 3)
+      radius = std::stoi(argv[3]);
 
     if (false) {
-      solver.setStrParam(KWD_PAR_UNBALANCED, KWD_VAL_TRUE);
-      solver.setDblParam(KWD_PAR_UNBALANCED_COST,
-                         2 * radius * radius); // TO BE SET
+      solver.setStrParam(KWD_PAR_AREA, KWD_VAL_CIRCULAR);
+
+      int xx = 0;
+      double xv = W2[xx];
+      for (int i = 0; i < (int)Xs.size(); i++) {
+        if (W2[i] > xv) {
+          xx = i;
+          xv = W2[i];
+        }
+      }
 
       auto dist = solver.focusArea(Xs.size(), &Xs[0], &Ys[0], &W1[0], &W2[0],
-                                   Xs[x], Ys[y], radius, 3);
+                                   Xs[xx], Ys[xx], radius, L);
 
       PRINT("focusArea => %d: fobj: %.6f, time: %.4f, status: %s, iter: %d, "
             "arcs: "
