@@ -2626,7 +2626,7 @@ public:
         //_iterations = 0.0;
 
         // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
-        // e usare quel bilancio ai nodi, se "i" è presente nella mappa
+        // e usare quel bilancio ai nodi, se "i" e' presente nella mappa
         // devo iterare su cosa?
         for (const auto &p : Rs.getM()) {
           auto q = MXY.find(p.first);
@@ -2734,7 +2734,7 @@ public:
 
       for (int jj = 0; jj < _m; ++jj) {
         // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
-        // e usare quel bilancio ai nodi, se "i" è presente nella mappa
+        // e usare quel bilancio ai nodi, se "i" e' presente nella mappa
         // devo iterare su cosa?
         for (const auto &p : Rs.getM()) {
           auto q = MXY.find(p.first);
@@ -3066,7 +3066,7 @@ public:
       for (int ii = 0; ii < _m; ++ii) {
         for (int jj = ii + 1; jj < _m; ++jj) {
           // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
-          // e usare quel bilancio ai nodi, se "i" è presente
+          // e usare quel bilancio ai nodi, se "i" e' presente
           // nella mappa devo iterare su cosa?
           for (const auto &p : Rs.getM()) {
             auto q = MXY.find(p.first);
@@ -3182,7 +3182,7 @@ public:
       for (int ii = 0; ii < _m; ++ii) {
         for (int jj = ii + 1; jj < _m; ++jj) {
           // TODO: Devo ciclare sulla mappa iniziale (x,y)->idx
-          // e usare quel bilancio ai nodi, se "i" è presente
+          // e usare quel bilancio ai nodi, se "i" e' presente
           // nella mappa devo iterare su cosa?
           for (const auto &p : Rs.getM()) {
             auto q = MXY.find(p.first);
