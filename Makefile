@@ -1,5 +1,5 @@
 #
-# @fileoverview Copyright (c) 2019-2021, by Stefano Gualandi, UniPv,
+# @fileoverview Copyright (c) 2019-2022, by Stefano Gualandi, UniPv,
 #               via Ferrata, 1, Pavia, Italy, 27100
 #
 # @author stefano.gualandi@gmail.com (Stefano Gualandi)
@@ -47,14 +47,14 @@ crancheck:
 	cp include/KWD_NetSimplex.h wrappers/R/src
 	cp include/KWD_NetSimplexCapacity.h wrappers/R/src
 	R CMD build wrappers/R
-	R CMD check --as-cran SpatialKWD_0.4.0.tar.gz
+	R CMD check --as-cran SpatialKWD_0.4.1.tar.gz
 
 checkR:
 	cp include/KWD_Histogram2D.h wrappers/R/src
 	cp include/KWD_NetSimplex.h wrappers/R/src
 	cp include/KWD_NetSimplexCapacity.h wrappers/R/src
 	R CMD build wrappers/R
-	R CMD check SpatialKWD_0.4.0.tar.gz
+	R CMD check SpatialKWD_0.4.1.tar.gz
 
 # Test command line tool
 test_cli:

@@ -87,7 +87,7 @@ To compile the wrapper directly from the source code, you need a recent version 
 
 Windows users can download a pre-compiled binary package at the following link:
 
-* [SpatialKWD_0.4.0.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.4.0-alpha/SpatialKWD_0.4.0.zip)
+* [SpatialKWD_0.4.1.zip](https://github.com/eurostat/Spatial-KWD/releases/download/v0.4.1-alpha/SpatialKWD_0.4.1.zip)
 
 
 If you need an interface for a different R data structure, please, drop us an email.

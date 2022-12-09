@@ -1,5 +1,10 @@
 # Changelog
 
+## [2022-12-09] Changelog from v0.4.1:
+
+- Fix a compilation warning for CRAN (remove Italian letters with accent)
+
+
 ## [2021-05-07] Changelog from v0.4.0:
 
 - New feature: support for focus areas.
